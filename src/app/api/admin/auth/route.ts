@@ -1,0 +1,37 @@
+import { NextRequest, NextResponse } from "next/server";
+import { readDb } from "@/lib/server/db";
+import { AdminAuthSchema } from "@/types/campaign";
+
+export const dynamic = "force-dynamic";
+
+export async function POST(req: NextRequest) {
+  try {
+    const body = await req.json();
+    const parseResult = AdminAuthSchema.safeParse(body);
+
+    if (!parseResult.success) {
+      return NextResponse.json({ error: "رمز عبور نامعتبر است" }, { status: 400 });
+    }
+
+    const { pin } = parseResult.data;
+    const db = await readDb();
+
+    if (pin !== db.settings.adminPin) {
+      return NextResponse.json({ error: "رمز عبور مدیریت نادرست است" }, { status: 401 });
+    }
+
+    const response = NextResponse.json({ success: true, message: "احراز هویت موفقیت‌آمیز بود" });
+    response.cookies.set("admin_pin", pin, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 60 * 60 * 24 * 7, // 7 days
+      path: "/",
+    });
+
+    return response;
+  } catch (error) {
+    console.error("Admin auth error:", error);
+    return NextResponse.json({ error: "خطای سرور" }, { status: 500 });
+  }
+}

@@ -1,0 +1,425 @@
+@import "tailwindcss";
+
+@theme {
+  --font-shabnam: var(--font-shabnam), system-ui, -apple-system, sans-serif;
+  --font-sans: var(--font-shabnam), system-ui, -apple-system, sans-serif;
+}
+
+:root {
+  --background: #090d16;
+  --foreground: #f8fafc;
+
+  --night-950: #05080e;
+  --night-900: #090d16;
+  --night-800: #0d1424;
+  --night-700: #141d33;
+
+  --gold-200: #fde68a;
+  --gold-300: #fcd34d;
+  --gold-400: #fbbf24;
+  --gold-500: #f59e0b;
+  --gold-600: #d97706;
+  --gold-700: #b45309;
+
+  /* iOS-like motion curves */
+  --ease-ios: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-ios-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-ios-spring: cubic-bezier(0.34, 1.3, 0.64, 1);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  overflow-x: hidden;
+  background-color: var(--night-900);
+  color-scheme: dark;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-shabnam);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+  user-select: none;
+  text-rendering: optimizeLegibility;
+}
+
+/* ─────────────────────────────────────────────
+   Sacred glass surfaces
+────────────────────────────────────────────── */
+.glass-panel {
+  background: linear-gradient(180deg, rgba(13, 20, 36, 0.72), rgba(5, 8, 14, 0.85));
+  border: 1px solid rgba(251, 191, 36, 0.14);
+  box-shadow:
+    0 18px 45px -18px rgba(0, 0, 0, 0.8),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.gold-text {
+  background: linear-gradient(180deg, #fde68a 10%, #f59e0b 90%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* ─────────────────────────────────────────────
+   Keyframes — restrained celestial motion
+────────────────────────────────────────────── */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-10px) rotate(0.3deg);
+  }
+}
+
+@keyframes breathe {
+  0%, 100% {
+    box-shadow:
+      0 0 20px rgba(245, 158, 11, 0.32),
+      0 12px 38px rgba(0, 0, 0, 0.55),
+      inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  }
+  50% {
+    box-shadow:
+      0 0 38px rgba(245, 158, 11, 0.55),
+      0 12px 44px rgba(0, 0, 0, 0.6),
+      inset 0 1px 0 rgba(255, 255, 255, 0.45);
+  }
+}
+
+@keyframes twinkle {
+  0%, 100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes rocketLaunch {
+  0% {
+    transform: translateY(0) scale(1) rotate(0deg);
+    opacity: 1;
+  }
+  14% {
+    transform: translateY(-14px) scale(1.02) rotate(-0.5deg);
+  }
+  24% {
+    transform: translateY(6px) scale(0.99) rotate(0.6deg);
+  }
+  58% {
+    transform: translateY(-240px) scale(0.92) rotate(-0.4deg);
+  }
+  100% {
+    transform: translateY(-1100px) scale(0.6) rotate(0deg);
+    opacity: 0;
+  }
+}
+
+@keyframes rocketReady {
+  0%, 100% {
+    transform: translate(0, 0);
+  }
+  25% {
+    transform: translate(0.5px, -0.4px);
+  }
+  50% {
+    transform: translate(-0.35px, 0.35px);
+  }
+  75% {
+    transform: translate(0.4px, 0.25px);
+  }
+}
+
+@keyframes flameFlicker {
+  0%, 100% {
+    transform: scaleY(1) scaleX(1);
+    opacity: 0.95;
+  }
+  35% {
+    transform: scaleY(1.14) scaleX(0.94);
+    opacity: 1;
+  }
+  70% {
+    transform: scaleY(0.92) scaleX(1.05);
+    opacity: 0.88;
+  }
+}
+
+@keyframes auraPulse {
+  0%, 100% {
+    opacity: 0.55;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.9;
+    transform: scale(1.06);
+  }
+}
+
+@keyframes beamPulse {
+  0%, 100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 0.75;
+  }
+}
+
+@keyframes waveSlide {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-36px);
+  }
+}
+
+/* The whole liquid body gently bobs — reads as one fluid mass */
+@keyframes fuelBob {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(1.8px);
+  }
+}
+
+@keyframes bubbleRise {
+  0% {
+    transform: translateY(0) scale(0.7);
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.85;
+  }
+  100% {
+    transform: translateY(-46px) scale(1.05);
+    opacity: 0;
+  }
+}
+
+@keyframes orbRise {
+  0% {
+    transform: translate(-50%, 0) scale(0.75);
+    opacity: 0;
+  }
+  16% {
+    opacity: 1;
+    transform: translate(-50%, -18px) scale(1.05);
+  }
+  100% {
+    transform: translate(-50%, -84px) scale(0.65);
+    opacity: 0;
+  }
+}
+
+@keyframes starBirth {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  40% {
+    transform: scale(1.5);
+    opacity: 1;
+  }
+  72% {
+    transform: scale(0.94);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes shockwaveRing {
+  0% {
+    transform: scale(0.25);
+    opacity: 0.85;
+  }
+  100% {
+    transform: scale(2.4);
+    opacity: 0;
+  }
+}
+
+@keyframes gentleFade {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes ascendLine {
+  0% {
+    transform: translateY(0);
+    opacity: 0;
+  }
+  12% {
+    opacity: 1;
+  }
+  88% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-110vh);
+    opacity: 0;
+  }
+}
+
+@keyframes countPop {
+  0% {
+    transform: scale(0.86);
+    opacity: 0;
+    filter: blur(2px);
+  }
+  55% {
+    transform: scale(1.05);
+    opacity: 1;
+    filter: blur(0);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* ─────────────────────────────────────────────
+   Animation utilities
+────────────────────────────────────────────── */
+.animate-float {
+  animation: float 6.5s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+
+.animate-rocket-launch {
+  animation: rocketLaunch 4.2s cubic-bezier(0.55, 0, 0.85, 0.4) forwards;
+}
+
+.animate-rocket-ready {
+  animation: rocketReady 0.38s linear infinite;
+}
+
+.animate-breathe {
+  animation: breathe 4.2s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+
+.animate-aura {
+  animation: auraPulse 4.8s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+
+.animate-beam {
+  animation: beamPulse 5.5s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+
+.animate-flame {
+  animation: flameFlicker 0.32s ease-in-out infinite;
+  transform-origin: 50% 0%;
+}
+
+.animate-flame-slow {
+  animation: flameFlicker 0.6s ease-in-out infinite;
+  transform-origin: 50% 0%;
+}
+
+.animate-orb-rise {
+  animation: orbRise 1.2s cubic-bezier(0.32, 0.72, 0, 1) forwards;
+}
+
+.animate-ascend-line {
+  animation: ascendLine 1.6s cubic-bezier(0.32, 0.72, 0, 1) infinite;
+}
+
+.animate-star-birth {
+  animation: starBirth 1.3s cubic-bezier(0.34, 1.3, 0.64, 1) both;
+}
+
+.animate-shockwave {
+  animation: shockwaveRing 1.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.animate-gentle-fade {
+  animation: gentleFade 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.animate-count-pop {
+  animation: countPop 0.5s cubic-bezier(0.34, 1.3, 0.64, 1) both;
+}
+
+.animate-twinkle {
+  animation: twinkle 3.4s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+
+/* SVG rocket liquid */
+.rocket-wave-path {
+  animation: waveSlide 2.6s linear infinite;
+}
+
+.rocket-bubble {
+  animation: bubbleRise 3.4s ease-in infinite;
+}
+
+.animate-fuel-bob {
+  animation: fuelBob 3.8s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+
+/* ─────────────────────────────────────────────
+   Custom scrollbars
+────────────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #090d16;
+}
+::-webkit-scrollbar-thumb {
+  background: #1e293b;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #334155;
+}
+
+/* ─────────────────────────────────────────────
+   Sacred restraint: honor reduced motion
+────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .animate-float,
+  .animate-rocket-ready,
+  .animate-breathe,
+  .animate-aura,
+  .animate-beam,
+  .animate-flame,
+  .animate-flame-slow,
+  .animate-wave,
+  .animate-bubble,
+  .rocket-wave-path,
+  .rocket-bubble,
+  .animate-twinkle,
+  .animate-shockwave,
+  .animate-fuel-bob,
+  .animate-ascend-line {
+    animation: none !important;
+  }
+
+  .animate-rocket-launch {
+    animation-duration: 2s !important;
+  }
+
+  html {
+    scroll-behavior: auto;
+  }
+}
