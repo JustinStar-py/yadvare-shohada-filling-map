@@ -8,7 +8,7 @@ import OdometerNumber from "./ui/OdometerNumber";
 import { PublicCampaignState } from "@/types/campaign";
 import { toPersianDigits } from "@/lib/utils";
 import { useCountUp } from "@/lib/client/use-count-up";
-import { Calendar, ChevronDown } from "lucide-react";
+import { Calendar } from "lucide-react";
 
 interface HeroSectionProps {
   campaignState: PublicCampaignState;
@@ -52,21 +52,21 @@ export default function HeroSection({
             : "translate-y-0 opacity-100 scale-100"
         }`}
       >
-        <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-slate-900/80 border border-amber-500/25 shadow-[0_2px_10px_rgba(0,0,0,0.35)] backdrop-blur-md">
-          <Calendar className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-          <span className="text-xs font-semibold text-slate-200">
+        <div className="inline-flex items-center gap-2.5 px-5 py-2 sm:px-6 sm:py-2.5 rounded-full bg-slate-900/85 border border-amber-500/35 shadow-[0_4px_20px_rgba(0,0,0,0.5),0_0_12px_rgba(245,158,11,0.15)] backdrop-blur-md">
+          <Calendar className="w-4.5 h-4.5 sm:w-5 sm:h-5 text-amber-400 shrink-0" />
+          <span className="text-sm sm:text-base font-bold text-slate-100">
             {campaignPhase === "memorial_day" ? (
-              <strong className="text-amber-300">امروز، روز برگزاری یادواره شهدا</strong>
+              <strong className="text-amber-300 font-black">امروز، روز برگزاری یادواره شهدا</strong>
             ) : daysRemaining === 1 ? (
-              <strong className="text-amber-300">فردا، روز یادواره شهدای والامقام</strong>
+              <strong className="text-amber-300 font-black">فردا، روز یادواره شهدای والامقام</strong>
             ) : (
               <>
-                <strong className="text-amber-300 tabular-nums">{toPersianDigits(daysRemaining)}</strong> روز مانده تا یادواره شهدا
+                <strong className="text-amber-300 text-base sm:text-lg font-black tabular-nums">{toPersianDigits(daysRemaining)}</strong> روز مانده تا یادواره شهدا
               </>
             )}
           </span>
-          <span className="text-slate-600 text-xs">•</span>
-          <span className="text-[11px] text-slate-400 font-medium">
+          <span className="text-amber-500/40 text-sm">•</span>
+          <span className="text-xs sm:text-sm text-slate-300 font-semibold">
             روز {toPersianDigits(mission.dayNumber)} پویش
           </span>
         </div>
@@ -139,11 +139,7 @@ export default function HeroSection({
           disabled={isLaunching || campaignPhase === "archived"}
         />
 
-        {/* Subtle, respectful scroll indicator */}
-        <div className="flex items-center gap-1 text-[10px] text-slate-500/80 pt-1 pointer-events-none">
-          <span>روایت امروز و جزئیات یادواره</span>
-          <ChevronDown className="w-3 h-3 animate-bounce" />
-        </div>
+
       </div>
     </section>
   );
