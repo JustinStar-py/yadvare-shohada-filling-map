@@ -7,6 +7,7 @@ import { detectRenderQuality, RenderQuality } from "@/lib/client/quality";
 interface AtmosphereCanvasProps {
   fuelPercentage: number;
   isLaunching: boolean;
+  hasLiftedOff: boolean;
   constellation: ConstellationStar[];
   readyBloomTrigger: number;
 }
@@ -103,6 +104,7 @@ function makeGlowSprite(size: number, stops: [number, string][]): HTMLCanvasElem
 export default function AtmosphereCanvas({
   fuelPercentage,
   isLaunching,
+  hasLiftedOff,
   constellation,
   readyBloomTrigger,
 }: AtmosphereCanvasProps) {
@@ -111,6 +113,8 @@ export default function AtmosphereCanvas({
 
   const constellationRef = useRef(constellation);
   const isLaunchingRef = useRef(isLaunching);
+  const liftedRef = useRef(hasLiftedOff);
+  const liftedAtRef = useRef(-1e9);
   const fuelRef = useRef(fuelPercentage);
   const lastBloomRef = useRef(readyBloomTrigger);
 
@@ -120,6 +124,9 @@ export default function AtmosphereCanvas({
   useEffect(() => {
     isLaunchingRef.current = isLaunching;
   }, [isLaunching]);
+  useEffect(() => {
+    liftedRef.current = hasLiftedOff;
+  }, [hasLiftedOff]);
   useEffect(() => {
     fuelRef.current = fuelPercentage;
   }, [fuelPercentage]);
@@ -291,7 +298,7 @@ export default function AtmosphereCanvas({
     let h = window.innerHeight;
     let time = 0;
     let nextMeteorAt = performance.now() + 7000;
-    let launchPrev = false;
+    let liftPrev = false;
 
     // ── Nebula layer, pre-rendered offscreen; re-rendered only when fuel bucket changes ──
     const renderNebula = () => {
@@ -378,14 +385,17 @@ export default function AtmosphereCanvas({
 
       time += 0.016;
       const launching = isLaunchingRef.current;
+      const lifted = liftedRef.current;
       const scroll = scrollYRef.current;
       const low = qualityRef.current === "low";
       const anchor = rocketAnchor();
 
-      if (launching && !launchPrev) {
-        flashRef.current = 0.7;
+      if (lifted && !liftPrev) {
+        // T-0: engines ignite
+        flashRef.current = 0.85;
+        liftedAtRef.current = now;
       }
-      launchPrev = launching;
+      liftPrev = lifted;
 
       ctx.clearRect(0, 0, w, h);
       ctx.globalCompositeOperation = "lighter";
@@ -476,7 +486,7 @@ export default function AtmosphereCanvas({
           continue;
         }
         const p = m.life / m.maxLife;
-        const alpha = Math.sin(p * Math.PI) * 0.65;
+        const alpha = Math.sin(p * Math.PI) * 0.35;
         const mag = Math.hypot(m.vx, m.vy);
         const tailX = m.x - (m.vx / mag) * m.len;
         const tailY = m.y - (m.vy / mag) * m.len;
@@ -484,7 +494,7 @@ export default function AtmosphereCanvas({
         grad.addColorStop(0, `rgba(226, 232, 240, ${alpha.toFixed(3)})`);
         grad.addColorStop(1, "rgba(226, 232, 240, 0)");
         ctx.strokeStyle = grad;
-        ctx.lineWidth = 1.4;
+        ctx.lineWidth = 0.9;
         ctx.beginPath();
         ctx.moveTo(m.x, m.y);
         ctx.lineTo(tailX, tailY);
@@ -504,11 +514,11 @@ export default function AtmosphereCanvas({
           sparksRef.current.push({
             x: o.x1,
             y: o.y1,
-            vx: (Math.random() - 0.5) * 0.7,
-            vy: -0.4 - Math.random() * 0.5,
+            vx: (Math.random() - 0.5) * 0.5,
+            vy: -0.3 - Math.random() * 0.4,
             life: 0,
-            maxLife: 24,
-            size: 4,
+            maxLife: 20,
+            size: 3.5,
             color: "#fde68a",
             gravity: 0,
             grow: 0,
@@ -523,11 +533,11 @@ export default function AtmosphereCanvas({
         const tx = bezier(tt, o.x0, o.cx, o.x1);
         const ty = bezier(tt, o.y0, o.cy, o.y1);
 
-        ctx.globalAlpha = o.alpha * Math.sin(Math.min(1, o.t * 4) * Math.PI * 0.5);
+        ctx.globalAlpha = o.alpha * Math.sin(Math.min(1, o.t * 4) * Math.PI * 0.5) * 0.75;
         ctx.drawImage(orbSpriteRef.current!, px - o.size / 2, py - o.size / 2, o.size, o.size);
 
-        ctx.strokeStyle = "rgba(251, 191, 36, 0.4)";
-        ctx.lineWidth = Math.max(1, o.size * 0.08);
+        ctx.strokeStyle = "rgba(251, 191, 36, 0.22)";
+        ctx.lineWidth = Math.max(0.8, o.size * 0.06);
         ctx.beginPath();
         ctx.moveTo(tx, ty);
         ctx.lineTo(px, py);
@@ -536,23 +546,59 @@ export default function AtmosphereCanvas({
       }
 
       // 6. Launch exhaust plume + speed streaks
-      if (launching) {
-        const spawn = reducedMotionRef.current ? 2 : low ? 3 : 6;
-        for (let i = 0; i < spawn; i++) {
-          const isSmoke = Math.random() > 0.55;
+      if (launching && !lifted) {
+        // Countdown: cryo venting - slow steam billowing around the pad
+        const vent = reducedMotionRef.current ? 1 : low ? 1 : 2;
+        for (let i = 0; i < vent; i++) {
           sparksRef.current.push({
-            x: anchor.coreX + (Math.random() - 0.5) * 42,
-            y: anchor.baseY,
-            vx: (Math.random() - 0.5) * 2.4,
-            vy: 3.5 + Math.random() * 4.5,
+            x: anchor.coreX + (Math.random() - 0.5) * 64,
+            y: anchor.baseY - Math.random() * 22,
+            vx: (Math.random() - 0.5) * 0.8,
+            vy: -0.2 - Math.random() * 0.7,
             life: 0,
-            maxLife: isSmoke ? 64 + Math.random() * 36 : 30 + Math.random() * 18,
-            size: isSmoke ? 3 + Math.random() * 4 : 2 + Math.random() * 3,
-            color: isSmoke ? "#94a3b8" : "#fbbf24",
-            gravity: 0.06,
-            grow: isSmoke ? 0.08 : -0.02,
-            smoke: isSmoke,
+            maxLife: 90 + Math.random() * 70,
+            size: 4 + Math.random() * 7,
+            color: "#cbd5e1",
+            gravity: -0.004,
+            grow: 0.12,
+            smoke: true,
           });
+        }
+      } else if (lifted) {
+        // Liftoff: bright plume root, then a heavy billowing smoke cloud
+        const hotPhase = now - liftedAtRef.current < 1400;
+        const spawn = reducedMotionRef.current ? 2 : low ? 5 : 9;
+        for (let i = 0; i < spawn; i++) {
+          const isSmoke = !hotPhase || Math.random() > 0.3;
+          if (isSmoke) {
+            sparksRef.current.push({
+              x: anchor.coreX + (Math.random() - 0.5) * 56,
+              y: anchor.baseY - Math.random() * 12,
+              vx: (Math.random() - 0.5) * 3.2,
+              vy: 1.2 + Math.random() * 2.6,
+              life: 0,
+              maxLife: 110 + Math.random() * 80,
+              size: 5 + Math.random() * 9,
+              color: Math.random() > 0.5 ? "#94a3b8" : "#cbd5e1",
+              gravity: -0.028,
+              grow: 0.16 + Math.random() * 0.12,
+              smoke: true,
+            });
+          } else {
+            sparksRef.current.push({
+              x: anchor.coreX + (Math.random() - 0.5) * 30,
+              y: anchor.baseY,
+              vx: (Math.random() - 0.5) * 2.2,
+              vy: 3.2 + Math.random() * 4.2,
+              life: 0,
+              maxLife: 26 + Math.random() * 16,
+              size: 2 + Math.random() * 3,
+              color: "#fbbf24",
+              gravity: 0.05,
+              grow: -0.02,
+              smoke: false,
+            });
+          }
         }
         if (!reducedMotionRef.current && !low) {
           for (let i = 0; i < 2; i++) {
@@ -605,7 +651,7 @@ export default function AtmosphereCanvas({
       }
 
       // 8. Sparks & smoke (sprite-based for golden, arcs for smoke)
-      const sparkCap = low ? 220 : 460;
+      const sparkCap = low ? 260 : 640;
       for (let i = sparksRef.current.length - 1; i >= 0; i--) {
         const sp = sparksRef.current[i];
         sp.life++;
@@ -662,7 +708,7 @@ export default function AtmosphereCanvas({
       ref={canvasRef}
       aria-hidden="true"
       className="fixed inset-0 pointer-events-none z-0 w-full h-full"
-      style={{ opacity: 0.96 }}
+      style={{ opacity: 1 }}
     />
   );
 }

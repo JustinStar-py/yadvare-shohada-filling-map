@@ -76,7 +76,7 @@ body {
     transform: translateY(0) rotate(0deg);
   }
   50% {
-    transform: translateY(-10px) rotate(0.3deg);
+    transform: translateY(-5px) rotate(0.15deg);
   }
 }
 
@@ -109,14 +109,11 @@ body {
     transform: translateY(0) scale(1) rotate(0deg);
     opacity: 1;
   }
-  14% {
-    transform: translateY(-14px) scale(1.02) rotate(-0.5deg);
+  18% {
+    transform: translateY(-30px) scale(1.01) rotate(-0.3deg);
   }
-  24% {
-    transform: translateY(6px) scale(0.99) rotate(0.6deg);
-  }
-  58% {
-    transform: translateY(-240px) scale(0.92) rotate(-0.4deg);
+  55% {
+    transform: translateY(-210px) scale(0.93) rotate(0.35deg);
   }
   100% {
     transform: translateY(-1100px) scale(0.6) rotate(0deg);

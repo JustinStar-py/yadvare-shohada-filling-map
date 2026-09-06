@@ -3,36 +3,49 @@
 import React, { useEffect, useState, useRef } from "react";
 import { toPersianDigits } from "@/lib/utils";
 import { soundEngine } from "@/lib/client/procedural-audio";
-import { Sparkles, Shield } from "lucide-react";
+import { Shield, X } from "lucide-react";
 
 interface LaunchOverlayProps {
   isOpen: boolean;
   martyrName: string;
   onComplete: () => void;
+  /** Fired at T-0: the countdown reached zero and the rocket physically lifts off. */
+  onLiftOff?: () => void;
+  onClose?: () => void;
 }
 
-const COUNT_START = 5;
+const COUNT_START = 3;
 
 export default function LaunchOverlay({
   isOpen,
   martyrName,
   onComplete,
+  onLiftOff,
+  onClose,
 }: LaunchOverlayProps) {
   const [count, setCount] = useState(COUNT_START);
-  const [phase, setPhase] = useState<"countdown" | "ascent" | "completed">("countdown");
+  const [phase, setPhase] = useState<"countdown" | "flight" | "completed" | "fading">("countdown");
+  const [contentVisible, setContentVisible] = useState(true);
   const onCompleteRef = useRef(onComplete);
+  const onLiftOffRef = useRef(onLiftOff);
+
   useEffect(() => {
     onCompleteRef.current = onComplete;
   }, [onComplete]);
 
   useEffect(() => {
+    onLiftOffRef.current = onLiftOff;
+  }, [onLiftOff]);
+
+  useEffect(() => {
     if (!isOpen) {
       setCount(COUNT_START);
       setPhase("countdown");
+      setContentVisible(true);
       return;
     }
 
-    soundEngine.playLaunchAscent();
+    soundEngine.playTick();
 
     let current = COUNT_START;
     const timer = setInterval(() => {
@@ -42,17 +55,31 @@ export default function LaunchOverlay({
         soundEngine.playTick();
       } else {
         clearInterval(timer);
-        setPhase("ascent");
+        // T-0: Countdown finished — fade text immediately so user sees full ascent
+        setContentVisible(false);
 
         setTimeout(() => {
-          setPhase("completed");
-          soundEngine.playStarBirth();
+          setPhase("flight");
+          onLiftOffRef.current?.();
+          soundEngine.playLaunchAscent();
+
+          const COMPLETION_MS = 28800;
           setTimeout(() => {
-            onCompleteRef.current();
-          }, 3600);
-        }, 3200);
+            setPhase("completed");
+            setContentVisible(true);
+            soundEngine.playStarBirth();
+
+            // Hold completion celebration card for 3.5s so user can appreciate the moment, then fade
+            setTimeout(() => {
+              setPhase("fading");
+              setTimeout(() => {
+                onCompleteRef.current();
+              }, 800);
+            }, 3500);
+          }, COMPLETION_MS);
+        }, 400);
       }
-    }, 1000);
+    }, 1500);
 
     return () => clearInterval(timer);
   }, [isOpen]);
@@ -61,37 +88,58 @@ export default function LaunchOverlay({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center animate-in fade-in duration-700 pointer-events-none"
+      className={`fixed inset-0 z-50 flex items-center justify-center transition-all duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] pointer-events-none ${
+        phase === "fading" ? "opacity-0" : "opacity-100"
+      }`}
       style={{
+        // Completely transparent during flight so the rocket is 100% visible without any blue screen or blur
         background:
-          "radial-gradient(ellipse at 50% 38%, rgba(0,0,0,0.25) 0%, rgba(2,4,9,0.72) 55%, rgba(2,4,9,0.94) 100%)",
-        backdropFilter: "blur(2px)",
+          phase === "countdown"
+            ? "radial-gradient(ellipse at 50% 25%, rgba(2,4,9,0.35) 0%, rgba(2,4,9,0.65) 100%)"
+            : phase === "completed"
+            ? "radial-gradient(ellipse at 50% 50%, rgba(2,4,9,0.4) 0%, rgba(2,4,9,0.7) 100%)"
+            : "transparent",
       }}
       role="dialog"
       aria-label="مراحل پرواز معنوی"
     >
-      {/* Ascending light lines during ascent */}
-      {phase === "ascent" && (
-        <div className="absolute inset-0 overflow-hidden">
-          {[14, 32, 51, 68, 86].map((left, i) => (
+      {/* Optional dismiss button with safe-area support */}
+      {onClose && (
+        <button
+          onClick={onClose}
+          className="absolute top-[max(1rem,calc(env(safe-area-inset-top)+0.5rem))] left-[max(1rem,calc(env(safe-area-inset-left)+0.5rem))] z-50 p-2 rounded-full bg-slate-900/80 border border-slate-700/70 text-slate-400 hover:text-white pointer-events-auto transition-colors"
+          aria-label="بستن پنجره پرواز"
+        >
+          <X className="w-5 h-5" />
+        </button>
+      )}
+
+      {/* Ascending light streaks only during flight */}
+      {phase === "flight" && (
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          {[16, 34, 52, 70, 84].map((left, i) => (
             <div
               key={left}
-              className="absolute w-px bg-gradient-to-t from-transparent via-amber-200/25 to-transparent animate-ascend-line"
+              className="absolute w-px bg-gradient-to-t from-transparent via-amber-300/30 to-transparent animate-ascend-line"
               style={{
                 left: `${left}%`,
-                height: 140 + (i % 3) * 60,
-                bottom: "-5%",
-                animationDuration: `${1.3 + (i % 3) * 0.3}s`,
-                animationDelay: `${(i % 3) * 0.25}s`,
+                height: 160 + (i % 3) * 60,
+                bottom: "-10%",
+                animationDuration: `${1.1 + (i % 3) * 0.25}s`,
+                animationDelay: `${(i % 3) * 0.2}s`,
               }}
             />
           ))}
         </div>
       )}
 
-      <div className="relative max-w-md w-full text-center flex flex-col items-center gap-6 px-6 pb-16 sm:pb-0 pt-10">
+      <div
+        className={`relative max-w-md w-full text-center flex flex-col items-center gap-6 px-6 transition-all duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+          contentVisible ? "opacity-100 translate-y-0 scale-100" : "opacity-0 -translate-y-8 scale-90"
+        }`}
+      >
         {phase === "countdown" && (
-          <div className="flex flex-col items-center gap-4">
+          <div className="flex flex-col items-center gap-4 bg-slate-950/70 border border-amber-500/25 p-7 rounded-3xl shadow-[0_12px_40px_rgba(0,0,0,0.6)] backdrop-blur-md">
             <div className="w-14 h-14 rounded-full bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400">
               <Shield className="w-7 h-7" />
             </div>
@@ -101,7 +149,7 @@ export default function LaunchOverlay({
             <h3 className="text-xl font-bold text-amber-200">{martyrName || "شهدای والامقام"}</h3>
 
             {/* Countdown numeral with progress ring */}
-            <div className="relative w-44 h-44 my-2">
+            <div className="relative w-40 h-40 my-1">
               <svg viewBox="0 0 100 100" className="absolute inset-0 -rotate-90">
                 <circle cx="50" cy="50" r="45" fill="none" stroke="rgba(30,41,59,0.8)" strokeWidth="2.5" />
                 <circle
@@ -139,25 +187,16 @@ export default function LaunchOverlay({
           </div>
         )}
 
-        {phase === "ascent" && (
-          <div className="flex flex-col items-center gap-5 animate-in zoom-in-95 duration-700">
-            <div className="w-20 h-20 rounded-full bg-amber-400/15 border border-amber-300/70 flex items-center justify-center shadow-[0_0_60px_rgba(245,158,11,0.7)]">
-              <Sparkles className="w-9 h-9 text-amber-300" />
-            </div>
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-100 tracking-wide">
-              بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ
-            </h2>
-            <p className="text-base sm:text-lg text-amber-200 font-semibold">
-              پرواز به سوی آسمان یادواره در حال اوج است
-            </p>
-            <div className="w-40 h-px bg-gradient-to-l from-transparent via-amber-400/60 to-transparent" />
-          </div>
-        )}
+        {/* During flight: ZERO blocking text or blue screen! Rocket is completely unobstructed */}
 
-        {phase === "completed" && (
-          <div className="flex flex-col items-center gap-5 animate-in fade-in duration-500">
-            {/* Star birth */}
-            <div className="relative w-28 h-28 flex items-center justify-center">
+        {(phase === "completed" || phase === "fading") && (
+          <div
+            className={`flex flex-col items-center gap-5 bg-slate-950/80 border border-amber-400/30 p-8 rounded-3xl shadow-[0_16px_50px_rgba(0,0,0,0.7)] backdrop-blur-md transition-all duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+              contentVisible ? "opacity-100 translate-y-0 scale-100" : "opacity-0 translate-y-4 scale-95"
+            }`}
+          >
+            {/* Star birth celebration */}
+            <div className="relative w-24 h-24 flex items-center justify-center">
               <div className="absolute inset-0 rounded-full border border-amber-300/60 animate-shockwave" />
               <svg viewBox="0 0 40 40" className="w-16 h-16 animate-star-birth drop-shadow-[0_0_25px_rgba(251,191,36,0.9)]">
                 <path

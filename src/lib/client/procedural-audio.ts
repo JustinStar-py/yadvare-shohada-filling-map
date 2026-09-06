@@ -136,16 +136,19 @@ class ProceduralAudioEngine {
 
   /**
    * Gentle, warm bell when sending a Salawat.
+   * Soft pentatonic frequencies with progressive ascending step on rapid taps.
    * Soft pentatonic frequencies — never jarring.
    */
-  public playSalawatTone() {
+  public playSalawatTone(stepIndex?: number) {
     if (this.isMuted) return;
     this.initContext();
     if (!this.ctx || !this.masterGain) return;
 
     const scale = [432, 486, 540, 648, 729];
-    const freq = scale[Math.floor(Math.random() * scale.length)];
-    this.playBell({ freq, gain: 0.16, decay: 1.4 });
+    const freq = typeof stepIndex === "number"
+      ? scale[Math.min(scale.length - 1, stepIndex % scale.length)]
+      : scale[Math.floor(Math.random() * scale.length)];
+    this.playBell({ freq, gain: 0.15, decay: 1.2 });
   }
 
   /**
@@ -206,25 +209,34 @@ class ProceduralAudioEngine {
     const now = ctx.currentTime;
 
     // 1. Sub rumble — felt more than heard
+    // 1. Sub rumble — felt more than heard, sustains through the 15-second ascent
     const rumble = ctx.createOscillator();
     const rumbleGain = ctx.createGain();
     const rumbleFilter = ctx.createBiquadFilter();
     rumble.type = "sawtooth";
     rumble.frequency.setValueAtTime(48, now);
     rumble.frequency.exponentialRampToValueAtTime(110, now + 4.2);
+    rumble.frequency.exponentialRampToValueAtTime(64, now + 14.0);
     rumbleFilter.type = "lowpass";
     rumbleFilter.frequency.setValueAtTime(140, now);
     rumbleFilter.frequency.exponentialRampToValueAtTime(420, now + 4.0);
+    rumbleFilter.frequency.exponentialRampToValueAtTime(380, now + 3.5);
+    rumbleFilter.frequency.exponentialRampToValueAtTime(180, now + 14.0);
 
     rumbleGain.gain.setValueAtTime(0.0001, now);
     rumbleGain.gain.linearRampToValueAtTime(0.3, now + 1.8);
     rumbleGain.gain.exponentialRampToValueAtTime(0.0001, now + 5.4);
+    rumbleGain.gain.linearRampToValueAtTime(0.28, now + 1.8);
+    rumbleGain.gain.linearRampToValueAtTime(0.08, now + 5.0);
+    rumbleGain.gain.linearRampToValueAtTime(0.06, now + 14.0);
+    rumbleGain.gain.exponentialRampToValueAtTime(0.0001, now + 16.0);
 
     rumble.connect(rumbleFilter);
     rumbleFilter.connect(rumbleGain);
     rumbleGain.connect(this.masterGain);
     rumble.start(now);
     rumble.stop(now + 5.6);
+    rumble.stop(now + 16.2);
 
     // 2. Rising celestial sweep
     const riser = ctx.createOscillator();
@@ -232,17 +244,22 @@ class ProceduralAudioEngine {
     riser.type = "sine";
     riser.frequency.setValueAtTime(220, now);
     riser.frequency.exponentialRampToValueAtTime(880, now + 3.8);
+    riser.frequency.exponentialRampToValueAtTime(660, now + 4.0);
 
     riserGain.gain.setValueAtTime(0.0001, now);
     riserGain.gain.linearRampToValueAtTime(0.07, now + 2.6);
     riserGain.gain.exponentialRampToValueAtTime(0.0001, now + 4.8);
+    riserGain.gain.linearRampToValueAtTime(0.06, now + 2.5);
+    riserGain.gain.exponentialRampToValueAtTime(0.0001, now + 6.0);
 
     riser.connect(riserGain);
     riserGain.connect(this.masterGain);
     riser.start(now);
     riser.stop(now + 5.0);
+    riser.stop(now + 6.2);
 
     // 3. Exhaust hiss — filtered noise burst
+    // 3. Exhaust hiss — filtered noise burst sustaining into thin air
     const noiseBuffer = this.getNoiseBuffer();
     if (noiseBuffer) {
       const noise = ctx.createBufferSource();
@@ -253,25 +270,32 @@ class ProceduralAudioEngine {
       noiseFilter.type = "bandpass";
       noiseFilter.frequency.setValueAtTime(400, now);
       noiseFilter.frequency.exponentialRampToValueAtTime(1800, now + 3.5);
+      noiseFilter.frequency.exponentialRampToValueAtTime(1600, now + 3.0);
+      noiseFilter.frequency.exponentialRampToValueAtTime(600, now + 14.0);
       noiseFilter.Q.setValueAtTime(0.6, now);
 
       noiseGain.gain.setValueAtTime(0.0001, now);
       noiseGain.gain.linearRampToValueAtTime(0.1, now + 1.2);
       noiseGain.gain.exponentialRampToValueAtTime(0.0001, now + 5.2);
+      noiseGain.gain.linearRampToValueAtTime(0.09, now + 1.2);
+      noiseGain.gain.linearRampToValueAtTime(0.035, now + 4.5);
+      noiseGain.gain.linearRampToValueAtTime(0.025, now + 13.5);
+      noiseGain.gain.exponentialRampToValueAtTime(0.0001, now + 15.5);
 
       noise.connect(noiseFilter);
       noiseFilter.connect(noiseGain);
       noiseGain.connect(this.masterGain);
       noise.start(now);
       noise.stop(now + 5.4);
+      noise.stop(now + 15.8);
     }
 
-    // 4. Final bell as the rocket pierces the sky
+    // 4. Celestial bell as the rocket reaches apogee
     setTimeout(() => {
       if (!this.isMuted) {
         this.playBell({ freq: 648, gain: 0.12, decay: 3.2 });
       }
-    }, 3600);
+    }, 14500);
   }
 
   /**

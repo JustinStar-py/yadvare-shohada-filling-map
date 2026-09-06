@@ -35,7 +35,7 @@ export default function Header({ tehranDate }: HeaderProps) {
 
   return (
     <header
-      className={`w-full max-w-5xl mx-auto px-4 py-3.5 flex items-center justify-between z-20 relative transition-all duration-500 ${
+      className={`w-full max-w-5xl mx-auto px-4 py-2.5 flex items-center justify-between z-20 relative pointer-events-auto transition-all duration-500 ${
         scrolled ? "backdrop-blur-md bg-[#090d16]/72 border-b border-white/[0.04]" : ""
       }`}
     >

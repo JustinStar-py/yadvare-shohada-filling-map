@@ -6,6 +6,7 @@ import { generateUUID } from "@/lib/utils";
 
 interface SalawatButtonProps {
   onOptimisticIncrement: (count: number) => void;
+  onSubmissionRejected?: (count: number) => void;
   disabled?: boolean;
 }
 
@@ -19,24 +20,32 @@ interface Orb {
   id: number;
   x: number;
   y: number;
-  delay: number;
   dx: number;
 }
 
 export default function SalawatButton({
   onOptimisticIncrement,
+  onSubmissionRejected,
   disabled = false,
 }: SalawatButtonProps) {
   const [ripples, setRipples] = useState<Ripple[]>([]);
   const [orbs, setOrbs] = useState<Orb[]>([]);
   const [pressScale, setPressScale] = useState(false);
+
   const rippleIdRef = useRef(0);
   const orbIdRef = useRef(0);
+  const lastVibrateTimeRef = useRef(0);
+  const lastTapTimeRef = useRef(0);
+  const tapStreakRef = useRef(0);
 
+  // Throttled haptic feedback to prevent motor blur
   const vibrate = useCallback(() => {
+    const now = performance.now();
+    if (now - lastVibrateTimeRef.current < 280) return;
+    lastVibrateTimeRef.current = now;
     try {
       if (typeof navigator !== "undefined" && "vibrate" in navigator) {
-        navigator.vibrate(12);
+        navigator.vibrate(15);
       }
     } catch {}
   }, []);
@@ -45,11 +54,20 @@ export default function SalawatButton({
     (e: React.MouseEvent<HTMLButtonElement> | React.TouchEvent<HTMLButtonElement>) => {
       if (disabled) return;
 
-      // 1. Sound + haptic — same frame as the touch
-      soundEngine.playSalawatTone();
+      const now = performance.now();
+      // Manage progressive tone pitch on rapid tapping
+      if (now - lastTapTimeRef.current < 1100) {
+        tapStreakRef.current += 1;
+      } else {
+        tapStreakRef.current = 0;
+      }
+      lastTapTimeRef.current = now;
+
+      // 1. Procedural audio with rising chorus progression
+      soundEngine.playSalawatTone(tapStreakRef.current);
       vibrate();
 
-      // 2. Ripple from the exact touch point
+      // 2. Click coordinates for ripple & particle burst
       const rect = e.currentTarget.getBoundingClientRect();
       let clientX = rect.left + rect.width / 2;
       let clientY = rect.top + rect.height / 2;
@@ -61,82 +79,86 @@ export default function SalawatButton({
         clientY = e.clientY;
       }
 
-      const newRipple: Ripple = { id: ++rippleIdRef.current, x: clientX - rect.left, y: clientY - rect.top };
-      setRipples((prev) => [...prev.slice(-3), newRipple]);
+      // 3. Subtle touch ripple
+      const newRipple: Ripple = {
+        id: ++rippleIdRef.current,
+        x: clientX - rect.left,
+        y: clientY - rect.top,
+      };
+      setRipples((prev) => [...prev.slice(-2), newRipple]);
       setTimeout(() => {
         setRipples((prev) => prev.filter((r) => r.id !== newRipple.id));
-      }, 700);
+      }, 600);
 
-      // 3. +۱ light orbs rising from the exact press point
-      const newOrbs: Orb[] = [];
-      for (let i = 0; i < 2; i++) {
-        newOrbs.push({
-          id: ++orbIdRef.current,
-          x: clientX - rect.left,
-          y: clientY - rect.top,
-          delay: i * 110,
-          dx: (Math.random() - 0.5) * 30,
-        });
-      }
-      setOrbs((prev) => [...prev.slice(-5), ...newOrbs]);
-      const orbIds = newOrbs.map((o) => o.id);
+      // 4. Single refined +۱ spiritual light orb
+      const newOrb: Orb = {
+        id: ++orbIdRef.current,
+        x: clientX - rect.left,
+        y: clientY - rect.top,
+        dx: (Math.random() - 0.5) * 24,
+      };
+      setOrbs((prev) => [...prev.slice(-3), newOrb]);
       setTimeout(() => {
-        setOrbs((prev) => prev.filter((o) => !orbIds.includes(o.id)));
-      }, 1500);
+        setOrbs((prev) => prev.filter((o) => o.id !== newOrb.id));
+      }, 1200);
 
-      // 4. Announce to the atmosphere engine: golden stream from THIS point
+      // 5. Announce to background atmosphere canvas
       try {
         window.dispatchEvent(
           new CustomEvent("salawat:burst", { detail: { x: clientX, y: clientY } })
         );
       } catch {}
 
-      // 5. Optimistic local state — 0ms perceived latency
+      // 6. Immediate optimistic local update (0ms perceived latency)
       onOptimisticIncrement(1);
 
-      // 6. Background idempotent submission
+      // 7. Background idempotent network dispatch
       const idempotencyKey = generateUUID();
       fetch("/api/salawat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ idempotencyKey, count: 1 }),
-      }).catch(() => {
-        try {
-          const queue = JSON.parse(localStorage.getItem("offline_salawat_queue") || "[]");
-          queue.push({ idempotencyKey, count: 1, timestamp: Date.now() });
-          localStorage.setItem("offline_salawat_queue", JSON.stringify(queue));
-        } catch {}
-      });
+      })
+        .then((res) => {
+          if (!res.ok) {
+            onSubmissionRejected?.(1);
+          }
+        })
+        .catch(() => {
+          try {
+            const queue = JSON.parse(localStorage.getItem("offline_salawat_queue") || "[]");
+            queue.push({ idempotencyKey, count: 1, timestamp: Date.now() });
+            localStorage.setItem("offline_salawat_queue", JSON.stringify(queue.slice(-50)));
+          } catch {}
+        });
     },
-    [disabled, onOptimisticIncrement, vibrate]
+    [disabled, onOptimisticIncrement, onSubmissionRejected, vibrate]
   );
 
   return (
-    <div className="relative flex flex-col items-center justify-center my-2.5 select-none">
-      {/* Button-bounds wrapper — orbs originate exactly at the press point */}
+    <div className="relative flex flex-col items-center justify-center my-1 select-none">
       <div className="relative">
-        {/* Radiant halo beneath the button */}
+        {/* Soft, calm golden halo behind the button */}
         <div
-          className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[110%] h-24 rounded-full blur-2xl pointer-events-none z-0 transition-opacity duration-700 ${
-            disabled ? "opacity-20" : "opacity-60"
+          className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[108%] h-20 rounded-full blur-2xl pointer-events-none z-0 transition-opacity duration-700 ${
+            disabled ? "opacity-15" : "opacity-45"
           }`}
           style={{
             background:
-              "radial-gradient(ellipse at center, rgba(251,191,36,0.38) 0%, rgba(245,158,11,0.15) 45%, transparent 70%)",
+              "radial-gradient(ellipse at center, rgba(251,191,36,0.3) 0%, rgba(245,158,11,0.1) 45%, transparent 70%)",
           }}
         />
 
-        {/* +۱ orbs — spawn at press point, float up over the button */}
+        {/* +۱ rising orbs */}
         <div className="absolute inset-0 z-20 pointer-events-none">
           {orbs.map((orb) => (
             <span
               key={orb.id}
-              className="absolute animate-orb-rise text-amber-100 font-extrabold text-base drop-shadow-[0_0_10px_rgba(251,191,36,0.95)]"
+              className="absolute animate-orb-rise text-amber-100 font-extrabold text-sm drop-shadow-[0_0_8px_rgba(251,191,36,0.9)]"
               style={{
                 left: orb.x,
                 top: orb.y,
                 marginLeft: orb.dx,
-                animationDelay: `${orb.delay}ms`,
               }}
             >
               +۱
@@ -144,7 +166,7 @@ export default function SalawatButton({
           ))}
         </div>
 
-        {/* Main CTA — ≥56px touch target, iOS-soft press */}
+        {/* Main CTA Button — compact, ergonomic (~64px height) */}
         <button
           type="button"
           disabled={disabled}
@@ -154,58 +176,54 @@ export default function SalawatButton({
           onMouseLeave={() => setPressScale(false)}
           onTouchStart={() => setPressScale(true)}
           onTouchEnd={() => setPressScale(false)}
-          className={`relative z-10 group overflow-hidden w-72 sm:w-80 min-h-[76px] py-4 sm:py-5 px-10 rounded-2xl font-bold cursor-pointer touch-manipulation focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-300/80 focus-visible:ring-offset-2 focus-visible:ring-offset-[#090d16] animate-breathe ${
-            pressScale ? "scale-[0.965]" : "hover:scale-[1.012] active:scale-[0.96]"
+          className={`relative z-10 group overflow-hidden w-68 sm:w-76 min-h-[64px] py-3.5 px-8 rounded-2xl font-bold cursor-pointer touch-manipulation focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-300/80 shadow-[0_4px_16px_rgba(245,158,11,0.25)] ${
+            pressScale ? "scale-[0.97]" : "hover:scale-[1.01] active:scale-[0.97]"
           } ${
             disabled
-              ? "bg-gradient-to-b from-slate-700 to-slate-800 text-slate-400 border border-slate-600/60"
-              : "bg-gradient-to-b from-amber-400 via-amber-500 to-amber-700 text-slate-950 border border-amber-200/70 shadow-[inset_0_1px_0_rgba(255,255,255,0.45),inset_0_-2px_4px_rgba(120,53,15,0.35)]"
+              ? "bg-gradient-to-b from-slate-700 to-slate-800 text-slate-400 border border-slate-600/60 shadow-none"
+              : "bg-gradient-to-b from-amber-400 via-amber-500 to-amber-600 text-slate-950 border border-amber-300/80 shadow-[inset_0_1px_0_rgba(255,255,255,0.45),inset_0_-2px_4px_rgba(180,83,9,0.3)]"
           }`}
           style={{
-            transitionProperty: "transform",
-            transitionDuration: "220ms",
-            transitionTimingFunction: "cubic-bezier(0.32, 0.72, 0, 1)",
+            transitionProperty: "transform, filter",
+            transitionDuration: "180ms",
+            transitionTimingFunction: "cubic-bezier(0.22, 1, 0.36, 1)",
           }}
-          aria-label="فرستادن صلوات و مشارکت در پرواز معنوی امروز"
+          aria-label="فرستادن صلوات و مشارکت در پویش معنوی یادواره شهدا"
         >
-          {/* Shimmer */}
+          {/* Subtle Shimmer */}
           {!disabled && (
-            <div className="absolute inset-0 bg-gradient-to-l from-transparent via-white/20 to-transparent translate-x-[-160%] group-hover:translate-x-[160%] transition-transform duration-1000 ease-out pointer-events-none" />
+            <div className="absolute inset-0 bg-gradient-to-l from-transparent via-white/15 to-transparent translate-x-[-160%] group-hover:translate-x-[160%] transition-transform duration-1000 ease-out pointer-events-none" />
           )}
 
           {/* Ripples */}
           {ripples.map((ripple) => (
             <span
               key={ripple.id}
-              className="absolute rounded-full bg-white/45 pointer-events-none"
+              className="absolute rounded-full bg-white/35 pointer-events-none"
               style={{
-                left: ripple.x - 16,
-                top: ripple.y - 16,
-                width: 32,
-                height: 32,
-                animation: "shockwaveRing 0.7s cubic-bezier(0.16,1,0.3,1) forwards",
+                left: ripple.x - 14,
+                top: ripple.y - 14,
+                width: 28,
+                height: 28,
+                animation: "shockwaveRing 0.6s cubic-bezier(0.16,1,0.3,1) forwards",
               }}
             />
           ))}
 
-          <div className="relative z-10 flex flex-col items-center justify-center gap-1">
+          <div className="relative z-10 flex flex-col items-center justify-center gap-0.5">
             <span
-              className={`text-2xl sm:text-[26px] font-extrabold tracking-wide drop-shadow-[0_1px_1px_rgba(255,255,255,0.25)] ${
+              className={`text-xl sm:text-2xl font-extrabold tracking-wide drop-shadow-[0_1px_1px_rgba(255,255,255,0.2)] ${
                 disabled ? "text-slate-300" : "text-slate-950"
               }`}
             >
               صلوات
             </span>
-            <span className={`text-[11px] sm:text-xs font-medium ${disabled ? "text-slate-500" : "text-amber-950/85"}`}>
+            <span className={`text-[11px] font-medium ${disabled ? "text-slate-500" : "text-amber-950/90"}`}>
               اللّهُمَّ صَلِّ عَلی مُحَمَّدٍ وَ آلِ مُحَمَّد
             </span>
           </div>
         </button>
       </div>
-
-      <span className="text-[11px] text-slate-400/90 mt-2.5 tracking-wide">
-        «هر صلوات، یک گام تا پرواز»
-      </span>
     </div>
   );
 }
