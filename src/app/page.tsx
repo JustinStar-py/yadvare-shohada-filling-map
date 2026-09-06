@@ -58,6 +58,7 @@ export default function HomePage() {
 
   useEffect(() => {
     loadState();
+    soundEngine.setupAutoPlayListeners();
   }, [loadState]);
 
   // Mirror of `state` for use inside event handlers (always current)
