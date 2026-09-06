@@ -20,6 +20,14 @@
 *.pem
 *.tmp.*
 
+# runtime campaign data artifacts
+data/campaign_db.backup.json
+data/campaign_db.corrupt-*.json
+
+# AI/session working notes
+important-code.txt
+rocket-code-bundle.txt
+
 # debug
 npm-debug.log*
 yarn-debug.log*
