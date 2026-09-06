@@ -420,3 +420,19 @@ body {
     scroll-behavior: auto;
   }
 }
+
+/* ─────────────────────────────────────────────
+   Salawat 2-Second Recitation Cooldown Bar
+────────────────────────────────────────────── */
+@keyframes salawatCooldown {
+  0% {
+    width: 100%;
+  }
+  100% {
+    width: 0%;
+  }
+}
+
+.animate-salawat-cooldown {
+  animation: salawatCooldown 2s linear forwards;
+}

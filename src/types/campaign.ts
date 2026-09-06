@@ -92,7 +92,7 @@ export interface PublicCampaignState {
 // Zod validation schemas
 export const SalawatSubmissionSchema = z.object({
   idempotencyKey: z.string().min(8).max(64),
-  count: z.number().int().min(1).max(10).default(1),
+  count: z.number().int().min(1).max(5).default(1),
   clientTimestamp: z.number().optional(),
 });
 

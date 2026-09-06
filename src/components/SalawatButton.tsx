@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState, useRef, useCallback } from "react";
+import React, { useState, useRef, useCallback, useEffect } from "react";
 import { soundEngine } from "@/lib/client/procedural-audio";
-import { generateUUID } from "@/lib/utils";
+import { generateUUID, toPersianDigits } from "@/lib/utils";
+import { Sparkles, ShieldAlert } from "lucide-react";
 
 interface SalawatButtonProps {
   onOptimisticIncrement: (count: number) => void;
@@ -23,6 +24,9 @@ interface Orb {
   dx: number;
 }
 
+const COOLDOWN_MS = 2000; // 2 seconds per salawat as specified
+const BATCH_SIZE = 5; // Batch of 5 salawat before network dispatch
+
 export default function SalawatButton({
   onOptimisticIncrement,
   onSubmissionRejected,
@@ -32,42 +36,123 @@ export default function SalawatButton({
   const [orbs, setOrbs] = useState<Orb[]>([]);
   const [pressScale, setPressScale] = useState(false);
 
+  // Anti-spam & batch states
+  const [isCoolingDown, setIsCoolingDown] = useState(false);
+  const [pendingBatchCount, setPendingBatchCount] = useState(0);
+  const [spamWarning, setSpamWarning] = useState<string | null>(null);
+  const [batchSuccessToast, setBatchSuccessToast] = useState(false);
+
   const rippleIdRef = useRef(0);
   const orbIdRef = useRef(0);
   const lastVibrateTimeRef = useRef(0);
-  const lastTapTimeRef = useRef(0);
-  const tapStreakRef = useRef(0);
+  const lastReciteTimeRef = useRef(0);
+  const pendingBatchCountRef = useRef(0);
+  const cooldownTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const idleTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const spamWarningTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Throttled haptic feedback to prevent motor blur
+  // Throttled haptic feedback
   const vibrate = useCallback(() => {
     const now = performance.now();
     if (now - lastVibrateTimeRef.current < 280) return;
     lastVibrateTimeRef.current = now;
     try {
       if (typeof navigator !== "undefined" && "vibrate" in navigator) {
-        navigator.vibrate(15);
+        navigator.vibrate(18);
       }
     } catch {}
   }, []);
+
+  const vibrateWarning = useCallback(() => {
+    try {
+      if (typeof navigator !== "undefined" && "vibrate" in navigator) {
+        navigator.vibrate([40, 60, 40]);
+      }
+    } catch {}
+  }, []);
+
+  // Flush pending batch to server
+  const flushBatch = useCallback(
+    (countToFlush: number) => {
+      if (countToFlush <= 0) return;
+      const idempotencyKey = generateUUID();
+      fetch("/api/salawat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ idempotencyKey, count: countToFlush }),
+        keepalive: true,
+      })
+        .then((res) => {
+          if (!res.ok) {
+            onSubmissionRejected?.(countToFlush);
+          }
+        })
+        .catch(() => {
+          try {
+            const queue = JSON.parse(localStorage.getItem("offline_salawat_queue") || "[]");
+            queue.push({ idempotencyKey, count: countToFlush, timestamp: Date.now() });
+            localStorage.setItem("offline_salawat_queue", JSON.stringify(queue.slice(-50)));
+          } catch {}
+        });
+    },
+    [onSubmissionRejected]
+  );
+
+  // Flush remaining salawat on unload so no recitation is lost
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      if (pendingBatchCountRef.current > 0) {
+        flushBatch(pendingBatchCountRef.current);
+        pendingBatchCountRef.current = 0;
+      }
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
+      if (cooldownTimerRef.current) clearTimeout(cooldownTimerRef.current);
+      if (spamWarningTimerRef.current) clearTimeout(spamWarningTimerRef.current);
+    };
+  }, [flushBatch]);
 
   const handleClick = useCallback(
     (e: React.MouseEvent<HTMLButtonElement> | React.TouchEvent<HTMLButtonElement>) => {
       if (disabled) return;
 
-      const now = performance.now();
-      // Manage progressive tone pitch on rapid tapping
-      if (now - lastTapTimeRef.current < 1100) {
-        tapStreakRef.current += 1;
-      } else {
-        tapStreakRef.current = 0;
+      // 1. Anti-bot synthetic event check
+      if (e.isTrusted === false) {
+        setSpamWarning("درخواست غیرمجاز شناسایی شد.");
+        return;
       }
-      lastTapTimeRef.current = now;
 
-      // 1. Procedural audio with rising chorus progression
-      soundEngine.playSalawatTone(tapStreakRef.current);
+      const now = performance.now();
+      const elapsedSinceLast = now - lastReciteTimeRef.current;
+
+      // 2. Anti-spam 2-second cooldown check
+      if (elapsedSinceLast < COOLDOWN_MS) {
+        const remainingSeconds = Math.max(0.1, (COOLDOWN_MS - elapsedSinceLast) / 1000).toFixed(1);
+        setSpamWarning(`لطفاً با طمأنینه ذکر بگویید (${toPersianDigits(remainingSeconds)} ثانیه مانده)`);
+        vibrateWarning();
+        if (spamWarningTimerRef.current) clearTimeout(spamWarningTimerRef.current);
+        spamWarningTimerRef.current = setTimeout(() => setSpamWarning(null), 1800);
+        return;
+      }
+
+      // Valid recitation!
+      lastReciteTimeRef.current = now;
+      setIsCoolingDown(true);
+      if (cooldownTimerRef.current) clearTimeout(cooldownTimerRef.current);
+      cooldownTimerRef.current = setTimeout(() => {
+        setIsCoolingDown(false);
+      }, COOLDOWN_MS);
+
+      setSpamWarning(null);
+
+      // Sound and haptic
+      soundEngine.playSalawatTone(pendingBatchCountRef.current);
       vibrate();
 
-      // 2. Click coordinates for ripple & particle burst
+      // Coordinates for visual ripple & orbs
       const rect = e.currentTarget.getBoundingClientRect();
       let clientX = rect.left + rect.width / 2;
       let clientY = rect.top + rect.height / 2;
@@ -79,7 +164,7 @@ export default function SalawatButton({
         clientY = e.clientY;
       }
 
-      // 3. Subtle touch ripple
+      // Ripple
       const newRipple: Ripple = {
         id: ++rippleIdRef.current,
         x: clientX - rect.left,
@@ -90,7 +175,7 @@ export default function SalawatButton({
         setRipples((prev) => prev.filter((r) => r.id !== newRipple.id));
       }, 600);
 
-      // 4. Single refined +۱ spiritual light orb
+      // +۱ Orb
       const newOrb: Orb = {
         id: ++orbIdRef.current,
         x: clientX - rect.left,
@@ -102,41 +187,59 @@ export default function SalawatButton({
         setOrbs((prev) => prev.filter((o) => o.id !== newOrb.id));
       }, 1200);
 
-      // 5. Announce to background atmosphere canvas
+      // Burst event to celestial sky
       try {
         window.dispatchEvent(
           new CustomEvent("salawat:burst", { detail: { x: clientX, y: clientY } })
         );
       } catch {}
 
-      // 6. Immediate optimistic local update (0ms perceived latency)
+      // Immediate optimistic update on client counter
       onOptimisticIncrement(1);
 
-      // 7. Background idempotent network dispatch
-      const idempotencyKey = generateUUID();
-      fetch("/api/salawat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ idempotencyKey, count: 1 }),
-      })
-        .then((res) => {
-          if (!res.ok) {
-            onSubmissionRejected?.(1);
+      // Update pending batch count
+      const nextBatchCount = pendingBatchCountRef.current + 1;
+      pendingBatchCountRef.current = nextBatchCount;
+      setPendingBatchCount(nextBatchCount);
+
+      // Clear any pending idle flush timer
+      if (idleTimerRef.current) {
+        clearTimeout(idleTimerRef.current);
+        idleTimerRef.current = null;
+      }
+
+      // Check if batch of 5 is reached!
+      if (nextBatchCount >= BATCH_SIZE) {
+        // Send batch of 5 to server!
+        flushBatch(BATCH_SIZE);
+        pendingBatchCountRef.current = 0;
+        setPendingBatchCount(0);
+        setBatchSuccessToast(true);
+        setTimeout(() => setBatchSuccessToast(false), 2400);
+      } else {
+        // Idle flush timer: if user stops clicking for 8s, flush partial batch
+        idleTimerRef.current = setTimeout(() => {
+          if (pendingBatchCountRef.current > 0) {
+            flushBatch(pendingBatchCountRef.current);
+            pendingBatchCountRef.current = 0;
+            setPendingBatchCount(0);
           }
-        })
-        .catch(() => {
-          try {
-            const queue = JSON.parse(localStorage.getItem("offline_salawat_queue") || "[]");
-            queue.push({ idempotencyKey, count: 1, timestamp: Date.now() });
-            localStorage.setItem("offline_salawat_queue", JSON.stringify(queue.slice(-50)));
-          } catch {}
-        });
+        }, 8000);
+      }
     },
-    [disabled, onOptimisticIncrement, onSubmissionRejected, vibrate]
+    [disabled, flushBatch, onOptimisticIncrement, vibrate, vibrateWarning]
   );
 
   return (
     <div className="relative flex flex-col items-center justify-center my-1 select-none">
+      {/* Floating anti-spam toast (only appears on rapid spam clicks) */}
+      {spamWarning && (
+        <div className="absolute -top-7 z-30 px-3 py-1 rounded-full bg-slate-900/95 border border-rose-500/50 text-[11px] font-bold text-rose-300 shadow-xl pointer-events-none flex items-center gap-1 whitespace-nowrap animate-bounce">
+          <ShieldAlert className="w-3.5 h-3.5 text-rose-400" />
+          <span>{spamWarning}</span>
+        </div>
+      )}
+
       <div className="relative">
         {/* Soft, calm golden halo behind the button */}
         <div
@@ -166,7 +269,7 @@ export default function SalawatButton({
           ))}
         </div>
 
-        {/* Main CTA Button — compact, ergonomic (~64px height) */}
+        {/* Main CTA Button */}
         <button
           type="button"
           disabled={disabled}
@@ -180,19 +283,28 @@ export default function SalawatButton({
             pressScale ? "scale-[0.97]" : "hover:scale-[1.01] active:scale-[0.97]"
           } ${
             disabled
-              ? "bg-gradient-to-b from-slate-700 to-slate-800 text-slate-400 border border-slate-600/60 shadow-none"
+              ? "bg-gradient-to-b from-slate-700 to-slate-800 text-slate-400 border border-slate-600/60 shadow-none cursor-not-allowed"
+              : isCoolingDown
+              ? "bg-gradient-to-b from-amber-500/90 via-amber-600/90 to-amber-700/90 text-slate-900 border border-amber-400/60"
               : "bg-gradient-to-b from-amber-400 via-amber-500 to-amber-600 text-slate-950 border border-amber-300/80 shadow-[inset_0_1px_0_rgba(255,255,255,0.45),inset_0_-2px_4px_rgba(180,83,9,0.3)]"
           }`}
           style={{
-            transitionProperty: "transform, filter",
+            transitionProperty: "transform, filter, background-color, border-color",
             transitionDuration: "180ms",
             transitionTimingFunction: "cubic-bezier(0.22, 1, 0.36, 1)",
           }}
           aria-label="فرستادن صلوات و مشارکت در پویش معنوی یادواره شهدا"
         >
           {/* Subtle Shimmer */}
-          {!disabled && (
+          {!disabled && !isCoolingDown && (
             <div className="absolute inset-0 bg-gradient-to-l from-transparent via-white/15 to-transparent translate-x-[-160%] group-hover:translate-x-[160%] transition-transform duration-1000 ease-out pointer-events-none" />
+          )}
+
+          {/* 2-Second Recitation Cooldown Progress Bar */}
+          {isCoolingDown && (
+            <div className="absolute bottom-0 left-0 right-0 h-1 bg-amber-950/60 overflow-hidden rounded-b-2xl">
+              <div className="h-full bg-amber-300 animate-salawat-cooldown" />
+            </div>
           )}
 
           {/* Ripples */}

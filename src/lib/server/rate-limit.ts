@@ -65,7 +65,7 @@ export function getClientIp(req: NextRequest): string {
 // is 1 request / 2.5s per IP with a small burst allowance for UI jitter.
 export const salawatLimiter = globalSingleton(
   "__salawatRateLimiter",
-  () => new TokenBucketRateLimiter(3, 1 / 2.5)
+  () => new TokenBucketRateLimiter(4, 1 / 5)
 );
 
 // Admin PIN brute-force protection: 5 attempts per 15 minutes per IP
