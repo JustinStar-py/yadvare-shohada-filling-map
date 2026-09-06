@@ -51,7 +51,9 @@ export interface CampaignSettings {
   startTarget: number;
   dailyIncrease: number;
   targetOverrides: Record<string, number>; // YYYY-MM-DD -> target
-  adminPin: string; // Admin access PIN (default: "1357" or configurable)
+  adminPinHash: string; // scrypt-hashed admin PIN ("scrypt$<salt>$<hash>")
+  /** @deprecated legacy plaintext PIN — migrated to adminPinHash automatically */
+  adminPin?: string;
   visualPreset: "calm" | "balanced" | "intense";
   finalMessage: string;
   isCompleted: boolean;
@@ -117,6 +119,10 @@ export const UpdateSettingsSchema = z.object({
 export const TargetOverrideSchema = z.object({
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   target: z.number().int().min(100).max(10000000),
+});
+
+export const BulkSalawatSchema = z.object({
+  count: z.number().int().min(1).max(100000),
 });
 
 export const MartyrProfileSchema = z.object({

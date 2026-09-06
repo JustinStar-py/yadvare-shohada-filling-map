@@ -13,18 +13,6 @@ export async function GET(req: NextRequest) {
         encoder.encode(`event: connected\ndata: ${JSON.stringify({ status: "ok", time: Date.now() })}\n\n`)
       );
 
-      // Subscribe to broadcaster
-      const unsubscribe = sseBroadcaster.subscribe((event, data) => {
-        try {
-          controller.enqueue(
-            encoder.encode(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`)
-          );
-        } catch {
-          // Client disconnected
-        }
-      });
-
-      // Keepalive heartbeat every 20 seconds
       const heartbeatInterval = setInterval(() => {
         try {
           controller.enqueue(encoder.encode(`: heartbeat\n\n`));
@@ -33,13 +21,32 @@ export async function GET(req: NextRequest) {
         }
       }, 20000);
 
-      req.signal.addEventListener("abort", () => {
+      let unsubscribe = () => {};
+      let isClosed = false;
+
+      const cleanup = () => {
+        if (isClosed) return;
+        isClosed = true;
         clearInterval(heartbeatInterval);
         unsubscribe();
         try {
           controller.close();
         } catch {}
+      };
+
+      // Subscribe to broadcaster
+      unsubscribe = sseBroadcaster.subscribe((event, data) => {
+        if (req.signal.aborted || isClosed) {
+          cleanup();
+          return;
+        }
+        // Let enqueue errors bubble so the broadcaster drops this dead subscriber
+        controller.enqueue(
+          encoder.encode(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`)
+        );
       });
+
+      req.signal.addEventListener("abort", cleanup);
     },
   });
 

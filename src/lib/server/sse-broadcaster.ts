@@ -13,11 +13,13 @@ class SseBroadcaster {
   }
 
   broadcast(event: string, data: unknown): void {
-    for (const callback of this.subscribers) {
+    // Iterate a snapshot so removing dead subscribers during the loop is safe
+    for (const callback of [...this.subscribers]) {
       try {
         callback(event, data);
-      } catch (err) {
-        console.error("Error broadcasting to SSE subscriber:", err);
+      } catch {
+        // Client is gone — drop the subscriber to prevent a memory leak
+        this.subscribers.delete(callback);
       }
     }
   }
@@ -27,13 +29,12 @@ class SseBroadcaster {
   }
 }
 
-// Global singleton instance
+// Global singleton instance — must ALWAYS be cached on globalThis, otherwise
+// production module instances diverge and subscribers never receive events.
 const globalForBroadcaster = globalThis as unknown as {
   sseBroadcaster?: SseBroadcaster;
 };
 
 export const sseBroadcaster = globalForBroadcaster.sseBroadcaster ?? new SseBroadcaster();
 
-if (process.env.NODE_ENV !== "production") {
-  globalForBroadcaster.sseBroadcaster = sseBroadcaster;
-}
+globalForBroadcaster.sseBroadcaster = sseBroadcaster;

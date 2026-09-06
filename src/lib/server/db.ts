@@ -8,6 +8,7 @@ import {
   AdminAuditLog,
 } from "@/types/campaign";
 import { getTehranDateString } from "@/lib/utils";
+import { hashPin } from "./pin";
 
 export interface DatabaseSchema {
   settings: CampaignSettings;
@@ -20,6 +21,12 @@ export interface DatabaseSchema {
 
 const DB_DIR = path.join(process.cwd(), "data");
 const DB_FILE = path.join(DB_DIR, "campaign_db.json");
+const BACKUP_FILE = path.join(DB_DIR, "campaign_db.backup.json");
+const TMP_PREFIX = "campaign_db.json.tmp.";
+const STALE_TMP_MS = 60 * 60 * 1000;
+const BACKUP_INTERVAL_MS = 5 * 60 * 1000;
+const IDEMPOTENCY_TTL_MS = 48 * 60 * 60 * 1000;
+const AUDIT_LOG_CAP = 500;
 
 // Asynchronous in-memory mutex to ensure atomic disk reads and writes
 class AsyncMutex {
@@ -43,12 +50,17 @@ class AsyncMutex {
 
 const dbMutex = new AsyncMutex();
 
+// In-memory cache: avoids re-reading the file on every request (single-process server)
+let cachedDb: DatabaseSchema | null = null;
+let lastBackupAt = 0;
+let writeCounter = 0;
+
 /**
  * Generates initial default database state
  */
 function getInitialData(): DatabaseSchema {
   const today = getTehranDateString(); // e.g. 2026-09-01
-  
+
   // Calculate memorial date 15 days in the future
   const now = new Date();
   const memorialDateObj = new Date(now.getTime() + 15 * 24 * 60 * 60 * 1000);
@@ -156,7 +168,7 @@ function getInitialData(): DatabaseSchema {
     startTarget: 8000,
     dailyIncrease: 500,
     targetOverrides: {},
-    adminPin: "1357",
+    adminPinHash: hashPin("1357"),
     visualPreset: "balanced",
     finalMessage: "در این مسیر نورانی، با هم هزاران صلوات تقدیم روح پرفتوح شهدا کردیم. یادشان تا ابد در دل‌ها جاودان باد.",
     isCompleted: false,
@@ -181,37 +193,162 @@ function getInitialData(): DatabaseSchema {
   };
 }
 
-/**
- * Ensure database file exists on disk
- */
-async function ensureDbInitialized(): Promise<void> {
+function isValidDb(value: unknown): value is DatabaseSchema {
+  if (!value || typeof value !== "object") return false;
+  const db = value as DatabaseSchema;
+  return (
+    !!db.settings &&
+    typeof db.settings === "object" &&
+    typeof db.settings.campaignStartDate === "string"
+  );
+}
+
+function normalizeDb(db: DatabaseSchema): DatabaseSchema {
+  const missions: DatabaseSchema["missions"] = {};
+  for (const [date, mission] of Object.entries(db.missions ?? {})) {
+    if (!mission || typeof mission !== "object") continue;
+    missions[date] = {
+      ...mission,
+      // Sanitize corrupted / hand-edited values so the UI can never render
+      // negative counts or targets
+      currentCount: Math.max(0, Number(mission.currentCount) || 0),
+      participantsCount: Math.max(0, Number(mission.participantsCount) || 0),
+      target: Math.max(1, Number(mission.target) || 1),
+    };
+  }
+
+  return {
+    settings: db.settings,
+    missions,
+    martyrs: Array.isArray(db.martyrs) ? db.martyrs : [],
+    constellation: Array.isArray(db.constellation) ? db.constellation : [],
+    idempotencyKeys:
+      db.idempotencyKeys && typeof db.idempotencyKeys === "object" ? db.idempotencyKeys : {},
+    auditLogs: Array.isArray(db.auditLogs) ? db.auditLogs : [],
+  };
+}
+
+async function readJsonFile(file: string): Promise<DatabaseSchema | null> {
   try {
-    await fs.mkdir(DB_DIR, { recursive: true });
-    try {
-      await fs.access(DB_FILE);
-    } catch {
-      const initialData = getInitialData();
-      await fs.writeFile(DB_FILE, JSON.stringify(initialData, null, 2), "utf-8");
-    }
-  } catch (error) {
-    console.error("Database initialization error:", error);
-    throw error;
+    const content = await fs.readFile(file, "utf-8");
+    const parsed: unknown = JSON.parse(content);
+    if (!isValidDb(parsed)) return null;
+    return normalizeDb(parsed);
+  } catch {
+    return null;
   }
 }
 
 /**
- * Reads database state atomically
+ * Loads from disk with corruption recovery: primary file → backup → fresh state.
+ */
+async function loadIntoCache(): Promise<DatabaseSchema> {
+  if (cachedDb) return cachedDb;
+
+  const main = await readJsonFile(DB_FILE);
+  if (main) {
+    cachedDb = main;
+    return cachedDb;
+  }
+
+  console.error("[db] Primary database unreadable or corrupt, attempting backup recovery…");
+  const backup = await readJsonFile(BACKUP_FILE);
+  if (backup) {
+    console.warn("[db] Recovered database from backup file.");
+    cachedDb = backup;
+    try {
+      await persistDb(backup); // Heal: restore recovered state to the primary file
+    } catch (error) {
+      console.error("[db] Failed to heal primary file from backup:", error);
+    }
+    return cachedDb;
+  }
+
+  console.warn("[db] No valid database or backup found — starting with a fresh database.");
+  const fresh = getInitialData();
+  cachedDb = fresh;
+  try {
+    await persistDb(fresh);
+  } catch (error) {
+    console.error("[db] Failed to persist initial database:", error);
+  }
+  return cachedDb;
+}
+
+/**
+ * Ensure database directory exists and clean stale temp files from crashed writers
+ */
+async function ensureDbInitialized(): Promise<void> {
+  await fs.mkdir(DB_DIR, { recursive: true });
+  try {
+    const entries = await fs.readdir(DB_DIR);
+    const now = Date.now();
+    for (const entry of entries) {
+      if (!entry.startsWith(TMP_PREFIX)) continue;
+      const fullPath = path.join(DB_DIR, entry);
+      try {
+        const stat = await fs.stat(fullPath);
+        if (now - stat.mtimeMs > STALE_TMP_MS) await fs.unlink(fullPath);
+      } catch {
+        // Ignore individual cleanup failures
+      }
+    }
+  } catch {
+    // Directory read failure is non-fatal
+  }
+}
+
+/**
+ * Durable atomic write: fsync temp file, rotate a backup of the previous good
+ * state (time-throttled), then atomically rename over the primary file.
+ */
+async function persistDb(data: DatabaseSchema): Promise<void> {
+  const tempFile = `${DB_FILE}.tmp.${process.pid}.${++writeCounter}`;
+  const handle = await fs.open(tempFile, "w");
+  try {
+    await handle.writeFile(JSON.stringify(data, null, 2), "utf-8");
+    await handle.sync();
+  } finally {
+    await handle.close();
+  }
+
+  if (Date.now() - lastBackupAt > BACKUP_INTERVAL_MS) {
+    const tempBackup = `${BACKUP_FILE}.tmp.${process.pid}`;
+    try {
+      await fs.copyFile(DB_FILE, tempBackup);
+      await fs.rename(tempBackup, BACKUP_FILE);
+      lastBackupAt = Date.now();
+    } catch {
+      // Primary file may not exist yet (first ever write) — safe to ignore
+    }
+  }
+
+  await fs.rename(tempFile, DB_FILE);
+  cachedDb = data;
+}
+
+/**
+ * Bounded-growth housekeeping: prune expired idempotency keys and cap audit logs
+ */
+function pruneDb(data: DatabaseSchema): void {
+  const now = Date.now();
+  for (const key of Object.keys(data.idempotencyKeys)) {
+    if (now - data.idempotencyKeys[key].timestamp > IDEMPOTENCY_TTL_MS) {
+      delete data.idempotencyKeys[key];
+    }
+  }
+  if (data.auditLogs.length > AUDIT_LOG_CAP) {
+    data.auditLogs.length = AUDIT_LOG_CAP;
+  }
+}
+
+/**
+ * Reads database state (cached after first load, mutex-protected)
  */
 export async function readDb(): Promise<DatabaseSchema> {
   return dbMutex.runExclusive(async () => {
     await ensureDbInitialized();
-    try {
-      const content = await fs.readFile(DB_FILE, "utf-8");
-      return JSON.parse(content) as DatabaseSchema;
-    } catch (err) {
-      console.error("Error reading database:", err);
-      return getInitialData();
-    }
+    return loadIntoCache();
   });
 }
 
@@ -221,33 +358,27 @@ export async function readDb(): Promise<DatabaseSchema> {
 export async function writeDb(data: DatabaseSchema): Promise<void> {
   return dbMutex.runExclusive(async () => {
     await ensureDbInitialized();
-    const tempFile = `${DB_FILE}.tmp.${Date.now()}`;
-    await fs.writeFile(tempFile, JSON.stringify(data, null, 2), "utf-8");
-    await fs.rename(tempFile, DB_FILE);
+    pruneDb(data);
+    await persistDb(data);
   });
 }
 
 /**
- * Mutates database state inside atomic transaction
+ * Mutates database state inside an atomic transaction.
+ * Works on a clone, so a failed mutator can never corrupt the cached state.
  */
 export async function mutateDb<T>(
-  mutator: (data: DatabaseSchema) => Promise<{ data: DatabaseSchema; result: T }> | { data: DatabaseSchema; result: T }
+  mutator: (
+    data: DatabaseSchema
+  ) => Promise<{ data: DatabaseSchema; result: T }> | { data: DatabaseSchema; result: T }
 ): Promise<T> {
   return dbMutex.runExclusive(async () => {
     await ensureDbInitialized();
-    let currentData: DatabaseSchema;
-    try {
-      const content = await fs.readFile(DB_FILE, "utf-8");
-      currentData = JSON.parse(content) as DatabaseSchema;
-    } catch {
-      currentData = getInitialData();
-    }
+    const workingCopy = structuredClone(await loadIntoCache());
 
-    const { data: updatedData, result } = await mutator(currentData);
-    
-    const tempFile = `${DB_FILE}.tmp.${Date.now()}`;
-    await fs.writeFile(tempFile, JSON.stringify(updatedData, null, 2), "utf-8");
-    await fs.rename(tempFile, DB_FILE);
+    const { data: updatedData, result } = await mutator(workingCopy);
+    pruneDb(updatedData);
+    await persistDb(updatedData);
 
     return result;
   });

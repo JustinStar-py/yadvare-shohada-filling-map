@@ -9,6 +9,7 @@ import {
 import { readDb, mutateDb, DatabaseSchema } from "./db";
 import { sseBroadcaster } from "./sse-broadcaster";
 import { getTehranDateString, getDaysDifference, generateUUID } from "@/lib/utils";
+import { hashPin } from "./pin";
 
 export class CampaignService {
   /**
@@ -84,7 +85,7 @@ export class CampaignService {
    */
   static async getPublicState(): Promise<PublicCampaignState> {
     const db = await readDb();
-    const today = getTehranDateString();
+    const today = getTehranDateString(new Date(), db.settings.dailyResetHour ?? 0);
     const mission = this.ensureMissionForDate(db, today);
 
     const daysRemaining = getDaysDifference(today, db.settings.memorialDate);
@@ -113,8 +114,9 @@ export class CampaignService {
     for (const m of Object.values(db.missions)) {
       totalCampaignSalawat += m.currentCount;
     }
-    // Also include past launches counts recorded in constellation if not in missions
-    const totalLaunchesCount = db.constellation.length + (mission.state === "LAUNCHED" ? 1 : 0);
+    // The constellation is the source of truth: triggerLaunch upserts today's
+    // star, so its length already counts today's launch exactly once.
+    const totalLaunchesCount = db.constellation.length;
 
     return {
       serverTime: Date.now(),
@@ -152,8 +154,6 @@ export class CampaignService {
     missionState: DailyMission["state"];
     isDuplicate: boolean;
   }> {
-    const today = getTehranDateString();
-
     return mutateDb<{
       success: boolean;
       currentCount: number;
@@ -161,6 +161,8 @@ export class CampaignService {
       missionState: DailyMission["state"];
       isDuplicate: boolean;
     }>(async (db) => {
+      const today = getTehranDateString(new Date(), db.settings.dailyResetHour ?? 0);
+
       // Check idempotency
       if (db.idempotencyKeys[idempotencyKey]) {
         const existingMission = this.ensureMissionForDate(db, today);
@@ -178,10 +180,11 @@ export class CampaignService {
 
       // Record contribution
       const mission = this.ensureMissionForDate(db, today);
-      mission.currentCount += count;
-      mission.participantsCount += 1;
 
-      // Update state if target reached
+      mission.currentCount = Math.max(0, mission.currentCount + count);
+      mission.participantsCount = Math.max(0, mission.participantsCount + 1);
+
+      // Update state if target reached and mission was active
       if (mission.currentCount >= mission.target && mission.state === "ACTIVE") {
         mission.state = "READY_TO_LAUNCH";
       }
@@ -215,16 +218,20 @@ export class CampaignService {
   }
 
   /**
-   * Authoritative daily launch trigger
-   * Strictly enforces at most ONE launch per mission date
+   * Authoritative daily launch trigger.
+   * Strictly enforces at most ONE launch per mission date, and (optionally)
+   * that the daily target has been reached before sealing the day.
    */
-  static async triggerLaunch(ip: string = "system"): Promise<{
+  static async triggerLaunch(
+    ip: string = "system",
+    options: { requireTargetReached?: boolean } = {}
+  ): Promise<{
     success: boolean;
     message: string;
     mission: DailyMission;
     newStar?: ConstellationStar;
   }> {
-    const today = getTehranDateString();
+    const requireTargetReached = options.requireTargetReached ?? false;
 
     return mutateDb<{
       success: boolean;
@@ -232,6 +239,7 @@ export class CampaignService {
       mission: DailyMission;
       newStar?: ConstellationStar;
     }>(async (db) => {
+      const today = getTehranDateString(new Date(), db.settings.dailyResetHour ?? 0);
       const mission = this.ensureMissionForDate(db, today);
 
       if (mission.state === "LAUNCHED") {
@@ -240,6 +248,18 @@ export class CampaignService {
           result: {
             success: false,
             message: "راکت امروز قبلاً با موفقیت پرتاب شده است.",
+            mission,
+          },
+        };
+      }
+
+      // Public (non-admin) trigger is only valid once the community quota is met
+      if (requireTargetReached && mission.currentCount < mission.target) {
+        return {
+          data: db,
+          result: {
+            success: false,
+            message: "ظرفیت صلوات امروز هنوز به حد نصاب نرسیده است.",
             mission,
           },
         };
@@ -311,13 +331,21 @@ export class CampaignService {
     ip?: string
   ): Promise<CampaignSettings> {
     return mutateDb(async (db) => {
+      const { adminPin, ...rest } = settingsUpdate;
+
+      // Never persist a new PIN as plaintext — hash it instead
+      if (adminPin && adminPin.length >= 4) {
+        db.settings.adminPinHash = hashPin(adminPin);
+        delete (db.settings as unknown as Record<string, unknown>).adminPin;
+      }
+
       db.settings = {
         ...db.settings,
-        ...settingsUpdate,
+        ...rest,
       };
 
       // Recalculate today's target if startTarget or increase changed
-      const today = getTehranDateString();
+      const today = getTehranDateString(new Date(), db.settings.dailyResetHour ?? 0);
       if (db.missions[today] && !db.missions[today].isOverrideTarget) {
         const { target } = this.calculateTargetForDate(today, db.settings);
         db.missions[today].target = target;
@@ -447,6 +475,49 @@ export class CampaignService {
   }
 
   /**
+   * Admin: bulk-add salawat for testing (bypasses the public per-request cap)
+   */
+  static async adminAddSalawat(
+    count: number,
+    ip?: string
+  ): Promise<{ currentCount: number; target: number; state: DailyMission["state"] }> {
+    return mutateDb(async (db) => {
+      const today = getTehranDateString(new Date(), db.settings.dailyResetHour ?? 0);
+      const mission = this.ensureMissionForDate(db, today);
+
+      mission.currentCount += count;
+      if (mission.currentCount >= mission.target && mission.state === "ACTIVE") {
+        mission.state = "READY_TO_LAUNCH";
+      }
+
+      db.auditLogs.unshift({
+        id: generateUUID(),
+        timestamp: Date.now(),
+        action: "ADMIN_SALAWAT_BULK",
+        details: `${count} صلوات آزمایشی توسط مدیریت ثبت شد.`,
+        ip,
+      });
+
+      sseBroadcaster.broadcast("salawat_update", {
+        date: today,
+        currentCount: mission.currentCount,
+        target: mission.target,
+        state: mission.state,
+        participantsCount: mission.participantsCount,
+      });
+
+      return {
+        data: db,
+        result: {
+          currentCount: mission.currentCount,
+          target: mission.target,
+          state: mission.state,
+        },
+      };
+    });
+  }
+
+  /**
    * Admin: Get all data for dashboard
    */
   static async getAdminDashboardData(): Promise<{
@@ -458,7 +529,7 @@ export class CampaignService {
     todayMission: DailyMission;
   }> {
     const db = await readDb();
-    const today = getTehranDateString();
+    const today = getTehranDateString(new Date(), db.settings.dailyResetHour ?? 0);
     const todayMission = this.ensureMissionForDate(db, today);
 
     return {

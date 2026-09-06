@@ -24,10 +24,13 @@ export function formatPersianNumber(num: number | undefined | null): string {
 }
 
 /**
- * Get current Tehran date string in YYYY-MM-DD format
+ * Get current Tehran date string in YYYY-MM-DD format.
+ * `resetHour` shifts the day boundary: with resetHour=3, the "campaign day"
+ * runs 03:00→03:00 Tehran time (e.g. 01:30 belongs to the previous day).
  */
-export function getTehranDateString(date: Date = new Date()): string {
-  const tehranDateStr = date.toLocaleDateString("en-CA", {
+export function getTehranDateString(date: Date = new Date(), resetHour = 0): string {
+  const shifted = new Date(date.getTime() - resetHour * 60 * 60 * 1000);
+  const tehranDateStr = shifted.toLocaleDateString("en-CA", {
     timeZone: "Asia/Tehran",
   });
   return tehranDateStr; // Returns YYYY-MM-DD
