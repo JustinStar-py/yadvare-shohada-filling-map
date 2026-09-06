@@ -123,13 +123,17 @@ export default function AdminPage() {
 
   const handleSimulateSalawat = async (count: number) => {
     try {
-      await fetch("/api/salawat", {
+      const res = await fetch("/api/admin/bulk-salawat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ idempotencyKey: `admin-test-${Date.now()}`, count }),
+        body: JSON.stringify({ count }),
       });
-      showNotification(`تعداد ${formatPersianNumber(count)} صلوات تستی ثبت شد`);
-      loadAdminData();
+      if (res.ok) {
+        showNotification(`تعداد ${formatPersianNumber(count)} صلوات تستی ثبت شد`);
+        loadAdminData();
+      } else {
+        showNotification("خطا در ثبت صلوات تستی", "error");
+      }
     } catch {
       showNotification("خطا در ثبت صلوات تستی", "error");
     }
@@ -143,10 +147,12 @@ export default function AdminPage() {
       const res = await fetch("/api/admin/settings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(settings),
+        // Empty/undefined adminPin means "keep current PIN"
+        body: JSON.stringify({ ...settings, adminPin: settings.adminPin || undefined }),
       });
       if (res.ok) {
         showNotification("تنظیمات با موفقیت ذخیره شد");
+        setSettings((prev) => (prev ? { ...prev, adminPin: undefined } : prev));
         loadAdminData();
       } else {
         showNotification("خطا در ذخیره تنظیمات", "error");
@@ -870,10 +876,12 @@ export default function AdminPage() {
               <label className="text-xs text-slate-300 block mb-1">رمز عبور جدید مدیریت (PIN)</label>
               <input
                 type="password"
-                value={settings.adminPin}
+                placeholder="برای تغییر رمز، رمز جدید را وارد کنید"
+                value={settings.adminPin || ""}
                 onChange={(e) => setSettings({ ...settings, adminPin: e.target.value })}
                 className="w-full py-2 px-3 rounded-xl bg-slate-950 border border-slate-700 text-slate-100 text-xs"
               />
+              <p className="text-[10px] text-slate-500 mt-1">رمز ذخیره‌شده نمایش داده نمی‌شود. در صورت خالی بودن، رمز فعلی حفظ می‌شود.</p>
             </div>
 
             <button

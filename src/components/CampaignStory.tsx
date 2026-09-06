@@ -33,9 +33,6 @@ export default function CampaignStory() {
         <h2 className="text-2xl sm:text-3xl font-bold text-slate-100 mb-3">
           داستان این پویش معنوی
         </h2>
-        <p className="text-xs sm:text-sm text-slate-400 max-w-lg mx-auto leading-relaxed">
-          «هر صلوات، یک قدم تا پرواز به سوی افق روشن شهادت»
-        </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
