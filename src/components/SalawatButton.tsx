@@ -176,7 +176,7 @@ export default function SalawatButton({
           onMouseLeave={() => setPressScale(false)}
           onTouchStart={() => setPressScale(true)}
           onTouchEnd={() => setPressScale(false)}
-          className={`relative z-10 group overflow-hidden w-68 sm:w-76 min-h-[64px] py-3.5 px-8 rounded-2xl font-bold cursor-pointer touch-manipulation focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-300/80 shadow-[0_4px_16px_rgba(245,158,11,0.25)] ${
+          className={`relative z-10 group overflow-hidden w-68 sm:w-76 min-h-[48px] sm:min-h-[52px] py-2.5 sm:py-3 px-6 rounded-2xl font-bold cursor-pointer touch-manipulation focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-300/80 shadow-[0_4px_16px_rgba(245,158,11,0.25)] ${
             pressScale ? "scale-[0.97]" : "hover:scale-[1.01] active:scale-[0.97]"
           } ${
             disabled
@@ -210,15 +210,12 @@ export default function SalawatButton({
             />
           ))}
 
-          <div className="relative z-10 flex flex-col items-center justify-center gap-0.5">
+          <div className="relative z-10 flex items-center justify-center">
             <span
-              className={`text-xl sm:text-2xl font-extrabold tracking-wide drop-shadow-[0_1px_1px_rgba(255,255,255,0.2)] ${
-                disabled ? "text-slate-300" : "text-slate-950"
+              className={`text-sm sm:text-base font-bold tracking-wide drop-shadow-[0_1px_1px_rgba(255,255,255,0.25)] ${
+                disabled ? "text-slate-400" : "text-slate-950"
               }`}
             >
-              صلوات
-            </span>
-            <span className={`text-[11px] font-medium ${disabled ? "text-slate-500" : "text-amber-950/90"}`}>
               اللّهُمَّ صَلِّ عَلی مُحَمَّدٍ وَ آلِ مُحَمَّد
             </span>
           </div>

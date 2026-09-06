@@ -143,10 +143,78 @@ export default function ThreeRocketScene({
     upperCollar.position.y = noseStart;
     capsuleGroup.add(upperCollar);
 
-    const noseBand = new THREE.Mesh(new THREE.TorusGeometry(0.24, 0.01, 12, 40), goldMaterial);
+    const noseBand = new THREE.Mesh(new THREE.TorusGeometry(0.18, 0.008, 12, 40), goldMaterial);
     noseBand.rotation.x = Math.PI / 2;
-    noseBand.position.y = noseStart + 0.65;
+    noseBand.position.y = noseStart + 1.05;
     capsuleGroup.add(noseBand);
+
+    // ── Missile Designation Stencil Decal: Vertical Bold Black "KHeibar Shecan" ──
+    const createModelDecalTexture = (): THREE.CanvasTexture => {
+      const canvas = document.createElement("canvas");
+      canvas.width = 512;
+      canvas.height = 2048;
+      const ctx = canvas.getContext("2d");
+      if (ctx) {
+        ctx.clearRect(0, 0, 512, 2048);
+
+        ctx.save();
+        ctx.translate(256, 1024);
+        ctx.rotate(Math.PI / 2); // vertical along the rocket fuselage (reading top to bottom)
+
+        // Bold black aerospace stencil typography
+        ctx.fillStyle = "#000000";
+        ctx.font = '900 150px "Arial Black", "Impact", "Trebuchet MS", sans-serif';
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+
+        ctx.fillText("KHeibar Shecan", 0, 0);
+
+        // Technical stencil accent lines at both ends
+        ctx.strokeStyle = "#000000";
+        ctx.lineWidth = 10;
+        ctx.beginPath();
+        // Leading line
+        ctx.moveTo(-820, 0);
+        ctx.lineTo(-720, 0);
+        // Trailing line
+        ctx.moveTo(720, 0);
+        ctx.lineTo(820, 0);
+        ctx.stroke();
+
+        ctx.restore();
+      }
+      const texture = new THREE.CanvasTexture(canvas);
+      texture.colorSpace = THREE.SRGBColorSpace;
+      texture.minFilter = THREE.LinearFilter;
+      texture.magFilter = THREE.LinearFilter;
+      return texture;
+    };
+
+    const modelTexture = createModelDecalTexture();
+    const modelDecalMat = new THREE.MeshBasicMaterial({
+      map: modelTexture,
+      transparent: true,
+      depthWrite: false,
+      polygonOffset: true,
+      polygonOffsetFactor: -4,
+      polygonOffsetUnits: -4,
+      side: THREE.DoubleSide,
+    });
+
+    const decalPts: THREE.Vector2[] = [];
+    for (let y = 0.62; y <= 1.48; y += 0.04) {
+      const t = (y - noseStart) / noseH;
+      const r = baseR * Math.sqrt(Math.max(0, 1 - t * t)) * (1 - 0.06 * t) + 0.010;
+      decalPts.push(new THREE.Vector2(r, y));
+    }
+    const modelDecalArc = Math.PI * 0.40;
+    const modelDecalGeo = new THREE.LatheGeometry(decalPts, 24, -modelDecalArc / 2, modelDecalArc);
+    // Add vertical designation on all 4 sides of the rocket hull (every 90 degrees)
+    for (let i = 0; i < 4; i++) {
+      const decalMesh = new THREE.Mesh(modelDecalGeo, modelDecalMat);
+      decalMesh.rotation.y = (i * Math.PI) / 2;
+      capsuleGroup.add(decalMesh);
+    }
 
     // Capsule docking baseplate
     const capsuleBase = new THREE.Mesh(new THREE.CylinderGeometry(baseR * 0.98, baseR * 0.96, 0.03, 36), hullMaterial);
@@ -198,6 +266,113 @@ export default function ThreeRocketScene({
     const skirtMesh = new THREE.Mesh(skirtGeometry, hullMaterial);
     boosterGroup.add(skirtMesh);
 
+    // ── Flag of Iran Decal on Rocket Fin ──
+    const createIranFlagTexture = (): THREE.CanvasTexture => {
+      const canvas = document.createElement("canvas");
+      canvas.width = 512;
+      canvas.height = 320;
+      const ctx = canvas.getContext("2d");
+      if (ctx) {
+        const h = 320 / 3;
+        // Green
+        ctx.fillStyle = "#239f40";
+        ctx.fillRect(0, 0, 512, h);
+        // White
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, h, 512, h);
+        // Red
+        ctx.fillStyle = "#da0000";
+        ctx.fillRect(0, h * 2, 512, h);
+
+        // Thin border
+        ctx.strokeStyle = "rgba(0, 0, 0, 0.35)";
+        ctx.lineWidth = 4;
+        ctx.strokeRect(2, 2, 508, 316);
+
+        // Red central emblem (Nishan)
+        ctx.save();
+        ctx.translate(256, 160);
+        ctx.fillStyle = "#da0000";
+        ctx.strokeStyle = "#da0000";
+
+        ctx.beginPath();
+        ctx.arc(0, -20, 7, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.rect(-3.5, -9, 7, 44);
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.arc(-13, 10, 22, 0.38 * Math.PI, 1.48 * Math.PI);
+        ctx.lineWidth = 6;
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(13, 10, 22, -0.48 * Math.PI, 0.62 * Math.PI);
+        ctx.lineWidth = 6;
+        ctx.stroke();
+
+        ctx.restore();
+      }
+      const texture = new THREE.CanvasTexture(canvas);
+      texture.colorSpace = THREE.SRGBColorSpace;
+      texture.minFilter = THREE.LinearFilter;
+      texture.magFilter = THREE.LinearFilter;
+      return texture;
+    };
+
+    const flagTexture = createIranFlagTexture();
+    const flagMaterial = new THREE.MeshBasicMaterial({
+      map: flagTexture,
+      transparent: true,
+      side: THREE.FrontSide,
+    });
+    const flagBackMaterial = new THREE.MeshBasicMaterial({
+      map: flagTexture,
+      transparent: true,
+      side: THREE.FrontSide,
+    });
+
+    const createIranTextTexture = (): THREE.CanvasTexture => {
+      const canvas = document.createElement("canvas");
+      canvas.width = 256;
+      canvas.height = 64;
+      const ctx = canvas.getContext("2d");
+      if (ctx) {
+        ctx.clearRect(0, 0, 256, 64);
+        ctx.fillStyle = "#000000";
+        ctx.font = '900 36px "Arial Black", "Impact", "Trebuchet MS", sans-serif';
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText("I.R. IRAN", 128, 32);
+      }
+      const texture = new THREE.CanvasTexture(canvas);
+      texture.colorSpace = THREE.SRGBColorSpace;
+      return texture;
+    };
+
+    const iranTextTexture = createIranTextTexture();
+    const iranTextMat = new THREE.MeshBasicMaterial({
+      map: iranTextTexture,
+      transparent: true,
+      side: THREE.FrontSide,
+      polygonOffset: true,
+      polygonOffsetFactor: -2,
+      polygonOffsetUnits: -2,
+    });
+    const iranTextBackMat = new THREE.MeshBasicMaterial({
+      map: iranTextTexture,
+      transparent: true,
+      side: THREE.FrontSide,
+      polygonOffset: true,
+      polygonOffsetFactor: -2,
+      polygonOffsetUnits: -2,
+    });
+
+    const flagGeom = new THREE.PlaneGeometry(0.18, 0.115);
+    const textGeom = new THREE.PlaneGeometry(0.16, 0.04);
+
     const finShape = new THREE.Shape();
     finShape.moveTo(0, 0); finShape.lineTo(0.52, -0.38);
     finShape.lineTo(0.52, -0.62); finShape.lineTo(0, -0.62); finShape.closePath();
@@ -207,6 +382,28 @@ export default function ThreeRocketScene({
       const angle = (i * Math.PI) / 2;
       const fin = new THREE.Mesh(finExtrudeGeom, hullMaterial);
       fin.position.set(0.3, -0.6, -0.017);
+
+      // Attach Iranian flag & "I.R. IRAN" insignia to designated fins (total 2 blades: blades 0 and 2, opposite pairs)
+      if (i === 0 || i === 2) {
+        const frontFlag = new THREE.Mesh(flagGeom, flagMaterial);
+        frontFlag.position.set(0.26, -0.44, 0.049);
+        fin.add(frontFlag);
+
+        const backFlag = new THREE.Mesh(flagGeom, flagBackMaterial);
+        backFlag.position.set(0.26, -0.44, -0.014);
+        backFlag.rotation.y = Math.PI;
+        fin.add(backFlag);
+
+        const frontText = new THREE.Mesh(textGeom, iranTextMat);
+        frontText.position.set(0.26, -0.525, 0.049);
+        fin.add(frontText);
+
+        const backText = new THREE.Mesh(textGeom, iranTextBackMat);
+        backText.position.set(0.26, -0.525, -0.014);
+        backText.rotation.y = Math.PI;
+        fin.add(backText);
+      }
+
       const finArm = new THREE.Group();
       finArm.rotation.y = angle;
       finArm.add(fin);
@@ -651,7 +848,8 @@ export default function ThreeRocketScene({
       let isPadSmokeActive = false;
       let floatY = 0;
       let rotZ = 0;
-      const rotY = pointer.currentX * 0.05;
+      const slowSpinY = elapsed * 0.25;
+      const rotY = slowSpinY + pointer.currentX * 0.05;
 
       if (!prefersReducedMotion) {
         floatY = Math.sin(elapsed * 1.1) * 0.035;
