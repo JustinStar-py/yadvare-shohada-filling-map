@@ -31,3 +31,19 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "خطا در ثبت صلوات آزمایشی" }, { status: 500 });
   }
 }
+
+export async function DELETE(req: NextRequest) {
+  const isAuth = await verifyAdminAuth(req);
+  if (!isAuth) {
+    return NextResponse.json({ error: "عدم دسترسی" }, { status: 401 });
+  }
+
+  try {
+    const ip = req.headers.get("x-forwarded-for") || "admin";
+    const result = await CampaignService.resetTodaySalawat(ip);
+    return NextResponse.json(result);
+  } catch (error) {
+    console.error("Admin reset salawat error:", error);
+    return NextResponse.json({ error: "خطا در صفر کردن صلوات‌ها" }, { status: 500 });
+  }
+}

@@ -18,6 +18,12 @@ import {
   RefreshCw,
   CheckCircle,
   AlertTriangle,
+  RotateCcw,
+  Volume2,
+  VolumeX,
+  Play,
+  Square,
+  Zap,
 } from "lucide-react";
 import {
   CampaignSettings,
@@ -46,6 +52,33 @@ export default function AdminPage() {
   const [martyrForm, setMartyrForm] = useState<Partial<MartyrProfile> | null>(null);
   const [overrideDate, setOverrideDate] = useState("");
   const [overrideTarget, setOverrideTarget] = useState<number>(10000);
+  const [isPlayingAudioTest, setIsPlayingAudioTest] = useState(false);
+  const [audioTestInstance, setAudioTestInstance] = useState<HTMLAudioElement | null>(null);
+
+  const toggleTestAudio = () => {
+    if (isPlayingAudioTest) {
+      if (audioTestInstance) {
+        audioTestInstance.pause();
+      }
+      setIsPlayingAudioTest(false);
+    } else {
+      let aud = audioTestInstance;
+      if (!aud) {
+        aud = new Audio("/audio/bayad-barkhast-playground.mp3");
+        aud.volume = 0.10;
+        aud.loop = true;
+        setAudioTestInstance(aud);
+      }
+      aud
+        .play()
+        .then(() => {
+          setIsPlayingAudioTest(true);
+        })
+        .catch((e) => {
+          showNotification("خطا در پخش فایل صوتی: " + e.message, "error");
+        });
+    }
+  };
 
   // Check login & load data
   const loadAdminData = async () => {
@@ -103,7 +136,7 @@ export default function AdminPage() {
   };
 
   const handleTriggerLaunch = async () => {
-    if (!confirm("آیا از ثبت و پرتاب راکت امروز اطمینان دارید؟ این عمل فقط یک‌بار در روز قابل انجام است.")) return;
+    if (!confirm("آیا از ثبت و پرتاب راکت امروز اطمینان دارید؟")) return;
     setLoading(true);
     try {
       const res = await fetch("/api/admin/launch", { method: "POST" });
@@ -119,6 +152,59 @@ export default function AdminPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleResetLaunch = async () => {
+    if (
+      !confirm(
+        "آیا از بازنشانی پرتاب امروز اطمینان دارید؟ ستاره امروز از آسمان برداشته شده و پرتاب مجدداً فعال می‌شود."
+      )
+    )
+      return;
+    setLoading(true);
+    try {
+      const res = await fetch("/api/admin/launch", { method: "DELETE" });
+      const data = await res.json();
+      if (res.ok) {
+        showNotification("وضعیت پرتاب امروز با موفقیت بازنشانی شد");
+        loadAdminData();
+      } else {
+        showNotification(data.error || "خطا در بازنشانی پرتاب", "error");
+      }
+    } catch {
+      showNotification("خطای سرور", "error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResetSalawat = async () => {
+    if (!confirm("آیا از صفر کردن تعداد صلوات‌های امروز برای تست اطمینان دارید؟")) return;
+    setLoading(true);
+    try {
+      const res = await fetch("/api/admin/bulk-salawat", { method: "DELETE" });
+      const data = await res.json();
+      if (res.ok) {
+        showNotification("صلوات‌های امروز صفر شدند");
+        loadAdminData();
+      } else {
+        showNotification(data.error || "خطا در صفر کردن صلوات‌ها", "error");
+      }
+    } catch {
+      showNotification("خطای سرور", "error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleFillTarget = async () => {
+    if (!todayMission) return;
+    const remaining = Math.max(0, todayMission.target - todayMission.currentCount);
+    if (remaining === 0) {
+      showNotification("هدف صلوات امروز قبلاً تکمیل شده است");
+      return;
+    }
+    await handleSimulateSalawat(remaining);
   };
 
   const handleSimulateSalawat = async (count: number) => {
@@ -242,7 +328,7 @@ export default function AdminPage() {
             ورود به پنل مدیریت پویش
           </h2>
           <p className="text-xs text-slate-400 mb-6">
-            رمز عبور ۴ رقمی مدیریت را وارد فرمایید (پیش‌فرض: ۱۳۵۷)
+            رمز عبور مدیریت را وارد فرمایید
           </p>
 
           <form onSubmit={handleLogin} className="flex flex-col gap-4">
@@ -310,6 +396,16 @@ export default function AdminPage() {
               <ArrowRight className="w-3.5 h-3.5" />
               <span>مشاهده سایت</span>
             </Link>
+          </div>
+        </div>
+
+        {/* Discreet Access Tip Banner */}
+        <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/25 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-xs text-amber-200/90">
+          <div className="flex items-center gap-2">
+            <Lock className="w-4 h-4 text-amber-400 shrink-0" />
+            <span>
+              <strong>دکمه پنل مدیریت از صفحه اصلی مخفی شد:</strong> جهت ورود سریع به این پنل از صفحه اصلی، می‌توانید کلیدهای میانبر <kbd className="px-2 py-0.5 rounded bg-slate-800 border border-amber-500/30 text-amber-300 font-mono text-[11px]">Ctrl + Shift + A</kbd> را بفشارید یا مستقیماً به آدرس <code className="font-mono text-amber-300">/admin</code> مراجعه فرمایید.
+            </span>
           </div>
         </div>
 
@@ -433,30 +529,76 @@ export default function AdminPage() {
                 </div>
               </div>
 
+              {/* Progress Bar */}
+              <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 flex flex-col gap-2">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-slate-400">پیشرفت صلوات‌های امروز تا هدف:</span>
+                  <span className="font-bold text-amber-400 tabular-nums">
+                    {toPersianDigits(
+                      Math.min(
+                        100,
+                        Math.round((todayMission.currentCount / Math.max(1, todayMission.target)) * 100)
+                      )
+                    )}
+                    ٪
+                  </span>
+                </div>
+                <div className="w-full h-2.5 rounded-full bg-slate-900 overflow-hidden border border-slate-800">
+                  <div
+                    className="h-full bg-gradient-to-r from-amber-600 via-amber-500 to-amber-400 transition-all duration-500 rounded-full"
+                    style={{
+                      width: `${Math.min(
+                        100,
+                        (todayMission.currentCount / Math.max(1, todayMission.target)) * 100
+                      )}%`,
+                    }}
+                  />
+                </div>
+              </div>
+
               {/* Action Controls */}
               <div className="p-5 rounded-2xl bg-slate-950 border border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div>
-                  <h4 className="text-xs font-bold text-slate-200">
-                    فرمان پرتاب راکت روز
+                  <h4 className="text-xs font-bold text-slate-200 flex items-center gap-1.5">
+                    <Rocket className="w-3.5 h-3.5 text-amber-400" />
+                    <span>فرمان پرتاب راکت روز</span>
                   </h4>
                   <p className="text-[11px] text-slate-400 mt-0.5">
-                    پرتاب راکت مأموریت امروز را به پایان رسانده و ستاره‌ای جدید به آسمان اضافه می‌کند.
+                    پرتاب راکت مأموریت امروز را تکمیل کرده و ستاره‌ای زرین در آسمان پویش روشن می‌کند.
                   </p>
                 </div>
 
-                <button
-                  onClick={handleTriggerLaunch}
-                  disabled={todayMission.state === "LAUNCHED" || loading}
-                  className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 font-bold text-slate-950 text-xs shadow-lg transition-all disabled:opacity-40"
-                >
-                  {todayMission.state === "LAUNCHED" ? "امروز پرتاب شده است" : "اجرای پرتاب معنوی"}
-                </button>
+                <div className="flex items-center gap-2 w-full sm:w-auto">
+                  <button
+                    onClick={handleTriggerLaunch}
+                    disabled={todayMission.state === "LAUNCHED" || loading}
+                    className="flex-1 sm:flex-none px-6 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 font-bold text-slate-950 text-xs shadow-lg transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    {todayMission.state === "LAUNCHED" ? "امروز پرتاب شده است" : "اجرای پرتاب معنوی"}
+                  </button>
+
+                  {todayMission.state === "LAUNCHED" && (
+                    <button
+                      onClick={handleResetLaunch}
+                      disabled={loading}
+                      className="px-3.5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-400 hover:text-amber-300 border border-slate-700 text-xs font-semibold transition-colors flex items-center gap-1"
+                      title="بازنشانی وضعیت پرتاب امروز جهت تست دوباره"
+                    >
+                      <RotateCcw className="w-3.5 h-3.5" />
+                      <span>بازنشانی پرتاب</span>
+                    </button>
+                  )}
+                </div>
               </div>
 
-              {/* Simulation test contributions */}
-              <div className="p-4 rounded-2xl bg-slate-950/60 border border-slate-800/80 flex items-center justify-between">
-                <span className="text-xs text-slate-400">افزودن صلوات آزمایشی برای تست:</span>
-                <div className="flex items-center gap-2">
+              {/* Simulation test contributions & Resets */}
+              <div className="p-4 rounded-2xl bg-slate-950/60 border border-slate-800/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-1 text-xs text-slate-400">
+                  <Zap className="w-3.5 h-3.5 text-amber-400" />
+                  <span>عملیات سریع تست صلوات:</span>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2">
                   <button
                     onClick={() => handleSimulateSalawat(100)}
                     className="px-3 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-300"
@@ -474,6 +616,23 @@ export default function AdminPage() {
                     className="px-3 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-amber-300"
                   >
                     + ۱٬۰۰۰
+                  </button>
+
+                  <button
+                    onClick={handleFillTarget}
+                    className="px-3 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-xs font-semibold text-amber-300 border border-amber-500/40"
+                    title="افزودن صلوات تا رسیدن به سقف ۱۰۰٪ مأموریت امروز"
+                  >
+                    تکمیل ۱۰۰٪ هدف
+                  </button>
+
+                  <button
+                    onClick={handleResetSalawat}
+                    className="px-3 py-1 rounded-lg bg-rose-950/40 hover:bg-rose-900/50 text-xs text-rose-300 border border-rose-800/50 flex items-center gap-1"
+                    title="صفر کردن صلوات‌های امروز"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                    <span>صفر کردن</span>
                   </button>
                 </div>
               </div>
@@ -499,6 +658,55 @@ export default function AdminPage() {
                   <span>تاریخ یادواره:</span>
                   <span className="font-bold text-slate-100">{settings?.memorialDate}</span>
                 </div>
+              </div>
+            </div>
+
+            {/* Audio & Background Music Control Widget */}
+            <div className="p-6 rounded-3xl bg-slate-900/80 border border-slate-800 flex flex-col gap-4">
+              <h3 className="text-base font-bold text-slate-100 flex items-center gap-2">
+                <Volume2 className="w-4 h-4 text-amber-400" />
+                <span>مدیریت صوت و موزیک زمینه</span>
+              </h3>
+
+              <div className="flex flex-col gap-3 text-xs text-slate-300">
+                <div className="p-3 rounded-xl bg-slate-950 flex flex-col gap-1 border border-slate-800">
+                  <span className="text-slate-400 text-[11px]">فایل صوت پلی‌گراند:</span>
+                  <span className="font-mono text-amber-300 text-[11px] truncate" dir="ltr">
+                    bayad-barkhast-playground.mp3
+                  </span>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="p-3 rounded-xl bg-slate-950 border border-slate-800">
+                    <span className="text-slate-400 text-[11px]">بلندی صدا:</span>
+                    <p className="font-bold text-slate-100 mt-0.5">۱۰٪ (0.10)</p>
+                  </div>
+                  <div className="p-3 rounded-xl bg-slate-950 border border-slate-800">
+                    <span className="text-slate-400 text-[11px]">لود تنبل (Lazy):</span>
+                    <p className="font-bold text-emerald-400 mt-0.5">فعال ✓</p>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={toggleTestAudio}
+                  className={`w-full py-2.5 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-2 ${
+                    isPlayingAudioTest
+                      ? "bg-amber-500/20 text-amber-300 border-amber-500/50 animate-pulse"
+                      : "bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700"
+                  }`}
+                >
+                  {isPlayingAudioTest ? (
+                    <>
+                      <Square className="w-3.5 h-3.5 fill-current" />
+                      <span>توقف تست موزیک</span>
+                    </>
+                  ) : (
+                    <>
+                      <Play className="w-3.5 h-3.5 fill-current" />
+                      <span>تست پخش موزیک در پنل</span>
+                    </>
+                  )}
+                </button>
               </div>
             </div>
           </div>

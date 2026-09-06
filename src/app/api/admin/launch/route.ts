@@ -24,3 +24,19 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "خطا در اجرای پرتاب" }, { status: 500 });
   }
 }
+
+export async function DELETE(req: NextRequest) {
+  const isAuth = await verifyAdminAuth(req);
+  if (!isAuth) {
+    return NextResponse.json({ error: "عدم دسترسی" }, { status: 401 });
+  }
+
+  try {
+    const ip = req.headers.get("x-forwarded-for") || "admin";
+    const result = await CampaignService.resetTodayLaunch(ip);
+    return NextResponse.json(result);
+  } catch (error) {
+    console.error("Admin reset launch error:", error);
+    return NextResponse.json({ error: "خطا در بازنشانی پرتاب" }, { status: 500 });
+  }
+}

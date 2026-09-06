@@ -324,6 +324,97 @@ export class CampaignService {
   }
 
   /**
+   * Admin: Reset today's launch state back to ACTIVE / READY_TO_LAUNCH
+   * and remove today's star from the constellation for re-testing.
+   */
+  static async resetTodayLaunch(ip: string = "admin"): Promise<{
+    success: boolean;
+    message: string;
+    mission: DailyMission;
+  }> {
+    return mutateDb(async (db) => {
+      const today = getTehranDateString(new Date(), db.settings.dailyResetHour ?? 0);
+      const mission = this.ensureMissionForDate(db, today);
+
+      mission.state = mission.currentCount >= mission.target ? "READY_TO_LAUNCH" : "ACTIVE";
+      delete mission.launchTimestamp;
+
+      db.constellation = db.constellation.filter((s) => s.date !== today);
+
+      db.auditLogs.unshift({
+        id: generateUUID(),
+        timestamp: Date.now(),
+        action: "RESET_LAUNCH",
+        details: `بازنشانی پرتاب راکت امروز (${today}) توسط مدیر.`,
+        ip,
+      });
+
+      sseBroadcaster.broadcast("salawat_update", {
+        date: today,
+        currentCount: mission.currentCount,
+        target: mission.target,
+        state: mission.state,
+        participantsCount: mission.participantsCount,
+      });
+
+      return {
+        data: db,
+        result: {
+          success: true,
+          message: "وضعیت پرتاب راکت امروز با موفقیت بازنشانی گردید و امکان پرتاب دوباره فعال شد.",
+          mission,
+        },
+      };
+    });
+  }
+
+  /**
+   * Admin: Reset today's salawat count to zero for testing.
+   */
+  static async resetTodaySalawat(ip: string = "admin"): Promise<{
+    success: boolean;
+    message: string;
+    mission: DailyMission;
+  }> {
+    return mutateDb(async (db) => {
+      const today = getTehranDateString(new Date(), db.settings.dailyResetHour ?? 0);
+      const mission = this.ensureMissionForDate(db, today);
+
+      mission.currentCount = 0;
+      mission.participantsCount = 0;
+      mission.state = "ACTIVE";
+      delete mission.launchTimestamp;
+
+      db.constellation = db.constellation.filter((s) => s.date !== today);
+
+      db.auditLogs.unshift({
+        id: generateUUID(),
+        timestamp: Date.now(),
+        action: "RESET_SALAWAT",
+        details: `صفر کردن صلوات‌های امروز (${today}) توسط مدیر.`,
+        ip,
+      });
+
+      sseBroadcaster.broadcast("salawat_update", {
+        date: today,
+        currentCount: 0,
+        target: mission.target,
+        state: mission.state,
+        participantsCount: 0,
+      });
+
+      return {
+        data: db,
+        result: {
+          success: true,
+          message: "صلوات‌های امروز صفر شدند و وضعیت مأموریت بازنشانی گردید.",
+          mission,
+        },
+      };
+    });
+  }
+
+  /**
    * Admin: Update Campaign Settings
    */
   static async updateSettings(

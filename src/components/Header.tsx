@@ -1,8 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import Link from "next/link";
-import { Volume2, VolumeX, Shield, Compass } from "lucide-react";
+import { Volume2, VolumeX, Shield } from "lucide-react";
 import { soundEngine } from "@/lib/client/procedural-audio";
 import { formatShortJalaliDate } from "@/lib/utils";
 
@@ -18,11 +17,27 @@ export default function Header({ tehranDate }: HeaderProps) {
   useEffect(() => {
     setMounted(true);
     setIsMuted(soundEngine.getMuted());
+    soundEngine.setupAutoPlayListeners();
 
     const onScroll = () => setScrolled(window.scrollY > 12);
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
+
+    // Discreet admin hotkey (Ctrl + Shift + A or Alt + A)
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (
+        (e.ctrlKey && e.shiftKey && (e.key === "A" || e.key === "a")) ||
+        (e.altKey && (e.key === "a" || e.key === "A"))
+      ) {
+        window.location.href = "/admin";
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("keydown", onKeyDown);
+    };
   }, []);
 
   const handleToggleAudio = () => {
@@ -72,14 +87,7 @@ export default function Header({ tehranDate }: HeaderProps) {
           <span className="hidden md:inline">{isMuted ? "صدا: خاموش" : "صدا: روشن"}</span>
         </button>
 
-        <Link
-          href="/admin"
-          className="w-10 h-10 flex items-center justify-center rounded-full bg-slate-800/70 border border-slate-700/60 text-slate-400 hover:text-amber-400 hover:border-slate-600 transition-colors"
-          title="پنل مدیریت پویش"
-          aria-label="پنل مدیریت پویش"
-        >
-          <Compass className="w-4 h-4" />
-        </Link>
+
       </div>
     </header>
   );
