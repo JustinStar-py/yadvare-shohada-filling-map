@@ -168,7 +168,7 @@ function getInitialData(): DatabaseSchema {
     startTarget: 8000,
     dailyIncrease: 500,
     targetOverrides: {},
-    adminPinHash: hashPin("1357"),
+    adminPinHash: hashPin("279279"),
     visualPreset: "balanced",
     finalMessage: "در این مسیر نورانی، با هم هزاران صلوات تقدیم روح پرفتوح شهدا کردیم. یادشان تا ابد در دل‌ها جاودان باد.",
     isCompleted: false,

@@ -14,7 +14,7 @@
     "visualPreset": "balanced",
     "finalMessage": "در این مسیر نورانی، با هم هزاران صلوات تقدیم روح پرفتوح شهدا کردیم. یادشان تا ابد در دل‌ها جاودان باد.",
     "isCompleted": false,
-    "adminPinHash": "scrypt$8c7d01c5fa0a631e20bbd85f5136654d$f2e6706d317324fce9d50c7dcf3f630a064ceb7446cf042bd6351d6b4b0bbd15"
+    "adminPinHash": "scrypt$916426ebc2ae319ade07e1ade525eb6e$80ccb1fff0f01f4d34d5e0d1053a259a391d9b8d85e3338256b523224f1258c9"
   },
   "missions": {
     "2026-09-01": {
@@ -63,8 +63,8 @@
       "date": "2026-09-07",
       "dayNumber": 9,
       "target": 4500,
-      "currentCount": 666,
-      "participantsCount": 66,
+      "currentCount": 700,
+      "participantsCount": 78,
       "state": "ACTIVE",
       "martyrId": "martyr-1",
       "isOverrideTarget": false
@@ -1374,6 +1374,54 @@
     "fbe27dd9-7dcd-47bf-a328-4fe1a9fb7c0c": {
       "timestamp": 1788732084902,
       "count": 1
+    },
+    "55dab36c-449b-42f5-b710-33e56d679d93": {
+      "timestamp": 1788732920424,
+      "count": 1
+    },
+    "f47c6d3f-374e-422f-bd06-a5a73dab39e6": {
+      "timestamp": 1788732921535,
+      "count": 1
+    },
+    "728b36e8-9f96-4dd1-80ea-a1c9730a235a": {
+      "timestamp": 1788732922608,
+      "count": 1
+    },
+    "d8b3600f-1329-4223-a4ef-ae18c3588d03": {
+      "timestamp": 1788732924019,
+      "count": 1
+    },
+    "e0649ab5-3c66-46e5-8732-c1ab8443322c": {
+      "timestamp": 1788732926263,
+      "count": 1
+    },
+    "885f290d-d074-4108-bca2-d3931e1507f6": {
+      "timestamp": 1788732928083,
+      "count": 1
+    },
+    "6b73986e-55c7-4f88-b5a0-494db9f5d7c8": {
+      "timestamp": 1788733391407,
+      "count": 5
+    },
+    "347c86e6-e38c-4c31-bf7a-aa9fa02c2370": {
+      "timestamp": 1788733403782,
+      "count": 5
+    },
+    "test-batch-node-1788733429166": {
+      "timestamp": 1788733429644,
+      "count": 5
+    },
+    "3c7732e8-485e-4331-97a3-c1782b72f567": {
+      "timestamp": 1788733485813,
+      "count": 5
+    },
+    "4d0cee75-e61a-4352-af2f-080b475c6634": {
+      "timestamp": 1788733498963,
+      "count": 5
+    },
+    "da0d4a89-e051-4c55-a388-5c05f4fbf2cc": {
+      "timestamp": 1788733516825,
+      "count": 3
     }
   },
   "auditLogs": [
