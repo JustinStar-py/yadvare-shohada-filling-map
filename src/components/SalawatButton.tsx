@@ -4,9 +4,11 @@ import React, { useState, useRef, useCallback, useEffect } from "react";
 import { soundEngine } from "@/lib/client/procedural-audio";
 import { generateUUID, toPersianDigits } from "@/lib/utils";
 import { Sparkles, ShieldAlert } from "lucide-react";
+import { SalawatSubmissionResponse } from "@/types/campaign";
 
 interface SalawatButtonProps {
   onOptimisticIncrement: (count: number) => void;
+  onSubmissionSuccess?: (data: SalawatSubmissionResponse, flushedCount: number) => void;
   onSubmissionRejected?: (count: number) => void;
   disabled?: boolean;
 }
@@ -27,8 +29,31 @@ interface Orb {
 const COOLDOWN_MS = 2000; // 2 seconds per salawat as specified
 const BATCH_SIZE = 5; // Batch of 5 salawat before network dispatch
 
+function getOrCreateVisitorId(): string {
+  if (typeof window === "undefined") return "";
+  try {
+    let id = localStorage.getItem("salawat_visitor_id");
+    if (!id) {
+      id = "v-" + generateUUID();
+      localStorage.setItem("salawat_visitor_id", id);
+    }
+    return id;
+  } catch {
+    return "v-temp-" + Date.now();
+  }
+}
+
+function queueOffline(idempotencyKey: string, count: number) {
+  try {
+    const queue = JSON.parse(localStorage.getItem("offline_salawat_queue") || "[]");
+    queue.push({ idempotencyKey, count, timestamp: Date.now() });
+    localStorage.setItem("offline_salawat_queue", JSON.stringify(queue.slice(-50)));
+  } catch {}
+}
+
 export default function SalawatButton({
   onOptimisticIncrement,
+  onSubmissionSuccess,
   onSubmissionRejected,
   disabled = false,
 }: SalawatButtonProps) {
@@ -71,31 +96,56 @@ export default function SalawatButton({
     } catch {}
   }, []);
 
-  // Flush pending batch to server
+  // Flush pending batch to server with resilient soft retry on 429/network errors
   const flushBatch = useCallback(
-    (countToFlush: number) => {
+    (countToFlush: number, retryAttempt = 0, existingIdempotencyKey?: string) => {
       if (countToFlush <= 0) return;
-      const idempotencyKey = generateUUID();
+      const idempotencyKey = existingIdempotencyKey || generateUUID();
+      const visitorId = getOrCreateVisitorId();
+
       fetch("/api/salawat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ idempotencyKey, count: countToFlush }),
+        body: JSON.stringify({ idempotencyKey, count: countToFlush, visitorId }),
         keepalive: true,
       })
-        .then((res) => {
-          if (!res.ok) {
+        .then(async (res) => {
+          if (res.ok) {
+            const data: SalawatSubmissionResponse = await res.json().catch(() => null as any);
+            if (data) {
+              onSubmissionSuccess?.(data, countToFlush);
+            }
+            return;
+          }
+
+          if (res.status === 409 || res.status === 400) {
+            // Terminal failure (day already launched or bad input) -> rollback
             onSubmissionRejected?.(countToFlush);
+            return;
+          }
+
+          // 429 or 5xx: Soft retry with exponential backoff using the SAME idempotencyKey
+          if (retryAttempt < 3) {
+            const delay = Math.min(8000, 1000 * Math.pow(2, retryAttempt) + Math.random() * 400);
+            setTimeout(() => {
+              flushBatch(countToFlush, retryAttempt + 1, idempotencyKey);
+            }, delay);
+          } else {
+            queueOffline(idempotencyKey, countToFlush);
           }
         })
         .catch(() => {
-          try {
-            const queue = JSON.parse(localStorage.getItem("offline_salawat_queue") || "[]");
-            queue.push({ idempotencyKey, count: countToFlush, timestamp: Date.now() });
-            localStorage.setItem("offline_salawat_queue", JSON.stringify(queue.slice(-50)));
-          } catch {}
+          if (retryAttempt < 2) {
+            const delay = 1200 * Math.pow(2, retryAttempt) + Math.random() * 300;
+            setTimeout(() => {
+              flushBatch(countToFlush, retryAttempt + 1, idempotencyKey);
+            }, delay);
+          } else {
+            queueOffline(idempotencyKey, countToFlush);
+          }
         });
     },
-    [onSubmissionRejected]
+    [onSubmissionRejected, onSubmissionSuccess]
   );
 
   // Flush remaining salawat on unload so no recitation is lost
@@ -293,7 +343,7 @@ export default function SalawatButton({
             transitionDuration: "180ms",
             transitionTimingFunction: "cubic-bezier(0.22, 1, 0.36, 1)",
           }}
-          aria-label="فرستادن صلوات و مشارکت در پویش معنوی یادواره شهدا"
+          aria-label="فرستادن صلوات و مشارکت در  پویش معنوی یادواره شهدای شهیدیه"
         >
           {/* Subtle Shimmer */}
           {!disabled && !isCoolingDown && (

@@ -5,7 +5,7 @@ import ParallaxRocket from "./engine/ParallaxRocket";
 import CommunityProgress from "./CommunityProgress";
 import SalawatButton from "./SalawatButton";
 import OdometerNumber from "./ui/OdometerNumber";
-import { PublicCampaignState } from "@/types/campaign";
+import { PublicCampaignState, SalawatSubmissionResponse } from "@/types/campaign";
 import { toPersianDigits } from "@/lib/utils";
 import { useCountUp } from "@/lib/client/use-count-up";
 import { Calendar } from "lucide-react";
@@ -15,6 +15,7 @@ interface HeroSectionProps {
   isLaunching: boolean;
   hasLiftedOff: boolean;
   onSalawatPress: (count: number) => void;
+  onSalawatSuccess?: (data: SalawatSubmissionResponse, flushedCount: number) => void;
   onSalawatRejected: (count: number) => void;
   onOpenShareModal: () => void;
   onReplayLaunch?: () => void;
@@ -27,6 +28,7 @@ export default function HeroSection({
   isLaunching,
   hasLiftedOff,
   onSalawatPress,
+  onSalawatSuccess,
   onSalawatRejected,
   onReplayLaunch,
   onFlightComplete,
@@ -135,6 +137,7 @@ export default function HeroSection({
 
         <SalawatButton
           onOptimisticIncrement={onSalawatPress}
+          onSubmissionSuccess={onSalawatSuccess}
           onSubmissionRejected={onSalawatRejected}
           disabled={isLaunching || campaignPhase === "archived"}
         />

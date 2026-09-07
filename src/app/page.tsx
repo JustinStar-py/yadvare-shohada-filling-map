@@ -11,9 +11,10 @@ import CollectiveRecord from "@/components/CollectiveRecord";
 import MemorialInfo from "@/components/MemorialInfo";
 import LaunchOverlay from "@/components/LaunchOverlay";
 import ShareCardModal from "@/components/ShareCardModal";
-import { PublicCampaignState } from "@/types/campaign";
+import { PublicCampaignState, SalawatSubmissionResponse } from "@/types/campaign";
 import { soundEngine } from "@/lib/client/procedural-audio";
-import { Shield } from "lucide-react";
+import MartyrTulipIcon from "@/components/ui/MartyrTulipIcon";
+import { generateUUID } from "@/lib/utils";
 
 export default function HomePage() {
   const [state, setState] = useState<PublicCampaignState | null>(null);
@@ -30,13 +31,15 @@ export default function HomePage() {
   const missionStateRef = useRef<string | null>(null);
   const stateRef = useRef<PublicCampaignState | null>(null);
 
-  // ── Optimistic salawat bookkeeping ──────────────────────────────────────
-  // The server count is the single source of truth. Local clicks raise the
-  // displayed count instantly; a stale SSE snapshot can never drag it back
-  // down (or negative) because the display is monotonic and only re-anchors
-  // to server values once the server has caught up with it.
+  // ── Optimistic & Multiplayer Salawat Bookkeeping ─────────────────────────
+  // displayedCount = serverCount + inFlightLocalCount.
+  // When a batch succeeds over HTTP POST, we re-anchor serverCount instantly
+  // and decrement inFlightLocalCount without waiting for SSE.
   const displayedCountRef = useRef(0);
   const serverCountRef = useRef(0);
+  const inFlightCountRef = useRef(0);
+  const lastEpochRef = useRef(1);
+  const lastSeqRef = useRef(0);
 
   // Fetch initial campaign state
   const loadState = useCallback(async () => {
@@ -45,7 +48,9 @@ export default function HomePage() {
       if (res.ok) {
         const data: PublicCampaignState = await res.json();
         serverCountRef.current = data.mission.currentCount;
+        inFlightCountRef.current = 0;
         displayedCountRef.current = data.mission.currentCount;
+        lastEpochRef.current = data.mission.epoch ?? 1;
         setState(data);
         missionStateRef.current = data.mission.state;
       }
@@ -95,11 +100,28 @@ export default function HomePage() {
 
     const connectSSE = () => {
       if (disposed) return;
-      eventSource = new EventSource("/api/salawat/stream");
+      const url =
+        lastSeqRef.current > 0
+          ? `/api/salawat/stream?since=${lastSeqRef.current}`
+          : "/api/salawat/stream";
+      eventSource = new EventSource(url);
+
+      eventSource.addEventListener("connected", (e) => {
+        try {
+          const info = JSON.parse(e.data);
+          if (typeof info.seq === "number") {
+            lastSeqRef.current = Math.max(lastSeqRef.current, info.seq);
+          }
+        } catch {}
+      });
 
       eventSource.addEventListener("salawat_update", (e) => {
         try {
           const update = JSON.parse(e.data);
+          if (typeof update.seq === "number") {
+            lastSeqRef.current = Math.max(lastSeqRef.current, update.seq);
+          }
+
           const isNewDay = update.date && update.date !== stateRef.current?.mission.date;
 
           // A new campaign day started — reload full state (outside setState)
@@ -108,14 +130,20 @@ export default function HomePage() {
             return;
           }
 
+          const incomingEpoch = update.epoch ?? 1;
+          const isEpochReset = incomingEpoch > lastEpochRef.current;
+
           setState((prev) => {
             if (!prev) return prev;
 
-            // Monotonic reconciliation: only move the display when the server
-            // count has caught up with (or passed) what we're showing.
-            serverCountRef.current = Math.max(serverCountRef.current, update.currentCount);
-            if (update.currentCount >= displayedCountRef.current) {
+            if (isEpochReset) {
+              lastEpochRef.current = incomingEpoch;
+              serverCountRef.current = update.currentCount;
+              inFlightCountRef.current = 0;
               displayedCountRef.current = update.currentCount;
+            } else {
+              serverCountRef.current = Math.max(serverCountRef.current, update.currentCount);
+              displayedCountRef.current = serverCountRef.current + inFlightCountRef.current;
             }
 
             // State precedence: server update must never regress a locally reached READY_TO_LAUNCH
@@ -128,19 +156,24 @@ export default function HomePage() {
             const serverState = update.state || prev.mission.state;
             const localState = prev.mission.state;
             const resolvedState =
-              (STATE_PRECEDENCE[serverState] ?? 0) >= (STATE_PRECEDENCE[localState] ?? 0)
+              isEpochReset || (STATE_PRECEDENCE[serverState] ?? 0) >= (STATE_PRECEDENCE[localState] ?? 0)
                 ? serverState
                 : localState;
 
             return {
               ...prev,
+              totalCampaignSalawat:
+                typeof update.totalCampaignSalawat === "number"
+                  ? update.totalCampaignSalawat + inFlightCountRef.current
+                  : prev.totalCampaignSalawat,
               mission: {
                 ...prev.mission,
                 currentCount: displayedCountRef.current,
                 target: update.target ?? prev.mission.target,
                 state: resolvedState,
+                epoch: incomingEpoch,
                 participantsCount: Math.max(
-                  prev.mission.participantsCount,
+                  isEpochReset ? 0 : prev.mission.participantsCount,
                   update.participantsCount ?? 0
                 ),
               },
@@ -213,7 +246,7 @@ export default function HomePage() {
     return () => clearInterval(interval);
   }, [loadState]);
 
-  // Flush any offline retry queue on mount
+  // Flush any offline retry queue on mount in consolidated batches
   useEffect(() => {
     const flush = async () => {
       try {
@@ -223,22 +256,30 @@ export default function HomePage() {
         if (queue.length === 0) return;
         localStorage.removeItem("offline_salawat_queue");
 
-        const failed: typeof queue = [];
-        // Idempotency keys make re-sending safe — keep failures for the next visit
-        for (const item of queue) {
+        // Consolidate total pending counts into batches of max 25
+        let totalPending = queue.reduce((sum, item) => sum + (item.count || 1), 0);
+        while (totalPending > 0) {
+          const batchCount = Math.min(25, totalPending);
+          totalPending -= batchCount;
           try {
-            const res = await fetch("/api/salawat", {
+            await fetch("/api/salawat", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(item),
+              body: JSON.stringify({
+                idempotencyKey: generateUUID(),
+                count: batchCount,
+                visitorId: localStorage.getItem("salawat_visitor_id") || undefined,
+              }),
             });
-            if (!res.ok) failed.push(item);
           } catch {
-            failed.push(item);
+            // If network fails during flush, re-queue the remaining
+            const currentQueue: Array<{ idempotencyKey: string; count: number }> = JSON.parse(
+              localStorage.getItem("offline_salawat_queue") || "[]"
+            );
+            currentQueue.push({ idempotencyKey: generateUUID(), count: batchCount + totalPending });
+            localStorage.setItem("offline_salawat_queue", JSON.stringify(currentQueue.slice(-50)));
+            break;
           }
-        }
-        if (failed.length > 0) {
-          localStorage.setItem("offline_salawat_queue", JSON.stringify(failed.slice(-50)));
         }
       } catch {}
     };
@@ -250,7 +291,8 @@ export default function HomePage() {
   // Optimistic press from the Hero CTA
   const handleSalawatPress = useCallback((count: number) => {
     setEnergyBurstTrigger((prev) => prev + 1);
-    displayedCountRef.current += count;
+    inFlightCountRef.current += count;
+    displayedCountRef.current = serverCountRef.current + inFlightCountRef.current;
 
     setState((prev) => {
       if (!prev) return prev;
@@ -264,16 +306,49 @@ export default function HomePage() {
           ...prev.mission,
           currentCount: newCount,
           state: willBeReady ? "READY_TO_LAUNCH" : prev.mission.state,
-          participantsCount: prev.mission.participantsCount + 1,
+          participantsCount: Math.max(1, prev.mission.participantsCount),
         },
       };
     });
   }, []);
 
-  // The server explicitly rejected a submission (rate-limited / day launched):
+  // Server responded with authoritative state on batch success
+  const handleSalawatSuccess = useCallback(
+    (data: SalawatSubmissionResponse, flushedCount: number) => {
+      serverCountRef.current = data.currentCount;
+      inFlightCountRef.current = Math.max(0, inFlightCountRef.current - flushedCount);
+      displayedCountRef.current = serverCountRef.current + inFlightCountRef.current;
+      lastEpochRef.current = data.epoch ?? lastEpochRef.current;
+
+      setState((prev) => {
+        if (!prev) return prev;
+        const newCount = displayedCountRef.current;
+        const willBeReady =
+          (newCount >= data.target || data.missionState === "READY_TO_LAUNCH") &&
+          prev.mission.state === "ACTIVE";
+
+        return {
+          ...prev,
+          totalCampaignSalawat: data.totalCampaignSalawat ?? prev.totalCampaignSalawat,
+          mission: {
+            ...prev.mission,
+            currentCount: newCount,
+            target: data.target,
+            state: willBeReady ? "READY_TO_LAUNCH" : data.missionState,
+            participantsCount: Math.max(prev.mission.participantsCount, data.participantsCount),
+            epoch: data.epoch,
+          },
+        };
+      });
+    },
+    []
+  );
+
+  // The server explicitly rejected a submission (409 day launched / 400):
   // roll the optimistic increment back so the UI stays honest.
   const handleSalawatRejected = useCallback((count: number) => {
-    displayedCountRef.current = Math.max(serverCountRef.current, displayedCountRef.current - count);
+    inFlightCountRef.current = Math.max(0, inFlightCountRef.current - count);
+    displayedCountRef.current = serverCountRef.current + inFlightCountRef.current;
 
     setState((prev) => {
       if (!prev) return prev;
@@ -283,7 +358,6 @@ export default function HomePage() {
         mission: {
           ...prev.mission,
           currentCount: displayedCountRef.current,
-          participantsCount: Math.max(0, prev.mission.participantsCount - 1),
         },
       };
     });
@@ -357,9 +431,9 @@ export default function HomePage() {
     return (
       <div className="min-h-screen bg-[#090d16] flex flex-col items-center justify-center text-slate-100 p-4">
         <div className="relative w-20 h-20 mb-5">
-          <div className="absolute inset-0 rounded-full border border-amber-500/30 animate-shockwave" />
-          <div className="absolute inset-0 rounded-full bg-amber-500/10 border border-amber-500/40 flex items-center justify-center text-amber-400 animate-pulse">
-            <Shield className="w-9 h-9" />
+          <div className="absolute inset-0 rounded-full border border-rose-500/30 animate-shockwave" />
+          <div className="absolute inset-0 rounded-full bg-rose-500/10 border border-rose-500/40 flex items-center justify-center animate-pulse">
+            <MartyrTulipIcon className="w-10 h-10" />
           </div>
         </div>
         <p className="text-sm font-semibold text-amber-300/90 animate-pulse tracking-wide">
@@ -401,6 +475,7 @@ export default function HomePage() {
           isLaunching={isLaunching}
           hasLiftedOff={hasLiftedOff}
           onSalawatPress={handleSalawatPress}
+          onSalawatSuccess={handleSalawatSuccess}
           onSalawatRejected={handleSalawatRejected}
           onOpenShareModal={() => setShowShareModal(true)}
           onReplayLaunch={handleReplayLaunch}

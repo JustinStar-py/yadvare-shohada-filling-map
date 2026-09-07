@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import MartyrTulipIcon from "@/components/ui/MartyrTulipIcon";
 import {
   Shield,
   Rocket,
@@ -370,10 +371,10 @@ export default function AdminPage() {
         {/* Top Header */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-6 rounded-3xl bg-slate-900/80 border border-slate-800 shadow-lg">
           <div>
-            <div className="flex items-center gap-2">
-              <Shield className="w-5 h-5 text-amber-400" />
+            <div className="flex items-center gap-2.5">
+              <MartyrTulipIcon className="w-6 h-6" />
               <h1 className="text-xl font-bold text-slate-100">
-                پنل مدیریت پویش معنوی یادواره شهدا
+                پنل مدیریت  پویش معنوی یادواره شهدای شهیدیه
               </h1>
             </div>
             <p className="text-xs text-slate-400 mt-1">
