@@ -203,7 +203,7 @@ export default function DailyMissionTourModal({
               className="mt-5 w-full py-3.5 px-6 rounded-2xl bg-gradient-to-l from-emerald-600 via-emerald-500 to-emerald-600 text-white font-bold text-sm sm:text-base shadow-[0_0_25px_rgba(16,185,129,0.35)] hover:shadow-[0_0_35px_rgba(16,185,129,0.5)] active:scale-[0.98] transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer relative z-30"
             >
               <Check className="w-5 h-5" />
-              <span>یا علی — پذیرش عهد و ورود به پویش</span>
+              <span>پذیرش عهد</span>
             </button>
           </div>
         )}
