@@ -3,18 +3,23 @@
 import React from "react";
 import { formatJalaliDate } from "@/lib/utils";
 import { Calendar, MapPin, Radio, Clock } from "lucide-react";
+import MemorialCountdown from "./MemorialCountdown";
 
 interface MemorialInfoProps {
   memorialTitle: string;
   memorialDate: string;
+  memorialTime?: string;
   memorialLocation: string;
 }
 
 export default function MemorialInfo({
   memorialTitle,
   memorialDate,
+  memorialTime = "19:00",
   memorialLocation,
 }: MemorialInfoProps) {
+  const targetIso = `${memorialDate || "2026-09-17"}T${memorialTime || "19:00"}:00+03:30`;
+
   return (
     <section className="w-full max-w-4xl mx-auto px-4 py-12 relative z-10">
       <div className="glass-panel rounded-3xl p-8 sm:p-10 relative overflow-hidden">
@@ -36,13 +41,13 @@ export default function MemorialInfo({
               <Calendar className="w-5 h-5" />
             </div>
             <div>
-              <h4 className="text-sm font-bold text-slate-200 mb-1.5">زمان برگزاری</h4>
-              <p className="text-xs text-slate-300/90 leading-relaxed">
+              <h4 className="text-sm font-bold text-slate-200 mb-1.5">زمان برگزاری مراسم</h4>
+              <p className="text-sm font-bold text-amber-200 leading-relaxed">
                 {memorialDate ? formatJalaliDate(memorialDate) : "به زودی اعلام می‌شود"}
               </p>
-              <div className="flex items-center gap-1.5 text-[11px] text-slate-500 mt-2.5">
-                <Clock className="w-3 h-3 text-amber-500/70" />
-                <span>همزمان با نماز مغرب و عشاء</span>
+              <div className="flex items-center gap-1.5 text-xs text-slate-300 font-medium mt-2">
+                <Clock className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                <span>ساعت ۱۹:۰۰ (۷ شب) — همزمان با نماز مغرب و عشاء</span>
               </div>
             </div>
           </div>
@@ -62,6 +67,14 @@ export default function MemorialInfo({
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Live countdown timer until the memorial event */}
+        <div className="mt-8 pt-7 border-t border-slate-800/80">
+          <MemorialCountdown
+            targetDate={targetIso}
+            variant="timer"
+          />
         </div>
       </div>
     </section>

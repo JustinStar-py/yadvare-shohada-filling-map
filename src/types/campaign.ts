@@ -45,6 +45,7 @@ export interface CampaignSettings {
   campaignSubtitle: string;
   memorialTitle: string;
   memorialDate: string; // ISO string or YYYY-MM-DD
+  memorialTime?: string; // e.g. "19:00"
   memorialLocation: string;
   campaignStartDate: string; // YYYY-MM-DD
   campaignEndDate: string; // YYYY-MM-DD
@@ -72,6 +73,7 @@ export interface PublicCampaignState {
   serverTime: number; // UTC timestamp
   tehranDate: string; // YYYY-MM-DD
   memorialDate: string;
+  memorialTime?: string;
   daysRemaining: number;
   campaignPhase: "distant" | "momentum" | "approaching" | "culmination" | "memorial_day" | "archived";
   mission: DailyMission;
@@ -83,7 +85,9 @@ export interface PublicCampaignState {
     campaignTitle: string;
     campaignSubtitle: string;
     memorialTitle: string;
+    memorialDate: string;
     memorialLocation: string;
+    memorialTime?: string;
     visualPreset: "calm" | "balanced" | "intense";
     finalMessage: string;
     isCompleted: boolean;
@@ -133,6 +137,7 @@ export const UpdateSettingsSchema = z.object({
   campaignSubtitle: z.string().max(200).optional(),
   memorialTitle: z.string().min(2).max(100).optional(),
   memorialDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  memorialTime: z.string().max(20).optional(),
   memorialLocation: z.string().max(200).optional(),
   campaignStartDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
   campaignEndDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),

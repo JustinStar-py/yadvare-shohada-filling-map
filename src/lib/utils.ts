@@ -54,13 +54,45 @@ export function getDaysDifference(fromYmd: string, toYmd: string): number {
  * Format date in Persian text (e.g. "۱۵ شهریور ۱۴۰۵")
  */
 export function formatJalaliDate(date: Date | string): string {
-  const d = typeof date === "string" ? new Date(date) : date;
+  const d =
+    typeof date === "string"
+      ? date.includes("T")
+        ? new Date(date)
+        : new Date(date + "T12:00:00+03:30")
+      : date;
   if (isNaN(d.getTime())) return "";
-  
-  return new Intl.DateTimeFormat("fa-IR", {
-    dateStyle: "full",
-    timeZone: "Asia/Tehran",
-  }).format(d);
+
+  try {
+    const formatter = new Intl.DateTimeFormat("fa-IR", {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+      timeZone: "Asia/Tehran",
+    });
+
+    const parts = formatter.formatToParts(d);
+    let weekday = parts.find((p) => p.type === "weekday")?.value || "";
+    const day = parts.find((p) => p.type === "day")?.value || "";
+    const month = parts.find((p) => p.type === "month")?.value || "";
+    const year = parts.find((p) => p.type === "year")?.value || "";
+
+    // Standardize Persian half-space for پنج‌شنبه
+    if (weekday === "پنجشنبه") {
+      weekday = "پنج‌شنبه";
+    }
+
+    if (weekday && day && month && year) {
+      return `${weekday} ${day} ${month} ${year}`;
+    }
+
+    return formatter.format(d);
+  } catch {
+    return new Intl.DateTimeFormat("fa-IR", {
+      dateStyle: "full",
+      timeZone: "Asia/Tehran",
+    }).format(d);
+  }
 }
 
 /**
@@ -104,3 +136,49 @@ export function generateUUID(): string {
     return v.toString(16);
   });
 }
+
+/**
+ * 32-bit FNV-1a hash algorithm for deterministic string hashing
+ */
+export function fnv1a(str: string): number {
+  let hash = 2166136261;
+  for (let i = 0; i < str.length; i++) {
+    hash ^= str.charCodeAt(i);
+    hash = Math.imul(hash, 16777619);
+  }
+  return hash >>> 0;
+}
+
+/**
+ * Mulberry32 pseudo-random number generator for uniform 32-bit PRNG
+ */
+export function mulberry32(seed: number): () => number {
+  return function () {
+    let t = (seed += 0x6d2b79f5);
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+/**
+ * Deterministically resolves a visitor's daily martyr mission and suggested Salawat share (1-30).
+ * Completely stateless and reproducible across client and server.
+ */
+export function getDeterministicDailyMission(
+  visitorId: string,
+  dateStr: string,
+  martyrCount: number
+): { martyrIndex: number; suggestedCount: number } {
+  if (martyrCount <= 0) {
+    return { martyrIndex: 0, suggestedCount: 14 };
+  }
+  const seed = fnv1a(`${visitorId}:${dateStr}`);
+  const prng = mulberry32(seed);
+  const martyrIndex = Math.floor(prng() * martyrCount);
+  // suggested count between 1 and 30
+  const suggestedCount = Math.floor(prng() * 30) + 1;
+
+  return { martyrIndex, suggestedCount };
+}
+

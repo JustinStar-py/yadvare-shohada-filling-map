@@ -33,7 +33,7 @@ import {
   ConstellationStar,
   AdminAuditLog,
 } from "@/types/campaign";
-import { formatPersianNumber, toPersianDigits, formatTehranTime } from "@/lib/utils";
+import { formatPersianNumber, toPersianDigits, formatTehranTime, formatJalaliDate } from "@/lib/utils";
 
 export default function AdminPage() {
   const [pin, setPin] = useState("");
@@ -656,8 +656,11 @@ export default function AdminPage() {
                   <span className="font-bold text-slate-100">{toPersianDigits(martyrs.length)}</span>
                 </div>
                 <div className="flex items-center justify-between p-3 rounded-xl bg-slate-950">
-                  <span>تاریخ یادواره:</span>
-                  <span className="font-bold text-slate-100">{settings?.memorialDate}</span>
+                  <span>تاریخ و ساعت یادواره:</span>
+                  <span className="font-bold text-amber-300">
+                    {settings?.memorialDate ? formatJalaliDate(settings.memorialDate) : "-"}
+                    {settings?.memorialTime ? ` (ساعت ${toPersianDigits(settings.memorialTime)})` : ""}
+                  </span>
                 </div>
               </div>
             </div>
@@ -1047,13 +1050,24 @@ export default function AdminPage() {
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
                 <label className="text-xs text-slate-300 block mb-1">تاریخ یادواره شهدا</label>
                 <input
                   type="date"
                   value={settings.memorialDate}
                   onChange={(e) => setSettings({ ...settings, memorialDate: e.target.value })}
+                  className="w-full py-2 px-3 rounded-xl bg-slate-950 border border-slate-700 text-slate-100 text-xs"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs text-slate-300 block mb-1">ساعت برگزاری مراسم</label>
+                <input
+                  type="text"
+                  placeholder="19:00"
+                  value={settings.memorialTime || ""}
+                  onChange={(e) => setSettings({ ...settings, memorialTime: e.target.value })}
                   className="w-full py-2 px-3 rounded-xl bg-slate-950 border border-slate-700 text-slate-100 text-xs"
                 />
               </div>
