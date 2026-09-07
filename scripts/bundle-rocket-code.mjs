@@ -45,7 +45,7 @@ PROMPT FOR QWEN AI MODEL: ADVANCED 3D ROCKET LAUNCH, CINEMATIC FLIGHT & SMOKE DY
 You are an expert Three.js, WebGL, Next.js 16 (App Router), and React 19 graphics engineer and game physics architect.
 
 ### Project Context:
-We are developing a spiritual memorial campaign web application ("پویش معنوی یادواره شهدا").
+We are developing a spiritual memorial campaign web application (" پویش معنوی یادواره شهدای شهیدیه").
 Users recite "Salawat", each contribution fills a 3D missile with luminous golden fuel toward a daily target (\`mission.currentCount >= mission.target\`).
 When the target is met, a ceremonial launch sequence takes place.
 

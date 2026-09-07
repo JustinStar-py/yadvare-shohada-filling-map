@@ -38,7 +38,7 @@ export default function ShareCardModal({
   const handleNativeShare = useCallback(async () => {
     try {
       if (navigator.share) {
-        await navigator.share({ title: "پویش معنوی یادواره شهدا", text: shareText });
+        await navigator.share({ title: " پویش معنوی یادواره شهدای شهیدیه", text: shareText });
       } else {
         handleCopy();
       }
@@ -95,7 +95,7 @@ export default function ShareCardModal({
           <div className="absolute top-16 right-16 w-1 h-1 rounded-full bg-slate-300/40" />
 
           <span className="relative text-[11px] text-amber-400/90 font-semibold tracking-wide">
-            پویش معنوی یادواره شهدا
+             پویش معنوی یادواره شهدای شهیدیه
           </span>
 
           <div className="relative my-5">

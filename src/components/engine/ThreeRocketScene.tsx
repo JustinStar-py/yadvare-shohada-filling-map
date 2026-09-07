@@ -148,7 +148,7 @@ export default function ThreeRocketScene({
     noseBand.position.y = noseStart + 1.05;
     capsuleGroup.add(noseBand);
 
-    // ── Missile Designation Stencil Decal: Vertical Bold Black "KHeibar Shecan" ──
+    // ── Missile Designation Stencil Decal: Vertical Bold Black "Kheibar Shecan" ──
     const createModelDecalTexture = (): THREE.CanvasTexture => {
       const canvas = document.createElement("canvas");
       canvas.width = 512;
@@ -167,7 +167,7 @@ export default function ThreeRocketScene({
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
 
-        ctx.fillText("KHeibar Shecan", 0, 0);
+        ctx.fillText("Kheibar Shecan", 0, 0);
 
         // Technical stencil accent lines at both ends
         ctx.strokeStyle = "#000000";
@@ -467,11 +467,11 @@ export default function ThreeRocketScene({
     // ── 3D Memorial Tunnel in the Sky (Luminous Gold-Red Calligraphy with 3D Depth Fly-Past) ──
     // Evenly distributed along the ascent corridor up to apogee (Y=13.0m)
     const MEMORIAL_TEXTS = [
-      { lines: ["شهدا زنده‌اند"], y: 2.2, side: 1 },
-      { lines: ["به یاد شهدای والامقام", "قهرمان شاهدیه"], y: 4.4, side: -1 },
-      { lines: ["راه سرخ شهادت", "جاودانه و نورانی است"], y: 6.6, side: 1 },
-      { lines: ["ستارگان درخشان آسمان", "ایثار و معرفت"], y: 8.8, side: -1 },
-      { lines: ["صلوات بر محمد", "و آل اطهار محمد (ص)"], y: 11.0, side: 1 },
+      { lines: ["شهدا زنده‌اند"], y: 2, side: 1 },
+      { lines: ["به یاد شهدای والامقام", "قهرمان شهیدیه"], y: 6.2, side: -1 },
+      { lines: ["راه سرخ شهادت", "جاودانه و نورانی است"], y: 10.4, side: 1 },
+      { lines: ["ستارگان درخشان آسمان", "ایثار و معرفت"], y: 14.6, side: -1 },
+      { lines: ["صلوات بر محمد", "و آل محمد (ص)"], y: 18.8, side: 1 },
     ];
 
     interface MemorialBannerItem {
