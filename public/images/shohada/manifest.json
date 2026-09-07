@@ -1,12 +1,12 @@
 {
-  "generatedAt": "2026-09-07T16:21:53.773Z",
-  "totalCount": 75,
+  "generatedAt": "2026-09-07T16:40:08.098Z",
+  "totalCount": 77,
   "sourceDirectory": "F:/نقاشی دیجیتال شهدا",
   "outputDirectory": "D:\\Projects\\yadvare-shohada-filling-map\\public\\images\\shohada",
-  "totalOriginalSize": "1.27 GB",
-  "totalWebpSize": "9.59 MB",
-  "totalSaved": "1.26 GB (99.3%)",
-  "durationSeconds": 239,
+  "totalOriginalSize": "1.28 GB",
+  "totalWebpSize": "9.69 MB",
+  "totalSaved": "1.27 GB (99.3%)",
+  "durationSeconds": 1.5,
   "items": [
     {
       "id": "shohada-1",
@@ -832,6 +832,28 @@
       "height": 1201,
       "originalSize": 11904530,
       "webpSize": 142456
+    },
+    {
+      "id": "shohada-76",
+      "name": "محمدصالح کارگر",
+      "originalFile": "محمدصالح کارگر.png",
+      "webpFile": "محمدصالح کارگر.webp",
+      "url": "/images/shohada/%D9%85%D8%AD%D9%85%D8%AF%D8%B5%D8%A7%D9%84%D8%AD%20%DA%A9%D8%A7%D8%B1%DA%AF%D8%B1.webp",
+      "width": 900,
+      "height": 1342,
+      "originalSize": 5788687,
+      "webpSize": 47934
+    },
+    {
+      "id": "shohada-77",
+      "name": "سردار حاج مصطفی عارف",
+      "originalFile": "سردار حاج مصطفی عارف.png",
+      "webpFile": "سردار حاج مصطفی عارف.webp",
+      "url": "/images/shohada/%D8%B3%D8%B1%D8%AF%D8%A7%D8%B1%20%D8%AD%D8%A7%D8%AC%20%D9%85%D8%B5%D8%B7%D9%81%DB%8C%20%D8%B9%D8%A7%D8%B1%D9%81.webp",
+      "width": 900,
+      "height": 1260,
+      "originalSize": 1766604,
+      "webpSize": 55834
     }
   ]
 }

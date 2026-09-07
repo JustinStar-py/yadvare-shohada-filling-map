@@ -7,7 +7,6 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "check-types": "tsc --noEmit"
     "check-types": "tsc --noEmit",
     "convert:photos": "node scripts/convert-martyr-photos.mjs"
   },

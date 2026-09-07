@@ -55,6 +55,24 @@ async function run() {
 
   const startTime = Date.now();
 
+  // Read existing manifest if available to enable fast incremental updates
+  const manifestPath = path.join(OUTPUT_DIR, "manifest.json");
+  let existingMap = new Map();
+  const force = process.argv.includes("--force");
+
+  if (!force && fs.existsSync(manifestPath)) {
+    try {
+      const prev = JSON.parse(fs.readFileSync(manifestPath, "utf-8"));
+      if (Array.isArray(prev.items)) {
+        for (const item of prev.items) {
+          existingMap.set(item.originalFile, item);
+        }
+      }
+    } catch {
+      // ignore
+    }
+  }
+
   for (let i = 0; i < imageFiles.length; i++) {
     const fileName = imageFiles[i];
     const sourceFilePath = path.join(SOURCE_DIR, fileName);
@@ -62,10 +80,26 @@ async function run() {
     const webpFileName = `${baseName}.webp`;
     const targetFilePath = path.join(OUTPUT_DIR, webpFileName);
 
-    process.stdout.write(`[${i + 1}/${imageFiles.length}] Processing: ${fileName}... `);
-
     try {
       const originalStat = fs.statSync(sourceFilePath);
+
+      // Check if already processed
+      if (!force && existingMap.has(fileName) && fs.existsSync(targetFilePath)) {
+        const cachedItem = existingMap.get(fileName);
+        const webpStat = fs.statSync(targetFilePath);
+        totalOriginalSize += originalStat.size;
+        totalWebpSize += webpStat.size;
+        successCount++;
+        manifest.push({
+          ...cachedItem,
+          id: `shohada-${i + 1}`,
+          originalSize: originalStat.size,
+          webpSize: webpStat.size,
+        });
+        continue;
+      }
+
+      process.stdout.write(`[${i + 1}/${imageFiles.length}] Processing: ${fileName}... `);
       totalOriginalSize += originalStat.size;
 
       // Sharp transformation:
@@ -117,7 +151,6 @@ async function run() {
     : 0;
 
   // Save manifest.json in output directory
-  const manifestPath = path.join(OUTPUT_DIR, "manifest.json");
   const manifestData = {
     generatedAt: new Date().toISOString(),
     totalCount: successCount,
