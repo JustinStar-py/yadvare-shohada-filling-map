@@ -13,7 +13,7 @@ const Envelope3DCanvas = dynamic(() => import("./engine/Envelope3DCanvas"), {
   ssr: false,
   loading: () => (
     <div className="w-full h-64 sm:h-72 flex items-center justify-center">
-      <div className="w-12 h-12 rounded-full border-2 border-amber-500/30 border-t-amber-400 animate-spin" />
+      <div className="w-10 h-10 rounded-full border-2 border-amber-500/30 border-t-amber-400 animate-spin" />
     </div>
   ),
 });
@@ -43,6 +43,8 @@ export default function DailyMissionTourModal({
   onClose,
   startRevealed = false,
 }: DailyMissionTourModalProps) {
+  // 3D readiness: disables buttons while WebGL is compiling or downloading chunks
+  const [is3DReady, setIs3DReady] = useState(startRevealed);
   const [isOpeningEnvelope, setIsOpeningEnvelope] = useState(startRevealed);
   // Stages: "closed" -> "emerging" (rising out of envelope) -> "revealed" (flying forward to camera)
   const [letterStage, setLetterStage] = useState<"closed" | "emerging" | "revealed">(
@@ -52,19 +54,30 @@ export default function DailyMissionTourModal({
   useEffect(() => {
     if (isOpen) {
       if (startRevealed) {
+        setIs3DReady(true);
         setIsOpeningEnvelope(true);
         setLetterStage("revealed");
       } else {
+        setIs3DReady(false);
         setIsOpeningEnvelope(false);
         setLetterStage("closed");
       }
     }
   }, [isOpen, startRevealed]);
 
+  // Safety fallback: ensure button unlocks even on low-end devices or slow networks
+  useEffect(() => {
+    if (!isOpen || is3DReady || startRevealed) return;
+    const timer = setTimeout(() => {
+      setIs3DReady(true);
+    }, 3500);
+    return () => clearTimeout(timer);
+  }, [isOpen, is3DReady, startRevealed]);
+
   if (!isOpen || !mission) return null;
 
   const handleOpenEnvelope = () => {
-    if (isOpeningEnvelope) return;
+    if (!is3DReady || isOpeningEnvelope) return;
 
     try {
       soundEngine.playTick();
@@ -156,10 +169,21 @@ export default function DailyMissionTourModal({
           <Envelope3DCanvas
             isOpen={isOpeningEnvelope}
             onOpen={handleOpenEnvelope}
+            onReady={() => setIs3DReady(true)}
           />
+
+          {/* Loading placeholder spinner before 3D initializes */}
+          {!is3DReady && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-2.5 bg-slate-950/50 backdrop-blur-sm rounded-2xl z-20 pointer-events-none">
+              <div className="w-9 h-9 rounded-full border-2 border-amber-500/30 border-t-amber-400 animate-spin" />
+              <span className="text-[11px] text-amber-300/80 font-medium">
+                در حال آماده‌سازی پاکت نورانی...
+              </span>
+            </div>
+          )}
         </div>
 
-        {/* ── Background Layer: "Open Letter" Button ── */}
+        {/* ── Background Layer: "Open Letter" Button (disabled while 3D is initializing) ── */}
         <div
           className={`w-full mt-2 flex flex-col items-center gap-1.5 transition-all duration-300 ${
             isOpeningEnvelope ? "opacity-0 pointer-events-none translate-y-3" : "opacity-100"
@@ -167,18 +191,36 @@ export default function DailyMissionTourModal({
         >
           <button
             type="button"
-            disabled={isOpeningEnvelope}
+            disabled={!is3DReady || isOpeningEnvelope}
             onClick={(e) => {
               e.stopPropagation();
+              if (!is3DReady) return;
               handleOpenEnvelope();
             }}
-            className="w-full max-w-xs py-3.5 px-6 rounded-2xl font-bold text-sm sm:text-base flex items-center justify-center gap-2.5 transition-all duration-300 shadow-[0_0_25px_rgba(225,29,72,0.4)] cursor-pointer select-none pointer-events-auto bg-gradient-to-l from-rose-600 via-rose-500 to-rose-600 text-white hover:brightness-110 active:scale-[0.98] hover:shadow-[0_0_35px_rgba(225,29,72,0.6)]"
+            className={`w-full max-w-xs py-3.5 px-6 rounded-2xl font-bold text-sm sm:text-base flex items-center justify-center gap-2.5 transition-all duration-300 relative z-30 select-none ${
+              !is3DReady
+                ? "bg-slate-800/80 border border-slate-700 text-slate-400 cursor-not-allowed shadow-none"
+                : isOpeningEnvelope
+                ? "bg-slate-800 text-slate-400 cursor-not-allowed scale-95 shadow-none"
+                : "bg-gradient-to-l from-rose-600 via-rose-500 to-rose-600 text-white hover:brightness-110 active:scale-[0.98] shadow-[0_0_25px_rgba(225,29,72,0.4)] hover:shadow-[0_0_35px_rgba(225,29,72,0.6)] cursor-pointer"
+            }`}
           >
-            <Mail className="w-5 h-5" />
-            <span>گشودن نامه</span>
+            {!is3DReady ? (
+              <>
+                <div className="w-4 h-4 rounded-full border-2 border-amber-400/30 border-t-amber-400 animate-spin shrink-0" />
+                <span>در حال آماده‌سازی پاکت...</span>
+              </>
+            ) : (
+              <>
+                <Mail className="w-5 h-5" />
+                <span>گشودن نامه</span>
+              </>
+            )}
           </button>
           <span className="text-[10px] sm:text-[11px] text-amber-400/70 select-none">
-            (می‌توانید روی خود پاکت نامه نیز ضربه بزنید)
+            {is3DReady
+              ? "(می‌توانید روی خود پاکت نامه نیز ضربه بزنید)"
+              : "لطفاً چند لحظه تا بارگذاری کامل پاکت شکیبا باشید"}
           </span>
         </div>
 

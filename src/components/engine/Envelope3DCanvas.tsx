@@ -6,12 +6,14 @@ import * as THREE from "three";
 interface Envelope3DCanvasProps {
   isOpen: boolean;
   onOpen?: () => void;
+  onReady?: () => void;
   className?: string;
 }
 
 export default function Envelope3DCanvas({
   isOpen,
   onOpen,
+  onReady,
   className = "",
 }: Envelope3DCanvasProps) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -20,6 +22,9 @@ export default function Envelope3DCanvas({
 
   const onOpenRef = useRef(onOpen);
   onOpenRef.current = onOpen;
+
+  const onReadyRef = useRef(onReady);
+  onReadyRef.current = onReady;
 
   useEffect(() => {
     const container = containerRef.current;
@@ -252,13 +257,17 @@ export default function Envelope3DCanvas({
 
     container.addEventListener("pointermove", handlePointerMove);
 
-    // ── 6. Render Loop ──
-    const clock = new THREE.Clock();
+    // ── 6. Render Loop (using modern performance.now to replace deprecated THREE.Clock) ──
+    let lastTime = performance.now();
+    const startTime = lastTime;
+    let hasNotifiedReady = false;
 
     const animate = () => {
       animId = requestAnimationFrame(animate);
-      const delta = Math.min(clock.getDelta(), 0.05);
-      const elapsed = clock.getElapsedTime();
+      const now = performance.now();
+      const delta = Math.min((now - lastTime) / 1000, 0.05);
+      lastTime = now;
+      const elapsed = (now - startTime) / 1000;
 
       // Gentle celestial hovering
       const hoverY = -0.2 + Math.sin(elapsed * 1.8) * 0.05;
@@ -291,6 +300,12 @@ export default function Envelope3DCanvas({
       posAttr.needsUpdate = true;
 
       renderer.render(scene, camera);
+
+      // Signal ready on first rendered frame
+      if (!hasNotifiedReady) {
+        hasNotifiedReady = true;
+        onReadyRef.current?.();
+      }
     };
 
     animate();
