@@ -349,7 +349,7 @@ export default function HomePage() {
 
   // ── Optimistic salawat handlers ─────────────────────────────────────────
 
-  // Optimistic press from the Hero CTA
+  // Optimistic press from the Hero CTA - updates in realtime immediately on tap!
   const handleSalawatPress = useCallback((count: number) => {
     setEnergyBurstTrigger((prev) => prev + 1);
     inFlightCountRef.current += count;
@@ -370,6 +370,20 @@ export default function HomePage() {
           participantsCount: Math.max(1, prev.mission.participantsCount),
         },
       };
+    });
+
+    // Realtime live update for user's personal daily mission covenant chip
+    setUserMission((prev) => {
+      if (!prev) return null;
+      const updated: UserDailyMission = {
+        ...prev,
+        userContributed: (prev.userContributed || 0) + count,
+      };
+      userMissionRef.current = updated;
+      try {
+        localStorage.setItem(`salawat_daily_mission_${prev.date}`, JSON.stringify(updated));
+      } catch {}
+      return updated;
     });
   }, []);
 
@@ -402,19 +416,15 @@ export default function HomePage() {
         };
       });
 
-      // Increment personal daily mission count on server-confirmed success
-      setUserMission((prev) => {
-        if (!prev) return null;
-        const updated: UserDailyMission = {
-          ...prev,
-          userContributed: (prev.userContributed || 0) + flushedCount,
-        };
-        userMissionRef.current = updated;
+      // Confirm personal daily mission state is safely saved in localStorage
+      if (userMissionRef.current) {
         try {
-          localStorage.setItem(`salawat_daily_mission_${prev.date}`, JSON.stringify(updated));
+          localStorage.setItem(
+            `salawat_daily_mission_${userMissionRef.current.date}`,
+            JSON.stringify(userMissionRef.current)
+          );
         } catch {}
-        return updated;
-      });
+      }
     },
     []
   );

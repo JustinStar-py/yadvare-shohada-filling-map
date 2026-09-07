@@ -104,8 +104,13 @@ export default function HeroSection({
             <span className="text-slate-300">عهد امروز:</span>
             <span className="font-bold text-amber-300">{userMission.martyr.name}</span>
             <span className="text-slate-500">•</span>
-            <span className="tabular-nums font-bold text-slate-100">
-              {toPersianDigits(userMission.userContributed)} / {toPersianDigits(userMission.suggestedCount)} صلوات
+            <span className="tabular-nums font-bold text-slate-100 inline-flex items-center gap-1">
+              <span className="text-amber-300 font-black transition-all duration-200">
+                {toPersianDigits(userMission.userContributed)}
+              </span>
+              <span className="text-slate-400 font-medium text-[11px]">از</span>
+              <span>{toPersianDigits(userMission.suggestedCount)}</span>
+              <span className="text-slate-300">صلوات</span>
             </span>
             {userMission.userContributed >= userMission.suggestedCount && (
               <span className="text-[10px] text-emerald-300 font-extrabold bg-emerald-500/25 px-1.5 py-0.5 rounded-full">
