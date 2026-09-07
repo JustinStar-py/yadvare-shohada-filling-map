@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Volume2, VolumeX, Shield } from "lucide-react";
+import { Volume2, VolumeX } from "lucide-react";
+import MartyrTulipIcon from "@/components/ui/MartyrTulipIcon";
 import { soundEngine } from "@/lib/client/procedural-audio";
 import { formatShortJalaliDate } from "@/lib/utils";
 
@@ -56,14 +57,14 @@ export default function Header({ tehranDate }: HeaderProps) {
     >
       {/* Brand identity */}
       <div className="flex items-center gap-3">
-        <div className="relative w-10 h-10 rounded-2xl bg-gradient-to-tr from-amber-600 via-amber-500 to-amber-300 p-[1.5px] shadow-[0_0_18px_rgba(245,158,11,0.35)]">
-          <div className="w-full h-full bg-[#090d16] rounded-[14px] flex items-center justify-center text-amber-400">
-            <Shield className="w-5 h-5" />
+        <div className="relative w-10 h-10  p-[1.5px]">
+          <div className="w-full h-full rounded-[14px] flex items-center justify-center overflow-hidden">
+            <MartyrTulipIcon className="w-8 h-8" />
           </div>
         </div>
         <div>
           <h1 className="text-sm sm:text-base font-bold text-slate-100 tracking-wide">
-            پویش معنوی یادواره شهدا
+             پویش معنوی یادواره شهدای شهیدیه
           </h1>
           <p className="text-[11px] text-slate-500 hidden sm:block">
             {mounted && tehranDate ? `امروز ${formatShortJalaliDate(tehranDate)}` : "یادواره شهدای والامقام"}
