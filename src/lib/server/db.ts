@@ -273,27 +273,49 @@ async function ensureDbInitialized(): Promise<void> {
  * state (time-throttled), then atomically rename over the primary file.
  */
 async function persistDb(data: DatabaseSchema): Promise<void> {
+  const jsonContent = JSON.stringify(data, null, 2);
   const tempFile = `${DB_FILE}.tmp.${process.pid}.${++writeCounter}`;
   const handle = await fs.open(tempFile, "w");
   try {
-    await handle.writeFile(JSON.stringify(data, null, 2), "utf-8");
+    await handle.writeFile(jsonContent, "utf-8");
     await handle.sync();
   } finally {
     await handle.close();
   }
 
   if (Date.now() - lastBackupAt > BACKUP_INTERVAL_MS) {
-    const tempBackup = `${BACKUP_FILE}.tmp.${process.pid}`;
+    const tempBackup = `${BACKUP_FILE}.tmp.${process.pid}.${writeCounter}`;
     try {
       await fs.copyFile(DB_FILE, tempBackup);
       await fs.rename(tempBackup, BACKUP_FILE);
       lastBackupAt = Date.now();
     } catch {
-      // Primary file may not exist yet (first ever write) — safe to ignore
+      // Primary file may not exist yet or locked — safe to ignore backup rotation
+    }
+  }
+  // Windows-resilient atomic rename with retry backoff & direct writeFile fallback
+  let renamed = false;
+  for (let attempt = 0; attempt < 5; attempt++) {
+    try {
+      await fs.rename(tempFile, DB_FILE);
+      renamed = true;
+      break;
+    } catch (err: unknown) {
+      const code = (err as { code?: string })?.code;
+      if (code === "EPERM" || code === "EBUSY" || code === "EACCES") {
+        await new Promise((resolve) => setTimeout(resolve, 25 * (attempt + 1)));
+      } else {
+        throw err;
+      }
     }
   }
 
-  await fs.rename(tempFile, DB_FILE);
+  if (!renamed) {
+    // If persistent file lock prevented rename, write directly to destination
+    await fs.writeFile(DB_FILE, jsonContent, "utf-8");
+    await fs.unlink(tempFile).catch(() => {});
+  }
+
   cachedDb = data;
 }
 

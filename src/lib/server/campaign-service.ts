@@ -644,7 +644,7 @@ export class CampaignService {
     count: number,
     ip?: string
   ): Promise<{ currentCount: number; target: number; state: DailyMission["state"] }> {
-    return mutateDb(async (db) => {
+    return mutateDbFast<{ currentCount: number; target: number; state: DailyMission["state"] }>(async (db) => {
       const today = getTehranDateString(new Date(), db.settings.dailyResetHour ?? 0);
       const mission = this.ensureMissionForDate(db, today);
 
@@ -652,6 +652,14 @@ export class CampaignService {
       if (mission.currentCount >= mission.target && mission.state === "ACTIVE") {
         mission.state = "READY_TO_LAUNCH";
       }
+
+      let totalCampaignSalawat = typeof db.totalCampaignSalawat === "number" ? db.totalCampaignSalawat : 0;
+      if (typeof db.totalCampaignSalawat !== "number") {
+        for (const m of Object.values(db.missions)) {
+          totalCampaignSalawat += m.currentCount || 0;
+        }
+      }
+      db.totalCampaignSalawat = totalCampaignSalawat + count;
 
       db.auditLogs.unshift({
         id: generateUUID(),
@@ -661,12 +669,18 @@ export class CampaignService {
         ip,
       });
 
+      const nextSeq = sseBroadcaster.getCurrentSeq() + 1;
+      const epoch = mission.epoch || 1;
+
       sseBroadcaster.broadcast("salawat_update", {
+        seq: nextSeq,
+        epoch,
         date: today,
         currentCount: mission.currentCount,
         target: mission.target,
-        state: mission.state,
+        totalCampaignSalawat: db.totalCampaignSalawat,
         participantsCount: mission.participantsCount,
+        state: mission.state,
       });
 
       return {

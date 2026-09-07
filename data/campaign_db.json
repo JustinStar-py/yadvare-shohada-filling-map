@@ -70,6 +70,17 @@
       "martyrId": "martyr-1",
       "isOverrideTarget": false,
       "epoch": 5
+    },
+    "2026-09-08": {
+      "date": "2026-09-08",
+      "dayNumber": 10,
+      "target": 5000,
+      "currentCount": 0,
+      "participantsCount": 0,
+      "state": "ACTIVE",
+      "epoch": 4,
+      "martyrId": "martyr-sh-10",
+      "isOverrideTarget": false
     }
   },
   "martyrs": [
@@ -729,570 +740,6 @@
     }
   ],
   "idempotencyKeys": {
-    "af3f71b9-e212-4190-a52d-09b84d7bc7c1": {
-      "timestamp": 1788634491316,
-      "count": 1
-    },
-    "9c2c7bfe-173f-47cb-971b-49d0f287e502": {
-      "timestamp": 1788634492705,
-      "count": 1
-    },
-    "944f9092-2b0a-43bc-b0fb-93efb8d3fa93": {
-      "timestamp": 1788634493831,
-      "count": 1
-    },
-    "cb44d8c3-a2ca-4e39-854e-32e99aaec59d": {
-      "timestamp": 1788634494155,
-      "count": 1
-    },
-    "ba1da6b6-1f9f-4691-9ae8-6e6144f99de3": {
-      "timestamp": 1788634494541,
-      "count": 1
-    },
-    "86d7ded0-db58-4a8d-bc0e-63371e5dd140": {
-      "timestamp": 1788634494880,
-      "count": 1
-    },
-    "966122c6-33d0-4264-8c10-d67db3bb2bc8": {
-      "timestamp": 1788634495174,
-      "count": 1
-    },
-    "aacb8e44-3b18-4a3b-8eef-a833fe861237": {
-      "timestamp": 1788634495574,
-      "count": 1
-    },
-    "b1e84144-6de1-4f7f-92fc-0c912fd10f38": {
-      "timestamp": 1788634495804,
-      "count": 1
-    },
-    "78a9b999-79ec-4a8a-94f1-7a98f5bd9fee": {
-      "timestamp": 1788634496010,
-      "count": 1
-    },
-    "a0a45f70-b26d-4b27-9f97-f8e49aeddac2": {
-      "timestamp": 1788634496647,
-      "count": 1
-    },
-    "e6a76e55-52fb-4be6-b00b-aa23b788c10e": {
-      "timestamp": 1788634497357,
-      "count": 1
-    },
-    "45cfb721-71ca-46a1-9255-c798d24f9658": {
-      "timestamp": 1788634498610,
-      "count": 1
-    },
-    "eb8cfbd0-74cf-488d-9b8c-8362786dfdf3": {
-      "timestamp": 1788634498874,
-      "count": 1
-    },
-    "4e8ca828-dd3a-48af-a79f-faee3c1eae1a": {
-      "timestamp": 1788634499054,
-      "count": 1
-    },
-    "c4a8cd1c-3bbf-4fe7-a413-8616dea9ef40": {
-      "timestamp": 1788634499239,
-      "count": 1
-    },
-    "aba3973b-d25e-4d2d-8956-92df5e0c1ea9": {
-      "timestamp": 1788634500892,
-      "count": 1
-    },
-    "6456ad3b-6ed0-4dc0-a4b0-1498e5341d3e": {
-      "timestamp": 1788634501087,
-      "count": 1
-    },
-    "30fd4b94-44ef-4b96-a4ae-28bc0d3d2a7e": {
-      "timestamp": 1788634501324,
-      "count": 1
-    },
-    "f527e7a9-e24d-4fde-ae06-46d115662c7a": {
-      "timestamp": 1788634501511,
-      "count": 1
-    },
-    "cc8fdb2c-6913-4950-96b9-fbc221c038db": {
-      "timestamp": 1788634501773,
-      "count": 1
-    },
-    "67163dbd-844e-4b44-bbd9-e382d3cf2546": {
-      "timestamp": 1788634501966,
-      "count": 1
-    },
-    "4c2ba2d4-1954-4d37-b97c-242402fd74c1": {
-      "timestamp": 1788634502152,
-      "count": 1
-    },
-    "f5bd2c76-fc22-4872-a346-4c3e3cf8e651": {
-      "timestamp": 1788634502279,
-      "count": 1
-    },
-    "fcca0153-7e95-44d3-b167-bd8962d3076e": {
-      "timestamp": 1788634502482,
-      "count": 1
-    },
-    "bd030a9a-2719-4584-a383-3759d00a872d": {
-      "timestamp": 1788634502640,
-      "count": 1
-    },
-    "0a367231-edc2-4d7e-a697-25ffa7315d79": {
-      "timestamp": 1788634502809,
-      "count": 1
-    },
-    "f8c43336-511f-4e5c-b88e-cccbbcae20c9": {
-      "timestamp": 1788635039049,
-      "count": 1
-    },
-    "a74f71c0-507d-42d2-8c31-fa3431d02280": {
-      "timestamp": 1788635039429,
-      "count": 1
-    },
-    "3cf9702d-b2ab-4ba9-8c45-ef69e97b73e5": {
-      "timestamp": 1788635039669,
-      "count": 1
-    },
-    "279c5f39-df54-417d-ad06-e07080cc8fa4": {
-      "timestamp": 1788635039870,
-      "count": 1
-    },
-    "0e917374-eef9-465d-b4a7-9a282756e257": {
-      "timestamp": 1788645177184,
-      "count": 1
-    },
-    "42f1ebec-e4c4-42dc-80a0-537ea2dcb518": {
-      "timestamp": 1788645180234,
-      "count": 1
-    },
-    "1cd9415f-3626-4bcd-ad6e-c28ce6263d38": {
-      "timestamp": 1788645183372,
-      "count": 1
-    },
-    "4c369009-5ee9-4000-9dc0-012330945798": {
-      "timestamp": 1788645186295,
-      "count": 1
-    },
-    "085c8ec4-fd1b-4654-b8b2-c40bb67ac077": {
-      "timestamp": 1788645189268,
-      "count": 1
-    },
-    "886b3c7a-ffd0-4e47-9a3c-035b06ba0a0a": {
-      "timestamp": 1788645193497,
-      "count": 1
-    },
-    "ead9443b-6488-4292-b5a2-4436573b5e68": {
-      "timestamp": 1788646282182,
-      "count": 1
-    },
-    "17ecee73-da13-48dd-85fa-ae6f033d4f58": {
-      "timestamp": 1788646286278,
-      "count": 1
-    },
-    "908a3a3a-3fb6-4023-9399-0f37288328a7": {
-      "timestamp": 1788646290608,
-      "count": 1
-    },
-    "8d939020-89ae-476f-945d-798d19517bad": {
-      "timestamp": 1788646293629,
-      "count": 1
-    },
-    "85c39842-9d54-4352-8617-0144de2a1f36": {
-      "timestamp": 1788646320911,
-      "count": 1
-    },
-    "eec486ff-366f-443c-ab2f-8eb9b9f18abb": {
-      "timestamp": 1788646323139,
-      "count": 1
-    },
-    "5ca77bfd-0696-4caa-ac5f-f7e5239979a3": {
-      "timestamp": 1788646325243,
-      "count": 1
-    },
-    "bba348c2-c7d2-4f29-b2cd-85f46bd78c2d": {
-      "timestamp": 1788646326595,
-      "count": 1
-    },
-    "cf9c43ab-9ee9-48b1-9e15-6b058f6a5a8b": {
-      "timestamp": 1788646327349,
-      "count": 1
-    },
-    "e6fc43cd-2910-4215-8770-432ae4aef68a": {
-      "timestamp": 1788646328065,
-      "count": 1
-    },
-    "3bb6c439-298b-4776-bc6b-936229ec0cbb": {
-      "timestamp": 1788646329096,
-      "count": 1
-    },
-    "f0be2ec6-aafc-436b-a9b6-4976a14716a5": {
-      "timestamp": 1788646330221,
-      "count": 1
-    },
-    "ff30f9e6-1c33-4b81-8712-bf6aef7cc623": {
-      "timestamp": 1788646331149,
-      "count": 1
-    },
-    "de51f1d1-887b-480c-930a-afece8f14fa9": {
-      "timestamp": 1788646331910,
-      "count": 1
-    },
-    "f337b829-03b1-41a8-9f0f-f073921071cb": {
-      "timestamp": 1788646345897,
-      "count": 1
-    },
-    "babb06cc-fd7a-4d92-a2b9-8a6aae435d64": {
-      "timestamp": 1788646415297,
-      "count": 1
-    },
-    "44ff5ec6-ebb1-45e6-8fa6-c7e8ed63b965": {
-      "timestamp": 1788646415746,
-      "count": 1
-    },
-    "132e462a-5a78-4320-aa87-9efbff100e1b": {
-      "timestamp": 1788646416473,
-      "count": 1
-    },
-    "db0a09ba-7a98-4e5e-9287-75c7c017d82e": {
-      "timestamp": 1788646417039,
-      "count": 1
-    },
-    "b7a3240a-ceac-46d3-980c-abfc0895b53f": {
-      "timestamp": 1788646417671,
-      "count": 1
-    },
-    "b334e610-583b-42d6-9a9e-d31b1597f3d0": {
-      "timestamp": 1788646418284,
-      "count": 1
-    },
-    "a864384c-6e56-4dd7-9c16-091e77b75a6a": {
-      "timestamp": 1788646419074,
-      "count": 1
-    },
-    "05e01f85-1441-4db7-953f-1e03020fa51c": {
-      "timestamp": 1788646419723,
-      "count": 1
-    },
-    "dbcf4f89-e1a1-40b3-8b41-b90d9b511368": {
-      "timestamp": 1788646420332,
-      "count": 1
-    },
-    "c4ed347d-c2dc-4da5-a995-9f42f95a1626": {
-      "timestamp": 1788646420957,
-      "count": 1
-    },
-    "38ac3930-f1bb-4865-9892-eb2cd88da717": {
-      "timestamp": 1788646421509,
-      "count": 1
-    },
-    "28db07b6-19af-490f-8fa9-7f2c062137c8": {
-      "timestamp": 1788646422183,
-      "count": 1
-    },
-    "355f193c-03c8-428a-a403-cf126f156aa1": {
-      "timestamp": 1788646422783,
-      "count": 1
-    },
-    "f975ddae-3482-437a-8cf1-060e6d7d3e1d": {
-      "timestamp": 1788646423510,
-      "count": 1
-    },
-    "fb9eef19-bca1-4e13-9e38-a09d2b9c211e": {
-      "timestamp": 1788646424027,
-      "count": 1
-    },
-    "059fdb3b-3bf0-49ac-b9ad-13cc62bb1ed3": {
-      "timestamp": 1788646424519,
-      "count": 1
-    },
-    "fd017af4-aa2e-423c-a793-5a18edcfcf6b": {
-      "timestamp": 1788646425023,
-      "count": 1
-    },
-    "0ab0bb58-3cd3-4d50-83ad-48ce20d35c1e": {
-      "timestamp": 1788646425357,
-      "count": 1
-    },
-    "bd7b6324-047b-4a1a-a71f-89a571bda94e": {
-      "timestamp": 1788646425855,
-      "count": 1
-    },
-    "8377be91-86e5-4b51-aff2-1902bc70f4ea": {
-      "timestamp": 1788646426042,
-      "count": 1
-    },
-    "ad1d9951-8bdc-4fa3-9c95-1ad392468872": {
-      "timestamp": 1788646426177,
-      "count": 1
-    },
-    "104ffa0a-de81-4c7b-adce-8c0daa0e3e7a": {
-      "timestamp": 1788646426357,
-      "count": 1
-    },
-    "a261febe-3ab5-4730-a77f-fa63da0fb024": {
-      "timestamp": 1788646426523,
-      "count": 1
-    },
-    "939c7d10-e3be-49d3-ad8e-d48aff477e77": {
-      "timestamp": 1788646426727,
-      "count": 1
-    },
-    "701a95c2-2cb9-484a-9860-5b79e8485a60": {
-      "timestamp": 1788646426899,
-      "count": 1
-    },
-    "0444033a-b5d5-4245-be00-7c31132176a0": {
-      "timestamp": 1788646427112,
-      "count": 1
-    },
-    "169b3c15-42d9-4ba5-b6fc-998244c9da5e": {
-      "timestamp": 1788646427259,
-      "count": 1
-    },
-    "8671c4a3-7b84-46f4-93c9-abc524bae9b9": {
-      "timestamp": 1788646427396,
-      "count": 1
-    },
-    "a04439c1-90a6-4f30-9a3a-d7aeca8c8229": {
-      "timestamp": 1788646427579,
-      "count": 1
-    },
-    "1cf76624-b760-41a6-b6a1-7e221246d639": {
-      "timestamp": 1788646427729,
-      "count": 1
-    },
-    "8b7bbf82-8539-4746-88f9-871b6990dc1c": {
-      "timestamp": 1788646427951,
-      "count": 1
-    },
-    "e2f543e3-c94d-44a6-9c81-c748ca7311eb": {
-      "timestamp": 1788646429180,
-      "count": 1
-    },
-    "9136a774-49c1-40d0-a313-e871517fa651": {
-      "timestamp": 1788646429685,
-      "count": 1
-    },
-    "1b8caee7-b0dc-4fd4-938d-2bca5172463e": {
-      "timestamp": 1788646429875,
-      "count": 1
-    },
-    "fc01168f-859a-4724-9dcd-d7507955ac79": {
-      "timestamp": 1788646430020,
-      "count": 1
-    },
-    "0c2a8ff6-5665-4fac-bd01-3cbebf46e5e5": {
-      "timestamp": 1788646430171,
-      "count": 1
-    },
-    "1726d9d8-a634-41a3-9817-237dd402b9d3": {
-      "timestamp": 1788646430313,
-      "count": 1
-    },
-    "72b0eb5e-16c9-4115-b3f5-f86b8718ece0": {
-      "timestamp": 1788646430513,
-      "count": 1
-    },
-    "45b43a58-9614-4753-b0dd-43f8bf412f69": {
-      "timestamp": 1788646430653,
-      "count": 1
-    },
-    "2fa6569e-cf70-47f7-9e50-e79a9a9345f0": {
-      "timestamp": 1788646430960,
-      "count": 1
-    },
-    "449a81a6-992a-4ce4-9364-7769888e1acf": {
-      "timestamp": 1788646431066,
-      "count": 1
-    },
-    "cf6ae5eb-0142-4ce7-85d6-7784dce7d9ac": {
-      "timestamp": 1788646431226,
-      "count": 1
-    },
-    "70cb184d-960b-4d9f-80f8-2077f0a7c63a": {
-      "timestamp": 1788646431364,
-      "count": 1
-    },
-    "c4363629-d9eb-4d7d-8d56-376b5e960af7": {
-      "timestamp": 1788646431545,
-      "count": 1
-    },
-    "34e16830-9b57-45da-8ac4-01c7df59e1d9": {
-      "timestamp": 1788646431719,
-      "count": 1
-    },
-    "83d5aa1b-2f70-4d9c-b943-182f45d3736e": {
-      "timestamp": 1788646431860,
-      "count": 1
-    },
-    "65b82bfb-01de-4364-aa71-b013d81e39da": {
-      "timestamp": 1788646432362,
-      "count": 1
-    },
-    "75392859-1a8f-4e63-bd5b-a0a4b9da86f3": {
-      "timestamp": 1788646436283,
-      "count": 1
-    },
-    "856744f2-aa84-4215-917d-0b9ce306f651": {
-      "timestamp": 1788646436427,
-      "count": 1
-    },
-    "6203d157-5c10-44d7-8b6a-e4fd32c75965": {
-      "timestamp": 1788646436632,
-      "count": 1
-    },
-    "47fd780f-2773-433c-a43c-d8cdfb3dabbc": {
-      "timestamp": 1788646436826,
-      "count": 1
-    },
-    "993e62e3-40d9-4d6a-a5a9-227a264a1e0b": {
-      "timestamp": 1788646437300,
-      "count": 1
-    },
-    "8f7c250b-aa0a-4737-998b-e769f9a5d827": {
-      "timestamp": 1788646438305,
-      "count": 1
-    },
-    "c78f6ef9-2e36-4e6d-b86c-e4b18b8bd665": {
-      "timestamp": 1788646439698,
-      "count": 1
-    },
-    "7cd57521-20a0-4318-bf98-c00ee3fcc5ab": {
-      "timestamp": 1788646440407,
-      "count": 1
-    },
-    "0e3f9f76-dedf-4e51-9bce-b93a707e9942": {
-      "timestamp": 1788646441420,
-      "count": 1
-    },
-    "e2bc8b82-81cf-4c4a-9a2f-fb98a34b19a2": {
-      "timestamp": 1788646442383,
-      "count": 1
-    },
-    "d2fb6446-17fb-48f6-b4e3-a4d4405dceab": {
-      "timestamp": 1788646443447,
-      "count": 1
-    },
-    "ef7a3d48-e425-427e-a609-f4042b1190a1": {
-      "timestamp": 1788646444318,
-      "count": 1
-    },
-    "7721b391-2829-41cb-b97d-98418f863e04": {
-      "timestamp": 1788646446588,
-      "count": 1
-    },
-    "40830c31-2d95-4c3c-ace0-baf06a70f2a1": {
-      "timestamp": 1788646447795,
-      "count": 1
-    },
-    "cc8799c1-2e0e-4760-bd72-851944c53725": {
-      "timestamp": 1788646448619,
-      "count": 1
-    },
-    "da3361fd-a072-4119-a04a-87e1eb2cdbe6": {
-      "timestamp": 1788646449328,
-      "count": 1
-    },
-    "a9bd20fc-659d-4883-891c-8068defed6ed": {
-      "timestamp": 1788646450028,
-      "count": 1
-    },
-    "5fe150d2-693e-4abc-9865-61c9aa39ed8e": {
-      "timestamp": 1788646450776,
-      "count": 1
-    },
-    "afaf76a9-db57-46e0-8326-62df26ec2539": {
-      "timestamp": 1788646451976,
-      "count": 1
-    },
-    "111c9260-178f-4ab9-b6ac-772ddb40bd3b": {
-      "timestamp": 1788646452721,
-      "count": 1
-    },
-    "42494f21-3c19-4e90-be43-5db7578ec8ed": {
-      "timestamp": 1788646453576,
-      "count": 1
-    },
-    "843166c2-8862-4a16-bfe3-485201c33602": {
-      "timestamp": 1788646454936,
-      "count": 1
-    },
-    "1bfd237a-ab04-477c-9511-d78934271149": {
-      "timestamp": 1788646455599,
-      "count": 1
-    },
-    "a6ee544b-97f0-4b84-aabc-3b9e1ef61937": {
-      "timestamp": 1788646456373,
-      "count": 1
-    },
-    "c96561a8-2623-4a9a-9c46-fdf1df06433f": {
-      "timestamp": 1788646457913,
-      "count": 1
-    },
-    "7ad33505-7fd8-4982-a06a-b7bbbae03803": {
-      "timestamp": 1788646459268,
-      "count": 1
-    },
-    "42b1dc4f-a4b5-41f0-ad8c-2f95f979148f": {
-      "timestamp": 1788646459979,
-      "count": 1
-    },
-    "78e196b9-207f-49ff-bdbd-b596c6ff48bb": {
-      "timestamp": 1788646460573,
-      "count": 1
-    },
-    "4ddab795-9708-45d5-ac88-41add07b5134": {
-      "timestamp": 1788646461354,
-      "count": 1
-    },
-    "2de5b368-9d38-4567-9249-72dd54969681": {
-      "timestamp": 1788646462828,
-      "count": 1
-    },
-    "3e8afa2f-a1b3-40e2-bf5d-7c69a5f78c45": {
-      "timestamp": 1788646463547,
-      "count": 1
-    },
-    "6176bef5-505b-4f28-ac7a-8153ee600ff0": {
-      "timestamp": 1788646464635,
-      "count": 1
-    },
-    "5012a4fb-8045-4fce-9bb1-a9c1b5c57f91": {
-      "timestamp": 1788646469914,
-      "count": 1
-    },
-    "a5d4872f-18d2-4244-bf47-79c86a790677": {
-      "timestamp": 1788646480163,
-      "count": 1
-    },
-    "988c30f2-7931-4dbc-89ce-e7548d3a01bb": {
-      "timestamp": 1788646495699,
-      "count": 1
-    },
-    "60d528ff-9df4-480b-b2af-d60876a409e6": {
-      "timestamp": 1788647023740,
-      "count": 1
-    },
-    "test-key-1": {
-      "timestamp": 1788647186440,
-      "count": 1
-    },
-    "248f5a79-7719-4816-8b33-2477411ef7a9": {
-      "timestamp": 1788647881335,
-      "count": 1
-    },
-    "347d1a74-1ea0-4652-b3bc-0608ecffe013": {
-      "timestamp": 1788647903036,
-      "count": 1
-    },
-    "684f1770-6f65-48c8-8fb0-4d0ce61aa655": {
-      "timestamp": 1788647915305,
-      "count": 1
-    },
-    "811d15c5-4de5-4455-a77f-c2bc8f6098dd": {
-      "timestamp": 1788647960900,
-      "count": 1
-    },
-    "6ceb9d42-41a1-4b24-9b65-84da715ccbf3": {
-      "timestamp": 1788648116093,
-      "count": 1
-    },
     "f8a091dd-c473-4dba-8800-41903e03e053": {
       "timestamp": 1788658996800,
       "count": 1
@@ -2044,6 +1491,48 @@
   },
   "auditLogs": [
     {
+      "id": "eb688ae1-9222-4779-a09d-ce251bb514a5",
+      "timestamp": 1788821845132,
+      "action": "RESET_SALAWAT",
+      "details": "صفر کردن صلوات‌های امروز (2026-09-08) توسط مدیر.",
+      "ip": "admin"
+    },
+    {
+      "id": "480d66ff-fa04-4707-901a-5c6118b3196c",
+      "timestamp": 1788821826825,
+      "action": "ADMIN_SALAWAT_BULK",
+      "details": "100 صلوات آزمایشی توسط مدیریت ثبت شد.",
+      "ip": "127.0.0.1"
+    },
+    {
+      "id": "f447d723-b4df-4f03-b4d5-a9069f795e94",
+      "timestamp": 1788821811137,
+      "action": "RESET_SALAWAT",
+      "details": "صفر کردن صلوات‌های امروز (2026-09-08) توسط مدیر.",
+      "ip": "127.0.0.1"
+    },
+    {
+      "id": "b6cdcfd4-2a99-4e16-a372-4fcd9d638d2b",
+      "timestamp": 1788821811106,
+      "action": "ADMIN_SALAWAT_BULK",
+      "details": "100 صلوات آزمایشی توسط مدیریت ثبت شد.",
+      "ip": "127.0.0.1"
+    },
+    {
+      "id": "3d66f798-299f-4c8f-9fc0-3ea2b9d54010",
+      "timestamp": 1788820939942,
+      "action": "RESET_SALAWAT",
+      "details": "صفر کردن صلوات‌های امروز (2026-09-08) توسط مدیر.",
+      "ip": "127.0.0.1"
+    },
+    {
+      "id": "3c7d9dbb-9fd3-4189-838b-fcd5eef1754a",
+      "timestamp": 1788820939909,
+      "action": "ADMIN_SALAWAT_BULK",
+      "details": "100 صلوات آزمایشی توسط مدیریت ثبت شد.",
+      "ip": "127.0.0.1"
+    },
+    {
       "id": "8d8f3cff-b48c-4076-b984-e0b74b6708be",
       "timestamp": 1788792122737,
       "action": "ADMIN_SALAWAT_BULK",
@@ -2239,5 +1728,5 @@
       "details": "پایگاه داده اولیه با موفقیت راه‌اندازی شد."
     }
   ],
-  "totalCampaignSalawat": 11419
+  "totalCampaignSalawat": 12419
 }

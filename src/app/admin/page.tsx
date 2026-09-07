@@ -25,6 +25,7 @@ import {
   Play,
   Square,
   Zap,
+  LogOut,
 } from "lucide-react";
 import {
   CampaignSettings,
@@ -85,7 +86,7 @@ export default function AdminPage() {
   const loadAdminData = async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/admin/data");
+      const res = await fetch("/api/admin/data", { credentials: "same-origin" });
       if (res.ok) {
         const data = await res.json();
         setSettings(data.settings);
@@ -104,13 +105,47 @@ export default function AdminPage() {
     }
   };
 
+  const checkAuthAndLoad = async () => {
+    setLoading(true);
+    try {
+      const authRes = await fetch("/api/admin/auth", { credentials: "same-origin" });
+      if (authRes.ok) {
+        const { authenticated } = await authRes.json();
+        if (authenticated) {
+          setIsAuthenticated(true);
+          await loadAdminData();
+          return;
+        }
+      }
+      setIsAuthenticated(false);
+    } catch (err) {
+      console.error(err);
+      setIsAuthenticated(false);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     loadAdminData();
+    checkAuthAndLoad();
   }, []);
 
   const showNotification = (text: string, type: "success" | "error" = "success") => {
     setActionMessage({ text, type });
     setTimeout(() => setActionMessage(null), 4000);
+  };
+
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/admin/auth", { method: "DELETE", credentials: "same-origin" });
+      setIsAuthenticated(false);
+      setSettings(null);
+      setTodayMission(null);
+      showNotification("با موفقیت خارج شدید");
+    } catch {
+      setIsAuthenticated(false);
+    }
   };
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -120,6 +155,7 @@ export default function AdminPage() {
       const res = await fetch("/api/admin/auth", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "same-origin",
         body: JSON.stringify({ pin }),
       });
       if (res.ok) {
@@ -128,6 +164,8 @@ export default function AdminPage() {
         showNotification("با موفقیت وارد شدید");
       } else {
         showNotification("رمز عبور اشتباه است", "error");
+        const data = await res.json().catch(() => ({}));
+        showNotification(data.error || "رمز عبور اشتباه است", "error");
       }
     } catch {
       showNotification("خطای ارتباط با سرور", "error");
@@ -183,8 +221,11 @@ export default function AdminPage() {
     if (!confirm("آیا از صفر کردن تعداد صلوات‌های امروز برای تست اطمینان دارید؟")) return;
     setLoading(true);
     try {
-      const res = await fetch("/api/admin/bulk-salawat", { method: "DELETE" });
-      const data = await res.json();
+      const res = await fetch("/api/admin/bulk-salawat", {
+        method: "DELETE",
+        credentials: "same-origin",
+      });
+      const data = await res.json().catch(() => ({}));
       if (res.ok) {
         showNotification("صلوات‌های امروز صفر شدند");
         loadAdminData();
@@ -205,7 +246,8 @@ export default function AdminPage() {
       showNotification("هدف صلوات امروز قبلاً تکمیل شده است");
       return;
     }
-    await handleSimulateSalawat(remaining);
+    const countToSend = Math.min(remaining, 100000);
+    await handleSimulateSalawat(countToSend);
   };
 
   const handleSimulateSalawat = async (count: number) => {
@@ -213,13 +255,15 @@ export default function AdminPage() {
       const res = await fetch("/api/admin/bulk-salawat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "same-origin",
         body: JSON.stringify({ count }),
       });
+      const data = await res.json().catch(() => ({}));
       if (res.ok) {
         showNotification(`تعداد ${formatPersianNumber(count)} صلوات تستی ثبت شد`);
         loadAdminData();
       } else {
-        showNotification("خطا در ثبت صلوات تستی", "error");
+        showNotification(data.error || "خطا در ثبت صلوات تستی", "error");
       }
     } catch {
       showNotification("خطا در ثبت صلوات تستی", "error");
@@ -397,6 +441,14 @@ export default function AdminPage() {
               <ArrowRight className="w-3.5 h-3.5" />
               <span>مشاهده سایت</span>
             </Link>
+            <button
+              onClick={handleLogout}
+              className="px-3.5 py-2 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/30 text-xs font-semibold text-rose-300 transition-colors flex items-center gap-1.5"
+              title="خروج از پنل مدیریت"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              <span>خروج</span>
+            </button>
           </div>
         </div>
 

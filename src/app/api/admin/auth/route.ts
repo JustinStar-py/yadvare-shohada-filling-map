@@ -3,8 +3,24 @@ import { readDb, mutateDb } from "@/lib/server/db";
 import { AdminAuthSchema } from "@/types/campaign";
 import { adminAuthLimiter, getClientIp } from "@/lib/server/rate-limit";
 import { verifyPin, hashPin } from "@/lib/server/pin";
+import { verifyAdminAuth } from "@/lib/server/admin-auth";
 
 export const dynamic = "force-dynamic";
+
+export async function GET(req: NextRequest) {
+  const isAuth = await verifyAdminAuth(req);
+  return NextResponse.json({ authenticated: isAuth }, { status: 200 });
+}
+
+export async function DELETE() {
+  const response = NextResponse.json({ success: true, message: "خروج با موفقیت انجام شد" });
+  response.cookies.set("admin_pin", "", {
+    httpOnly: true,
+    expires: new Date(0),
+    path: "/",
+  });
+  return response;
+}
 
 export async function POST(req: NextRequest) {
   const clientIp = getClientIp(req);
