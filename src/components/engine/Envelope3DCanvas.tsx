@@ -2,31 +2,21 @@
 
 import React, { useEffect, useRef } from "react";
 import * as THREE from "three";
-import { toPersianDigits } from "@/lib/utils";
 
 interface Envelope3DCanvasProps {
   isOpen: boolean;
-  martyrName?: string;
-  suggestedCount?: number;
-  onLetterEmerged?: () => void;
   onOpen?: () => void;
   className?: string;
 }
 
 export default function Envelope3DCanvas({
   isOpen,
-  martyrName = "",
-  suggestedCount,
-  onLetterEmerged,
   onOpen,
   className = "",
 }: Envelope3DCanvasProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const isOpenRef = useRef(isOpen);
   isOpenRef.current = isOpen;
-
-  const onLetterEmergedRef = useRef(onLetterEmerged);
-  onLetterEmergedRef.current = onLetterEmerged;
 
   const onOpenRef = useRef(onOpen);
   onOpenRef.current = onOpen;
@@ -117,58 +107,6 @@ export default function Envelope3DCanvas({
       return tex;
     };
 
-    const createParchmentTexture = (): THREE.CanvasTexture => {
-      const cvs = document.createElement("canvas");
-      cvs.width = 512;
-      cvs.height = 640;
-      const ctx = cvs.getContext("2d")!;
-
-      // Radiant parchment background
-      const grad = ctx.createLinearGradient(0, 0, 0, 640);
-      grad.addColorStop(0, "#fffef7");
-      grad.addColorStop(0.5, "#faf3e3");
-      grad.addColorStop(1, "#f3e6cb");
-      ctx.fillStyle = grad;
-      ctx.fillRect(0, 0, 512, 640);
-
-      // Delicate gold trim
-      ctx.strokeStyle = "rgba(217, 119, 6, 0.5)";
-      ctx.lineWidth = 6;
-      ctx.strokeRect(16, 16, 480, 608);
-
-      ctx.strokeStyle = "rgba(245, 158, 11, 0.3)";
-      ctx.lineWidth = 1.5;
-      ctx.strokeRect(24, 24, 464, 592);
-
-      // Calligraphic header watermark
-      ctx.font = "bold 20px Shabnam, Tahoma, sans-serif";
-      ctx.fillStyle = "rgba(180, 83, 9, 0.65)";
-      ctx.textAlign = "center";
-      ctx.fillText("بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ", 256, 75);
-
-      ctx.font = "bold 18px Shabnam, Tahoma, sans-serif";
-      ctx.fillStyle = "rgba(120, 53, 15, 0.85)";
-      ctx.fillText("به یاد شهید والامقام", 256, 125);
-
-      const displayName = martyrName
-        ? (martyrName.startsWith("شهید") ? martyrName : `شهید ${martyrName}`)
-        : "شهید والامقام";
-
-      ctx.font = "bold 25px Shabnam, Tahoma, sans-serif";
-      ctx.fillStyle = "#1e1b18";
-      ctx.fillText(displayName, 256, 185);
-
-      if (suggestedCount) {
-        ctx.font = "bold 21px Shabnam, Tahoma, sans-serif";
-        ctx.fillStyle = "#991b1b";
-        ctx.fillText(`سهم شما: ${toPersianDigits(suggestedCount)} صلوات`, 256, 245);
-      }
-
-      const tex = new THREE.CanvasTexture(cvs);
-      tex.colorSpace = THREE.SRGBColorSpace;
-      return tex;
-    };
-
     const createWaxSealTexture = (): THREE.CanvasTexture => {
       const cvs = document.createElement("canvas");
       cvs.width = 256;
@@ -243,20 +181,6 @@ export default function Envelope3DCanvas({
     pocketMesh.position.z = envDepth / 2 + 0.035;
     envelopeGroup.add(pocketMesh);
 
-    // Parchment Letter (completely enclosed inside envelope when closed)
-    const letterWidth = 2.65;
-    const letterHeight = 1.75;
-    const letterGeo = new THREE.PlaneGeometry(letterWidth, letterHeight);
-    const letterMat = new THREE.MeshStandardMaterial({
-      map: createParchmentTexture(),
-      roughness: 0.35,
-      metalness: 0.05,
-      side: THREE.DoubleSide,
-    });
-    const letterMesh = new THREE.Mesh(letterGeo, letterMat);
-    letterMesh.position.set(0, -0.05, 0.015);
-    envelopeGroup.add(letterMesh);
-
     // Top Flap with Hinge Pivot
     const flapHinge = new THREE.Group();
     flapHinge.position.set(0, envHeight / 2, envDepth / 2 + 0.02);
@@ -312,9 +236,6 @@ export default function Envelope3DCanvas({
 
     // ── 5. Animation Variables & States ──
     let flapAngle = 0;
-    let letterY = -0.05;
-    let targetLetterY = -0.05;
-    let hasTriggeredEmerged = false;
 
     // Interactive pointer parallax tilt
     let targetRotY = 0;
@@ -347,33 +268,17 @@ export default function Envelope3DCanvas({
       envelopeGroup.rotation.y += (targetRotY - envelopeGroup.rotation.y) * 0.08;
       envelopeGroup.rotation.x += (targetRotX - envelopeGroup.rotation.x) * 0.08;
 
-      // Animate flap and letter unsealing
+      // Animate flap unsealing
       if (isOpenRef.current) {
         if (flapAngle < Math.PI * 0.98) {
           flapAngle += delta * 3.4;
           if (flapAngle > Math.PI * 0.98) flapAngle = Math.PI * 0.98;
           flapHinge.rotation.x = flapAngle;
         }
-
-        if (flapAngle > 0.6) {
-          targetLetterY = 1.25;
-          sealGlowLight.intensity = Math.min(2.0, sealGlowLight.intensity + delta * 3);
-        }
-
-        letterY += (targetLetterY - letterY) * 0.08;
-        letterMesh.position.y = letterY;
-        letterMesh.position.z = 0.08 + (letterY + 0.05) * 0.04;
-
-        if (!hasTriggeredEmerged && letterY > 1.05) {
-          hasTriggeredEmerged = true;
-          onLetterEmergedRef.current?.();
-        }
+        sealGlowLight.intensity = Math.min(2.0, sealGlowLight.intensity + delta * 3);
       } else {
         flapAngle = Math.max(0, flapAngle - delta * 4);
         flapHinge.rotation.x = flapAngle;
-        letterY += (-0.05 - letterY) * 0.1;
-        letterMesh.position.y = letterY;
-        hasTriggeredEmerged = false;
         sealGlowLight.intensity = Math.max(0.6, sealGlowLight.intensity - delta * 2);
       }
 
@@ -399,14 +304,12 @@ export default function Envelope3DCanvas({
       renderer.dispose();
       backGeo.dispose();
       pocketGeo.dispose();
-      letterGeo.dispose();
       flapGeo.dispose();
       sealGeo.dispose();
       pGeo.dispose();
 
       envMat.dispose();
       pocketMat.dispose();
-      letterMat.dispose();
       flapMat.dispose();
       sealMat.dispose();
       pMat.dispose();
@@ -415,7 +318,7 @@ export default function Envelope3DCanvas({
         container.removeChild(renderer.domElement);
       }
     };
-  }, [martyrName, suggestedCount]);
+  }, []);
 
   const handleClick = () => {
     if (!isOpenRef.current && onOpenRef.current) {

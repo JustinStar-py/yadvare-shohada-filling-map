@@ -43,15 +43,21 @@ export default function DailyMissionTourModal({
   onClose,
   startRevealed = false,
 }: DailyMissionTourModalProps) {
-  const [phase, setPhase] = useState<"envelope" | "revealed">(
-    startRevealed ? "revealed" : "envelope"
+  const [isOpeningEnvelope, setIsOpeningEnvelope] = useState(startRevealed);
+  // Stages: "closed" -> "emerging" (rising out of envelope) -> "revealed" (flying forward to camera)
+  const [letterStage, setLetterStage] = useState<"closed" | "emerging" | "revealed">(
+    startRevealed ? "revealed" : "closed"
   );
-  const [isOpeningEnvelope, setIsOpeningEnvelope] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
-      setPhase(startRevealed ? "revealed" : "envelope");
-      setIsOpeningEnvelope(false);
+      if (startRevealed) {
+        setIsOpeningEnvelope(true);
+        setLetterStage("revealed");
+      } else {
+        setIsOpeningEnvelope(false);
+        setLetterStage("closed");
+      }
     }
   }, [isOpen, startRevealed]);
 
@@ -66,10 +72,18 @@ export default function DailyMissionTourModal({
 
     setIsOpeningEnvelope(true);
 
-    // Fallback safety timeout if 3D animation callback is delayed
+    // 1. At 320ms, flap is half-open: letter emerges upwards from inside envelope pocket
     setTimeout(() => {
-      setPhase("revealed");
-    }, 1250);
+      setLetterStage("emerging");
+    }, 320);
+
+    // 2. At 750ms, letter swoops smoothly forward toward the camera into focal view
+    setTimeout(() => {
+      setLetterStage("revealed");
+      try {
+        soundEngine.playStarBirth();
+      } catch {}
+    }, 750);
   };
 
   const handleConfirmMission = () => {
@@ -92,121 +106,141 @@ export default function DailyMissionTourModal({
     ? mission.martyr.name
     : `شهید ${mission.martyr.name}`;
 
+  const isLetterActive = letterStage === "emerging" || letterStage === "revealed";
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-[#070b14]/90 backdrop-blur-xl animate-fade-in overflow-y-auto">
       {/* Ambient background glow */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-rose-600/[0.08] rounded-full blur-[120px] pointer-events-none" />
       <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] h-[350px] bg-amber-500/[0.07] rounded-full blur-[90px] pointer-events-none" />
 
-      <div className="relative w-full max-w-sm sm:max-w-md my-auto rounded-3xl bg-gradient-to-b from-slate-900/95 via-[#0b101d]/95 to-slate-950/98 border border-amber-500/25 p-5 sm:p-7 shadow-[0_12px_60px_rgba(0,0,0,0.7),0_0_30px_rgba(245,158,11,0.15)] flex flex-col items-center text-center max-h-[94vh] overflow-y-auto z-10">
+      {/* Main Container with 3D Perspective */}
+      <div className="relative w-full max-w-sm sm:max-w-md my-auto rounded-3xl bg-gradient-to-b from-slate-900/95 via-[#0b101d]/95 to-slate-950/98 border border-amber-500/25 p-5 sm:p-6 shadow-[0_12px_60px_rgba(0,0,0,0.7),0_0_30px_rgba(245,158,11,0.15)] flex flex-col items-center text-center overflow-hidden min-h-[480px] sm:min-h-[510px] [perspective:1200px]">
         {onClose && (
           <button
             type="button"
             onClick={onClose}
-            className="absolute top-4 left-4 w-8 h-8 rounded-full bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700 text-slate-400 hover:text-slate-100 flex items-center justify-center transition-colors cursor-pointer z-30"
+            className="absolute top-4 left-4 w-8 h-8 rounded-full bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700 text-slate-400 hover:text-slate-100 flex items-center justify-center transition-colors cursor-pointer z-50"
             title="بستن"
           >
             <X className="w-4 h-4" />
           </button>
         )}
 
-        {/* ── Sequence 1: 3D Envelope Waiting to be Opened ── */}
-        {phase === "envelope" && (
-          <div className="w-full flex flex-col items-center animate-fade-in">
-            {/* Top Tulip Emblem */}
-            <div className="relative w-12 h-12 rounded-2xl bg-gradient-to-b from-rose-500/20 to-amber-500/10 border border-rose-500/30 flex items-center justify-center mb-2 shadow-[0_0_20px_rgba(244,63,94,0.25)] shrink-0">
-              <MartyrTulipIcon className="w-7 h-7" />
+        {/* ── Background Layer: Header Title (fades gracefully when letter takes focus) ── */}
+        <div
+          className={`w-full flex flex-col items-center transition-all duration-700 ${
+            isLetterActive ? "opacity-15 blur-[2px] pointer-events-none" : "opacity-100"
+          }`}
+        >
+          <div className="relative w-11 h-11 mx-auto rounded-2xl bg-gradient-to-b from-rose-500/20 to-amber-500/10 border border-rose-500/30 flex items-center justify-center mb-2 shadow-[0_0_20px_rgba(244,63,94,0.25)] shrink-0">
+            <MartyrTulipIcon className="w-6 h-6" />
+          </div>
+
+          <span className="text-xs font-bold text-amber-400/90 mb-0.5">
+            عهد معنوی امروز شما
+          </span>
+          <p className="text-[11px] text-slate-400 mb-1">
+            با گشودن نامه، شهید همراه امروز و سهم صلوات شما مشخص خواهد شد
+          </p>
+        </div>
+
+        {/* ── Background Layer: 3D Envelope Canvas (remains visible behind the letter) ── */}
+        <div
+          className={`w-full h-64 sm:h-72 my-1 relative transition-all duration-700 ${
+            isLetterActive
+              ? "opacity-30 blur-[2px] scale-95 pointer-events-none"
+              : "opacity-100 scale-100 cursor-pointer"
+          }`}
+        >
+          <Envelope3DCanvas
+            isOpen={isOpeningEnvelope}
+            onOpen={handleOpenEnvelope}
+          />
+        </div>
+
+        {/* ── Background Layer: "Open Letter" Button ── */}
+        <div
+          className={`w-full mt-2 flex flex-col items-center gap-1.5 transition-all duration-300 ${
+            isOpeningEnvelope ? "opacity-0 pointer-events-none translate-y-3" : "opacity-100"
+          }`}
+        >
+          <button
+            type="button"
+            disabled={isOpeningEnvelope}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleOpenEnvelope();
+            }}
+            className="w-full max-w-xs py-3.5 px-6 rounded-2xl font-bold text-sm sm:text-base flex items-center justify-center gap-2.5 transition-all duration-300 shadow-[0_0_25px_rgba(225,29,72,0.4)] cursor-pointer select-none pointer-events-auto bg-gradient-to-l from-rose-600 via-rose-500 to-rose-600 text-white hover:brightness-110 active:scale-[0.98] hover:shadow-[0_0_35px_rgba(225,29,72,0.6)]"
+          >
+            <Mail className="w-5 h-5" />
+            <span>گشودن نامه</span>
+          </button>
+          <span className="text-[10px] sm:text-[11px] text-amber-400/70 select-none">
+            (می‌توانید روی خود پاکت نامه نیز ضربه بزنید)
+          </span>
+        </div>
+
+        {/* ── Foreground Layer: Absolute Cinematic Flying Parchment Letter ── */}
+        <div
+          className={`absolute inset-x-4 sm:inset-x-6 top-1/2 -translate-y-1/2 z-40 flex flex-col items-center transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+            letterStage === "closed"
+              ? "opacity-0 pointer-events-none"
+              : letterStage === "emerging"
+              ? "opacity-90 pointer-events-none"
+              : "opacity-100 pointer-events-auto"
+          }`}
+          style={{
+            transform:
+              letterStage === "closed"
+                ? "translateY(55px) translateZ(-220px) scale(0.42)"
+                : letterStage === "emerging"
+                ? "translateY(-20px) translateZ(-90px) scale(0.7)"
+                : "translateY(0px) translateZ(0px) scale(1)",
+          }}
+        >
+          {/* The Illuminated Parchment Letter */}
+          <div className="relative w-full p-6 sm:p-7 rounded-3xl bg-gradient-to-b from-[#fffef9] via-[#faf4e6] to-[#f4ecdc] text-slate-900 shadow-[0_25px_60px_rgba(0,0,0,0.7),0_0_40px_rgba(245,158,11,0.25)] border-2 border-amber-500/50 text-center overflow-hidden">
+            {/* Parchment inner delicate border */}
+            <div className="absolute inset-2 sm:inset-2.5 rounded-2xl border border-amber-600/25 pointer-events-none" />
+
+            {/* Tulip Watermark Crest */}
+            <div className="relative z-10 w-10 h-10 sm:w-11 sm:h-11 mx-auto rounded-2xl bg-gradient-to-b from-rose-500/15 to-amber-500/10 border border-rose-500/25 flex items-center justify-center mb-2.5 shadow-[0_0_15px_rgba(244,63,94,0.15)]">
+              <MartyrTulipIcon className="w-6 h-6 sm:w-7 sm:h-7" />
             </div>
 
-            <span className="text-xs font-bold text-amber-400/90 mb-0.5">
-              عهد معنوی امروز شما
+            <span className="relative z-10 text-xs sm:text-sm font-semibold text-amber-900/80 block mb-1">
+              به یاد شهید والامقام
             </span>
-            <p className="text-[11px] sm:text-xs text-slate-400 mb-2">
-              با گشودن نامه، شهید همراه امروز و سهم صلوات شما مشخص خواهد شد
-            </p>
 
-            {/* Three.js 3D Envelope Canvas */}
-            <div className="w-full h-64 sm:h-72 my-1 relative overflow-hidden rounded-2xl flex items-center justify-center cursor-pointer">
-              <Envelope3DCanvas
-                isOpen={isOpeningEnvelope}
-                martyrName={mission.martyr.name}
-                suggestedCount={mission.suggestedCount}
-                onOpen={handleOpenEnvelope}
-                onLetterEmerged={() => {
-                  setPhase("revealed");
-                }}
-              />
-            </div>
+            {/* Prominent, Clearly Visible Martyr Name */}
+            <h2 className="relative z-10 text-2xl sm:text-3xl font-black text-slate-950 tracking-tight my-2">
+              {martyrDisplayName}
+            </h2>
 
-            <div className="w-full mt-3 flex flex-col items-center gap-1.5 relative z-30">
-              <button
-                type="button"
-                disabled={isOpeningEnvelope}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleOpenEnvelope();
-                }}
-                className={`w-full max-w-xs py-3.5 px-6 rounded-2xl font-bold text-sm sm:text-base flex items-center justify-center gap-2.5 transition-all duration-300 shadow-[0_0_25px_rgba(225,29,72,0.4)] cursor-pointer select-none pointer-events-auto relative z-30 ${
-                  isOpeningEnvelope
-                    ? "bg-slate-800 text-slate-400 cursor-not-allowed scale-95 shadow-none"
-                    : "bg-gradient-to-l from-rose-600 via-rose-500 to-rose-600 text-white hover:brightness-110 active:scale-[0.98] hover:shadow-[0_0_35px_rgba(225,29,72,0.6)]"
-                }`}
-              >
-                <Mail className="w-5 h-5" />
-                <span>{isOpeningEnvelope ? "در حال گشودن نامه..." : "گشودن نامه"}</span>
-              </button>
-              <span className="text-[10px] sm:text-[11px] text-amber-400/70 select-none">
-                (می‌توانید روی خود پاکت نامه نیز ضربه بزنید)
+            <div className="relative z-10 w-16 h-0.5 mx-auto bg-gradient-to-l from-transparent via-amber-700/35 to-transparent my-3.5" />
+
+            {/* Assigned Salawat Share */}
+            <div className="relative z-10 inline-flex items-center justify-center gap-2 px-5 py-2 rounded-2xl bg-amber-500/10 border border-amber-600/20">
+              <span className="text-sm sm:text-base font-bold text-amber-950">سهم شما:</span>
+              <span className="text-2xl sm:text-3xl font-black text-rose-700 tabular-nums">
+                {toPersianDigits(mission.suggestedCount)}
               </span>
+              <span className="text-sm sm:text-base font-bold text-amber-950">صلوات</span>
             </div>
           </div>
-        )}
 
-        {/* ── Sequence 2: Minimalist, Pure Letter Revealed ── */}
-        {phase === "revealed" && (
-          <div className="w-full flex flex-col items-center animate-scale-up">
-            {/* The Illuminated Parchment Letter */}
-            <div className="relative w-full p-6 sm:p-8 rounded-3xl bg-gradient-to-b from-[#fffef9] via-[#faf4e6] to-[#f4ecdc] text-slate-900 shadow-[0_25px_60px_rgba(0,0,0,0.65),0_0_40px_rgba(245,158,11,0.25)] border-2 border-amber-500/50 text-center overflow-hidden">
-              {/* Parchment inner delicate border */}
-              <div className="absolute inset-2 sm:inset-2.5 rounded-2xl border border-amber-600/25 pointer-events-none" />
-
-              {/* Tulip Watermark Crest */}
-              <div className="relative z-10 w-11 h-11 mx-auto rounded-2xl bg-gradient-to-b from-rose-500/15 to-amber-500/10 border border-rose-500/25 flex items-center justify-center mb-3 shadow-[0_0_15px_rgba(244,63,94,0.15)]">
-                <MartyrTulipIcon className="w-7 h-7" />
-              </div>
-
-              <span className="relative z-10 text-xs sm:text-sm font-semibold text-amber-900/80 block mb-1">
-                به یاد شهید والامقام
-              </span>
-
-              {/* Prominent, Clearly Visible Martyr Name */}
-              <h2 className="relative z-10 text-2xl sm:text-3xl font-black text-slate-950 tracking-tight my-2">
-                {martyrDisplayName}
-              </h2>
-
-              <div className="relative z-10 w-16 h-0.5 mx-auto bg-gradient-to-l from-transparent via-amber-700/35 to-transparent my-4" />
-
-              {/* Assigned Salawat Share */}
-              <div className="relative z-10 inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-2xl bg-amber-500/10 border border-amber-600/20">
-                <span className="text-sm sm:text-base font-bold text-amber-950">سهم شما:</span>
-                <span className="text-2xl sm:text-3xl font-black text-rose-700 tabular-nums">
-                  {toPersianDigits(mission.suggestedCount)}
-                </span>
-                <span className="text-sm sm:text-base font-bold text-amber-950">صلوات</span>
-              </div>
-            </div>
-
-            {/* Confirm and enter rocket experience */}
-            <button
-              type="button"
-              onClick={handleConfirmMission}
-              className="mt-5 w-full py-3.5 px-6 rounded-2xl bg-gradient-to-l from-emerald-600 via-emerald-500 to-emerald-600 text-white font-bold text-sm sm:text-base shadow-[0_0_25px_rgba(16,185,129,0.35)] hover:shadow-[0_0_35px_rgba(16,185,129,0.5)] active:scale-[0.98] transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer relative z-30"
-            >
-              <Check className="w-5 h-5" />
-              <span>پذیرش عهد</span>
-            </button>
-          </div>
-        )}
+          {/* Accept Button */}
+          <button
+            type="button"
+            onClick={handleConfirmMission}
+            className="mt-4 w-full py-3.5 px-6 rounded-2xl bg-gradient-to-l from-emerald-600 via-emerald-500 to-emerald-600 text-white font-bold text-sm sm:text-base shadow-[0_0_25px_rgba(16,185,129,0.35)] hover:shadow-[0_0_35px_rgba(16,185,129,0.5)] active:scale-[0.98] transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer relative z-50"
+          >
+            <Check className="w-5 h-5" />
+            <span>پذیرش عهد</span>
+          </button>
+        </div>
       </div>
     </div>
   );
