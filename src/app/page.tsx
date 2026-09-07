@@ -11,10 +11,12 @@ import CollectiveRecord from "@/components/CollectiveRecord";
 import MemorialInfo from "@/components/MemorialInfo";
 import LaunchOverlay from "@/components/LaunchOverlay";
 import ShareCardModal from "@/components/ShareCardModal";
-import { PublicCampaignState, SalawatSubmissionResponse } from "@/types/campaign";
+import { PublicCampaignState, SalawatSubmissionResponse, MartyrProfile } from "@/types/campaign";
 import { soundEngine } from "@/lib/client/procedural-audio";
 import MartyrTulipIcon from "@/components/ui/MartyrTulipIcon";
 import { generateUUID } from "@/lib/utils";
+import DailyMissionTourModal, { UserDailyMission } from "@/components/DailyMissionTourModal";
+import { getOrCreateVisitorId } from "@/lib/client/visitor-id";
 
 export default function HomePage() {
   const [state, setState] = useState<PublicCampaignState | null>(null);
@@ -28,6 +30,17 @@ export default function HomePage() {
   const [energyBurstTrigger, setEnergyBurstTrigger] = useState(0);
   const [readyBloomTrigger, setReadyBloomTrigger] = useState(0);
 
+  // ── User's Personal Daily Mission Tour State ──
+  const [userMission, setUserMission] = useState<UserDailyMission | null>(null);
+  const [showTourModal, setShowTourModal] = useState(false);
+  const [isTourReviewMode, setIsTourReviewMode] = useState(false);
+  const [pendingMissionData, setPendingMissionData] = useState<{
+    martyr: MartyrProfile;
+    suggestedCount: number;
+  } | null>(null);
+
+  const userMissionRef = useRef<UserDailyMission | null>(null);
+  const pendingMissionDataRef = useRef<{ martyr: MartyrProfile; suggestedCount: number } | null>(null);
   const missionStateRef = useRef<string | null>(null);
   const stateRef = useRef<PublicCampaignState | null>(null);
 
@@ -53,6 +66,54 @@ export default function HomePage() {
         lastEpochRef.current = data.mission.epoch ?? 1;
         setState(data);
         missionStateRef.current = data.mission.state;
+
+        // ── Check or initialize user's personal daily mission ──
+        const todayStr = data.tehranDate;
+        const visitorId = getOrCreateVisitorId();
+        const storageKey = `salawat_daily_mission_${todayStr}`;
+        let savedMission: UserDailyMission | null = null;
+        try {
+          const raw = localStorage.getItem(storageKey);
+          if (raw) savedMission = JSON.parse(raw);
+        } catch {}
+
+        if (savedMission && savedMission.completedTour) {
+          setUserMission(savedMission);
+          userMissionRef.current = savedMission;
+          setPendingMissionData({
+            martyr: savedMission.martyr,
+            suggestedCount: savedMission.suggestedCount,
+          });
+          pendingMissionDataRef.current = {
+            martyr: savedMission.martyr,
+            suggestedCount: savedMission.suggestedCount,
+          };
+        } else {
+          fetch(`/api/campaign/daily-mission?visitorId=${encodeURIComponent(visitorId)}&date=${todayStr}`)
+            .then((r) => r.json())
+            .then((missionRes) => {
+              if (missionRes && missionRes.success && missionRes.martyr) {
+                const missionData = {
+                  martyr: missionRes.martyr,
+                  suggestedCount: missionRes.suggestedCount,
+                };
+                setPendingMissionData(missionData);
+                pendingMissionDataRef.current = missionData;
+
+                // Modal precedence check: if launch overlay is currently active or ready, delay tour
+                const isLaunchingNow =
+                  data.mission.currentCount >= data.mission.target ||
+                  data.mission.state === "READY_TO_LAUNCH" ||
+                  data.mission.state === "LAUNCHING";
+
+                if (!isLaunchingNow) {
+                  setShowTourModal(true);
+                  setIsTourReviewMode(false);
+                }
+              }
+            })
+            .catch(() => {});
+        }
       }
     } catch (err) {
       console.error("Error loading campaign state:", err);
@@ -340,6 +401,20 @@ export default function HomePage() {
           },
         };
       });
+
+      // Increment personal daily mission count on server-confirmed success
+      setUserMission((prev) => {
+        if (!prev) return null;
+        const updated: UserDailyMission = {
+          ...prev,
+          userContributed: (prev.userContributed || 0) + flushedCount,
+        };
+        userMissionRef.current = updated;
+        try {
+          localStorage.setItem(`salawat_daily_mission_${prev.date}`, JSON.stringify(updated));
+        } catch {}
+        return updated;
+      });
     },
     []
   );
@@ -360,6 +435,20 @@ export default function HomePage() {
           currentCount: displayedCountRef.current,
         },
       };
+    });
+
+    // Rollback personal daily mission count on rejection
+    setUserMission((prev) => {
+      if (!prev) return null;
+      const updated: UserDailyMission = {
+        ...prev,
+        userContributed: Math.max(0, (prev.userContributed || 0) - count),
+      };
+      userMissionRef.current = updated;
+      try {
+        localStorage.setItem(`salawat_daily_mission_${prev.date}`, JSON.stringify(updated));
+      } catch {}
+      return updated;
     });
   }, []);
 
@@ -407,12 +496,47 @@ export default function HomePage() {
     setShowLaunchOverlay(false);
     setIsLaunching(false);
     setHasLiftedOff(false);
+
+    // Modal precedence: if daily tour was deferred due to launch ceremony, open it now
+    if (pendingMissionDataRef.current && (!userMissionRef.current || !userMissionRef.current.completedTour)) {
+      setShowTourModal(true);
+      setIsTourReviewMode(false);
+    }
   }, [state]);
 
   const handleLaunchOverlayClose = useCallback(() => {
     setShowLaunchOverlay(false);
     setIsLaunching(false);
     setHasLiftedOff(false);
+
+    if (pendingMissionDataRef.current && (!userMissionRef.current || !userMissionRef.current.completedTour)) {
+      setShowTourModal(true);
+      setIsTourReviewMode(false);
+    }
+  }, []);
+
+  const handleTourComplete = useCallback((completed: UserDailyMission) => {
+    setUserMission(completed);
+    userMissionRef.current = completed;
+    setShowTourModal(false);
+    setIsTourReviewMode(false);
+    try {
+      localStorage.setItem(`salawat_daily_mission_${completed.date}`, JSON.stringify(completed));
+    } catch {}
+  }, []);
+
+  const handleOpenMissionCard = useCallback(() => {
+    if (userMissionRef.current) {
+      setPendingMissionData({
+        martyr: userMissionRef.current.martyr,
+        suggestedCount: userMissionRef.current.suggestedCount,
+      });
+      setIsTourReviewMode(true);
+      setShowTourModal(true);
+    } else if (pendingMissionDataRef.current) {
+      setIsTourReviewMode(false);
+      setShowTourModal(true);
+    }
   }, []);
 
   // T-0 - the countdown overlay reached zero: ignite and lift off.
@@ -481,6 +605,8 @@ export default function HomePage() {
           onReplayLaunch={handleReplayLaunch}
           onFlightComplete={handleFlightComplete}
           energyBurstTrigger={energyBurstTrigger}
+          userMission={userMission}
+          onOpenMissionCard={handleOpenMissionCard}
         />
 
         {/* Below-the-fold Secondary Remembrance & Info Sections */}
@@ -504,6 +630,7 @@ export default function HomePage() {
           <MemorialInfo
             memorialTitle={state.settings.memorialTitle}
             memorialDate={state.memorialDate}
+            memorialTime={state.memorialTime || state.settings.memorialTime}
             memorialLocation={state.settings.memorialLocation}
           />
         </div>
@@ -536,6 +663,18 @@ export default function HomePage() {
         daysRemaining={state.daysRemaining}
         tehranDate={state.tehranDate}
       />
+
+      {/* Daily Memorial Mission 3D Cinematic Tour Modal */}
+      {pendingMissionData && (
+        <DailyMissionTourModal
+          isOpen={showTourModal}
+          date={state.tehranDate}
+          mission={pendingMissionData}
+          onComplete={handleTourComplete}
+          onClose={() => setShowTourModal(false)}
+          startRevealed={isTourReviewMode}
+        />
+      )}
     </div>
   );
 }

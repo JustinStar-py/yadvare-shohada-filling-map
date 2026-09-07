@@ -9,6 +9,8 @@ import { PublicCampaignState, SalawatSubmissionResponse } from "@/types/campaign
 import { toPersianDigits } from "@/lib/utils";
 import { useCountUp } from "@/lib/client/use-count-up";
 import { Calendar } from "lucide-react";
+import MartyrTulipIcon from "@/components/ui/MartyrTulipIcon";
+import { UserDailyMission } from "@/components/DailyMissionTourModal";
 
 interface HeroSectionProps {
   campaignState: PublicCampaignState;
@@ -21,6 +23,8 @@ interface HeroSectionProps {
   onReplayLaunch?: () => void;
   onFlightComplete?: () => void;
   energyBurstTrigger: number;
+  userMission?: UserDailyMission | null;
+  onOpenMissionCard?: () => void;
 }
 
 export default function HeroSection({
@@ -33,6 +37,8 @@ export default function HeroSection({
   onReplayLaunch,
   onFlightComplete,
   energyBurstTrigger,
+  userMission,
+  onOpenMissionCard,
 }: HeroSectionProps) {
   const { mission, daysRemaining, campaignPhase } = campaignState;
 
@@ -72,6 +78,32 @@ export default function HeroSection({
             روز {toPersianDigits(mission.dayNumber)} پویش
           </span>
         </div>
+
+        {userMission && (
+          <button
+            type="button"
+            onClick={onOpenMissionCard}
+            className={`mt-1.5 inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-medium backdrop-blur-md transition-all duration-300 shadow-sm active:scale-95 ${
+              userMission.userContributed >= userMission.suggestedCount
+                ? "bg-emerald-950/80 border border-emerald-500/40 text-emerald-200 shadow-[0_0_15px_rgba(16,185,129,0.25)]"
+                : "bg-slate-900/85 border border-rose-500/30 text-slate-200 hover:border-amber-500/45 hover:bg-slate-900"
+            }`}
+            title="مشاهده نامه و عهد معنوی امروز"
+          >
+            <MartyrTulipIcon className="w-3.5 h-3.5 shrink-0" />
+            <span className="text-slate-300">عهد امروز:</span>
+            <span className="font-bold text-amber-300">{userMission.martyr.name}</span>
+            <span className="text-slate-500">•</span>
+            <span className="tabular-nums font-bold text-slate-100">
+              {toPersianDigits(userMission.userContributed)} / {toPersianDigits(userMission.suggestedCount)} صلوات
+            </span>
+            {userMission.userContributed >= userMission.suggestedCount && (
+              <span className="text-[10px] text-emerald-300 font-extrabold bg-emerald-500/25 px-1.5 py-0.5 rounded-full">
+                تکمیل شد
+              </span>
+            )}
+          </button>
+        )}
       </div>
 
       {/* ── Full-Viewport 3D Rocket Stage Canvas ── */}

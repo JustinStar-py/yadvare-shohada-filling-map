@@ -5,6 +5,7 @@ import { soundEngine } from "@/lib/client/procedural-audio";
 import { generateUUID, toPersianDigits } from "@/lib/utils";
 import { Sparkles, ShieldAlert } from "lucide-react";
 import { SalawatSubmissionResponse } from "@/types/campaign";
+import { getOrCreateVisitorId } from "@/lib/client/visitor-id";
 
 interface SalawatButtonProps {
   onOptimisticIncrement: (count: number) => void;
@@ -28,20 +29,6 @@ interface Orb {
 
 const COOLDOWN_MS = 2000; // 2 seconds per salawat as specified
 const BATCH_SIZE = 5; // Batch of 5 salawat before network dispatch
-
-function getOrCreateVisitorId(): string {
-  if (typeof window === "undefined") return "";
-  try {
-    let id = localStorage.getItem("salawat_visitor_id");
-    if (!id) {
-      id = "v-" + generateUUID();
-      localStorage.setItem("salawat_visitor_id", id);
-    }
-    return id;
-  } catch {
-    return "v-temp-" + Date.now();
-  }
-}
 
 function queueOffline(idempotencyKey: string, count: number) {
   try {
