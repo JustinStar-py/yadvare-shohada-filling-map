@@ -5,11 +5,19 @@ import {
   ConstellationStar,
   CampaignSettings,
   AdminAuditLog,
+  SalawatSubmissionResponse,
 } from "@/types/campaign";
-import { readDb, mutateDb, DatabaseSchema } from "./db";
+import { readDb, mutateDb, mutateDbFast, DatabaseSchema } from "./db";
 import { sseBroadcaster } from "./sse-broadcaster";
 import { getTehranDateString, getDaysDifference, generateUUID } from "@/lib/utils";
 import { hashPin } from "./pin";
+
+const globalForCampaign = globalThis as unknown as {
+  __dailyVisitors?: Map<string, Set<string>>;
+};
+const dailyVisitors: Map<string, Set<string>> =
+  globalForCampaign.__dailyVisitors ?? new Map<string, Set<string>>();
+globalForCampaign.__dailyVisitors = dailyVisitors;
 
 export class CampaignService {
   /**
@@ -58,6 +66,9 @@ export class CampaignService {
    */
   static ensureMissionForDate(db: DatabaseSchema, dateStr: string): DailyMission {
     if (db.missions[dateStr]) {
+      if (typeof db.missions[dateStr].epoch !== "number") {
+        db.missions[dateStr].epoch = 1;
+      }
       return db.missions[dateStr];
     }
 
@@ -72,6 +83,7 @@ export class CampaignService {
       currentCount: 0,
       participantsCount: 0,
       state: "ACTIVE",
+      epoch: 1,
       martyrId: martyr ? martyr.id : undefined,
       isOverrideTarget: isOverride,
     };
@@ -109,10 +121,12 @@ export class CampaignService {
     // Resolve today's martyr
     const todayMartyr = this.resolveMartyrForDate(today, db.martyrs, mission.dayNumber);
 
-    // Calculate total campaign statistics
-    let totalCampaignSalawat = 0;
-    for (const m of Object.values(db.missions)) {
-      totalCampaignSalawat += m.currentCount;
+    // Calculate total campaign statistics using cached running counter
+    let totalCampaignSalawat = typeof db.totalCampaignSalawat === "number" ? db.totalCampaignSalawat : 0;
+    if (typeof db.totalCampaignSalawat !== "number") {
+      for (const m of Object.values(db.missions)) {
+        totalCampaignSalawat += m.currentCount || 0;
+      }
     }
     // The constellation is the source of truth: triggerLaunch upserts today's
     // star, so its length already counts today's launch exactly once.
@@ -146,43 +160,70 @@ export class CampaignService {
    */
   static async submitSalawat(
     idempotencyKey: string,
-    count: number = 1
-  ): Promise<{
-    success: boolean;
-    currentCount: number;
-    target: number;
-    missionState: DailyMission["state"];
-    isDuplicate: boolean;
-  }> {
-    return mutateDb<{
-      success: boolean;
-      currentCount: number;
-      target: number;
-      missionState: DailyMission["state"];
-      isDuplicate: boolean;
-    }>(async (db) => {
+    count: number = 1,
+    visitorId?: string
+  ): Promise<SalawatSubmissionResponse> {
+    return mutateDbFast<SalawatSubmissionResponse>(async (db) => {
       const today = getTehranDateString(new Date(), db.settings.dailyResetHour ?? 0);
+      const mission = this.ensureMissionForDate(db, today);
+      const epoch = mission.epoch ?? 1;
+
+      // Post-launch seal: if today's rocket already launched, reject new recitations for today
+      if (mission.state === "LAUNCHED") {
+        return {
+          data: db,
+          result: {
+            success: false,
+            seq: sseBroadcaster.getCurrentSeq(),
+            epoch,
+            currentCount: mission.currentCount,
+            target: mission.target,
+            totalCampaignSalawat: db.totalCampaignSalawat ?? 0,
+            participantsCount: mission.participantsCount,
+            missionState: mission.state,
+            isDuplicate: false,
+          },
+        };
+      }
 
       // Check idempotency
       if (db.idempotencyKeys[idempotencyKey]) {
-        const existingMission = this.ensureMissionForDate(db, today);
         return {
           data: db,
           result: {
             success: true,
-            currentCount: existingMission.currentCount,
-            target: existingMission.target,
-            missionState: existingMission.state,
+            seq: sseBroadcaster.getCurrentSeq(),
+            epoch,
+            currentCount: mission.currentCount,
+            target: mission.target,
+            totalCampaignSalawat: db.totalCampaignSalawat ?? 0,
+            participantsCount: mission.participantsCount,
+            missionState: mission.state,
             isDuplicate: true,
           },
         };
       }
 
       // Record contribution
-      const mission = this.ensureMissionForDate(db, today);
-
       mission.currentCount = Math.max(0, mission.currentCount + count);
-      mission.participantsCount = Math.max(0, mission.participantsCount + 1);
+
+      // Track true unique participant
+      let visitorsForToday = dailyVisitors.get(today);
+      if (!visitorsForToday) {
+        visitorsForToday = new Set<string>();
+        dailyVisitors.set(today, visitorsForToday);
+      }
+      if (visitorId) {
+        if (!visitorsForToday.has(visitorId)) {
+          visitorsForToday.add(visitorId);
+          mission.participantsCount = Math.max(0, (mission.participantsCount || 0) + 1);
+        }
+      } else if (!mission.participantsCount) {
+        mission.participantsCount = 1;
+      }
+
+      // Update running totalCampaignSalawat in O(1)
+      db.totalCampaignSalawat = Math.max(0, (db.totalCampaignSalawat ?? 0) + count);
 
       // Update state if target reached and mission was active
       if (mission.currentCount >= mission.target && mission.state === "ACTIVE") {
@@ -195,21 +236,30 @@ export class CampaignService {
         count,
       };
 
-      // Broadcast realtime update
-      sseBroadcaster.broadcast("salawat_update", {
+      const nextSeq = sseBroadcaster.getCurrentSeq() + 1;
+
+      // Broadcast realtime update to all subscribers
+      const assignedSeq = sseBroadcaster.broadcast("salawat_update", {
+        seq: nextSeq,
+        epoch,
         date: today,
         currentCount: mission.currentCount,
         target: mission.target,
-        state: mission.state,
+        totalCampaignSalawat: db.totalCampaignSalawat,
         participantsCount: mission.participantsCount,
+        state: mission.state,
       });
 
       return {
         data: db,
         result: {
           success: true,
+          seq: assignedSeq,
+          epoch,
           currentCount: mission.currentCount,
           target: mission.target,
+          totalCampaignSalawat: db.totalCampaignSalawat,
+          participantsCount: mission.participantsCount,
           missionState: mission.state,
           isDuplicate: false,
         },
@@ -337,6 +387,7 @@ export class CampaignService {
       const mission = this.ensureMissionForDate(db, today);
 
       mission.state = mission.currentCount >= mission.target ? "READY_TO_LAUNCH" : "ACTIVE";
+      mission.epoch = (mission.epoch || 1) + 1;
       delete mission.launchTimestamp;
 
       db.constellation = db.constellation.filter((s) => s.date !== today);
@@ -349,10 +400,14 @@ export class CampaignService {
         ip,
       });
 
+      const nextSeqLaunch = sseBroadcaster.getCurrentSeq() + 1;
       sseBroadcaster.broadcast("salawat_update", {
+        seq: nextSeqLaunch,
+        epoch: mission.epoch,
         date: today,
         currentCount: mission.currentCount,
         target: mission.target,
+        totalCampaignSalawat: db.totalCampaignSalawat ?? 0,
         state: mission.state,
         participantsCount: mission.participantsCount,
       });
@@ -383,7 +438,17 @@ export class CampaignService {
       mission.currentCount = 0;
       mission.participantsCount = 0;
       mission.state = "ACTIVE";
+      mission.epoch = (mission.epoch || 1) + 1;
       delete mission.launchTimestamp;
+
+      dailyVisitors.get(today)?.clear();
+
+      // Recalculate running total
+      let sum = 0;
+      for (const m of Object.values(db.missions)) {
+        sum += m.currentCount || 0;
+      }
+      db.totalCampaignSalawat = sum;
 
       db.constellation = db.constellation.filter((s) => s.date !== today);
 
@@ -395,10 +460,14 @@ export class CampaignService {
         ip,
       });
 
+      const nextSeqReset = sseBroadcaster.getCurrentSeq() + 1;
       sseBroadcaster.broadcast("salawat_update", {
+        seq: nextSeqReset,
+        epoch: mission.epoch,
         date: today,
         currentCount: 0,
         target: mission.target,
+        totalCampaignSalawat: db.totalCampaignSalawat,
         state: mission.state,
         participantsCount: 0,
       });

@@ -61,12 +61,35 @@ export function getClientIp(req: NextRequest): string {
   return req.headers.get("x-real-ip")?.trim() || "unknown";
 }
 
-// Public submissions: reciting one salawat takes ~2.5s, so the sustained rate
-// is 1 request / 2.5s per IP with a small burst allowance for UI jitter.
-export const salawatLimiter = globalSingleton(
-  "__salawatRateLimiter",
-  () => new TokenBucketRateLimiter(4, 1 / 5)
+// Public submissions: individual visitor limiter (burst 4, refill 1/4s)
+export const salawatVisitorLimiter = globalSingleton(
+  "__salawatVisitorLimiter",
+  () => new TokenBucketRateLimiter(4, 0.25)
 );
+
+// Outer IP floodgate: protects against volumetric floods while supporting ~60 users on shared NAT/Wi-Fi
+export const salawatIpFloodgate = globalSingleton(
+  "__salawatIpFloodgate",
+  () => new TokenBucketRateLimiter(120, 2)
+);
+
+// Backward-compatibility alias
+export const salawatLimiter = salawatVisitorLimiter;
+
+export function checkSalawatRateLimit(
+  req: NextRequest,
+  visitorId?: string
+): { allowed: boolean; retryAfter?: number } {
+  const ip = getClientIp(req);
+  if (!salawatIpFloodgate.tryConsume(ip)) {
+    return { allowed: false, retryAfter: 10 };
+  }
+  const visitorKey = visitorId ? `vis:${visitorId}` : `ip:${ip}`;
+  if (!salawatVisitorLimiter.tryConsume(visitorKey)) {
+    return { allowed: false, retryAfter: 4 };
+  }
+  return { allowed: true };
+}
 
 // Admin PIN brute-force protection: 5 attempts per 15 minutes per IP
 export const adminAuthLimiter = globalSingleton(

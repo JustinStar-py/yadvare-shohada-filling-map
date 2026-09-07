@@ -1,6 +1,6 @@
 {
   "settings": {
-    "campaignTitle": "پویش معنوی یادواره شهدا",
+    "campaignTitle": " پویش معنوی یادواره شهدای شهیدیه",
     "campaignSubtitle": "هر صلوات، یک قدم تا پرواز به سوی افق روشن شهادت",
     "memorialTitle": "یادواره شهدای والامقام و والامقامان میهن",
     "memorialDate": "2026-09-16",
@@ -63,11 +63,13 @@
       "date": "2026-09-07",
       "dayNumber": 9,
       "target": 4500,
-      "currentCount": 700,
-      "participantsCount": 78,
-      "state": "ACTIVE",
+      "currentCount": 4530,
+      "participantsCount": 80,
+      "state": "LAUNCHED",
       "martyrId": "martyr-1",
-      "isOverrideTarget": false
+      "isOverrideTarget": false,
+      "epoch": 4,
+      "launchTimestamp": 1788774724856
     }
   },
   "martyrs": [
@@ -164,6 +166,17 @@
       "y": 38,
       "brightness": 1,
       "launchedAt": 1788647785544
+    },
+    {
+      "date": "2026-09-07",
+      "dayNumber": 9,
+      "salawatCount": 4530,
+      "target": 4500,
+      "martyrName": "شهید محمدابراهیم همت",
+      "x": 36,
+      "y": 16,
+      "brightness": 1,
+      "launchedAt": 1788774724856
     }
   ],
   "idempotencyKeys": {
@@ -1422,9 +1435,75 @@
     "da0d4a89-e051-4c55-a388-5c05f4fbf2cc": {
       "timestamp": 1788733516825,
       "count": 3
+    },
+    "idemp-key-1-1788774698868": {
+      "timestamp": 1788774699000,
+      "count": 5
+    },
+    "idemp-key-2-1788774699059": {
+      "timestamp": 1788774699097,
+      "count": 5
+    },
+    "idemp-key-3-1788774699101": {
+      "timestamp": 1788774699139,
+      "count": 5
+    },
+    "idemp-key-1-1788774724441": {
+      "timestamp": 1788774724493,
+      "count": 5
+    },
+    "idemp-key-2-1788774724547": {
+      "timestamp": 1788774724579,
+      "count": 5
+    },
+    "idemp-key-3-1788774724583": {
+      "timestamp": 1788774724632,
+      "count": 5
     }
   },
   "auditLogs": [
+    {
+      "id": "dd7b8bfc-05b6-48c8-86ef-81da95aaa25a",
+      "timestamp": 1788774724856,
+      "action": "LAUNCH_EXECUTED",
+      "details": "پرتاب راکت روز 9 با 4530 صلوات انجام شد.",
+      "ip": "::1"
+    },
+    {
+      "id": "375e84f5-9fc8-4fc5-bfd9-18f9d5a36faa",
+      "timestamp": 1788774724421,
+      "action": "RESET_LAUNCH",
+      "details": "بازنشانی پرتاب راکت امروز (2026-09-07) توسط مدیر.",
+      "ip": "::1"
+    },
+    {
+      "id": "908ff3ba-8872-4a43-bb95-f1aca7b95e7d",
+      "timestamp": 1788774698836,
+      "action": "RESET_LAUNCH",
+      "details": "بازنشانی پرتاب راکت امروز (2026-09-07) توسط مدیر.",
+      "ip": "::1"
+    },
+    {
+      "id": "7841c7de-846d-433e-847d-1e932166e4a4",
+      "timestamp": 1788774677702,
+      "action": "RESET_LAUNCH",
+      "details": "بازنشانی پرتاب راکت امروز (2026-09-07) توسط مدیر.",
+      "ip": "::1"
+    },
+    {
+      "id": "a8f2bb48-e772-4c8a-a1bb-63c2d7056e72",
+      "timestamp": 1788773758702,
+      "action": "LAUNCH_EXECUTED",
+      "details": "پرتاب راکت روز 9 با 4500 صلوات انجام شد.",
+      "ip": "::1"
+    },
+    {
+      "id": "3e398271-e499-4e77-b127-5ab6b3781382",
+      "timestamp": 1788773692815,
+      "action": "ADMIN_SALAWAT_BULK",
+      "details": "3800 صلوات آزمایشی توسط مدیریت ثبت شد.",
+      "ip": "::1"
+    },
     {
       "id": "80347c29-0661-411c-a462-9437ac54c6e1",
       "timestamp": 1788729138407,
@@ -1529,5 +1608,6 @@
       "action": "INITIALIZATION",
       "details": "پایگاه داده اولیه با موفقیت راه‌اندازی شد."
     }
-  ]
+  ],
+  "totalCampaignSalawat": 15897
 }

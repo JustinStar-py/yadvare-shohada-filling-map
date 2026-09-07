@@ -17,6 +17,7 @@ export interface DatabaseSchema {
   constellation: ConstellationStar[];
   idempotencyKeys: Record<string, { timestamp: number; count: number }>;
   auditLogs: AdminAuditLog[];
+  totalCampaignSalawat?: number;
 }
 
 const DB_DIR = path.join(process.cwd(), "data");
@@ -157,7 +158,7 @@ function getInitialData(): DatabaseSchema {
   };
 
   const initialSettings: CampaignSettings = {
-    campaignTitle: "پویش معنوی یادواره شهدا",
+    campaignTitle: " پویش معنوی یادواره شهدای شهیدیه",
     campaignSubtitle: "هر صلوات، یک قدم تا پرواز به سوی افق روشن شهادت",
     memorialTitle: "یادواره شهدای والامقام و والامقامان میهن",
     memorialDate: memorialDate,
@@ -225,6 +226,8 @@ function normalizeDb(db: DatabaseSchema): DatabaseSchema {
     idempotencyKeys:
       db.idempotencyKeys && typeof db.idempotencyKeys === "object" ? db.idempotencyKeys : {},
     auditLogs: Array.isArray(db.auditLogs) ? db.auditLogs : [],
+    totalCampaignSalawat:
+      typeof db.totalCampaignSalawat === "number" ? db.totalCampaignSalawat : undefined,
   };
 }
 
@@ -243,35 +246,50 @@ async function readJsonFile(file: string): Promise<DatabaseSchema | null> {
  * Loads from disk with corruption recovery: primary file → backup → fresh state.
  */
 async function loadIntoCache(): Promise<DatabaseSchema> {
-  if (cachedDb) return cachedDb;
-
-  const main = await readJsonFile(DB_FILE);
-  if (main) {
-    cachedDb = main;
-    return cachedDb;
-  }
-
-  console.error("[db] Primary database unreadable or corrupt, attempting backup recovery…");
-  const backup = await readJsonFile(BACKUP_FILE);
-  if (backup) {
-    console.warn("[db] Recovered database from backup file.");
-    cachedDb = backup;
-    try {
-      await persistDb(backup); // Heal: restore recovered state to the primary file
-    } catch (error) {
-      console.error("[db] Failed to heal primary file from backup:", error);
+  if (cachedDb) {
+    if (typeof cachedDb.totalCampaignSalawat !== "number") {
+      let sum = 0;
+      for (const m of Object.values(cachedDb.missions)) {
+        sum += m.currentCount || 0;
+      }
+      cachedDb.totalCampaignSalawat = sum;
     }
     return cachedDb;
   }
 
-  console.warn("[db] No valid database or backup found — starting with a fresh database.");
-  const fresh = getInitialData();
-  cachedDb = fresh;
-  try {
-    await persistDb(fresh);
-  } catch (error) {
-    console.error("[db] Failed to persist initial database:", error);
+  let db = await readJsonFile(DB_FILE);
+  if (!db) {
+    console.error("[db] Primary database unreadable or corrupt, attempting backup recovery…");
+    db = await readJsonFile(BACKUP_FILE);
+    if (db) {
+      console.warn("[db] Recovered database from backup file.");
+      try {
+        await persistDb(db); // Heal: restore recovered state to the primary file
+      } catch (error) {
+        console.error("[db] Failed to heal primary file from backup:", error);
+      }
+    }
   }
+
+  if (!db) {
+    console.warn("[db] No valid database or backup found — starting with a fresh database.");
+    db = getInitialData();
+    try {
+      await persistDb(db);
+    } catch (error) {
+      console.error("[db] Failed to persist initial database:", error);
+    }
+  }
+
+  if (typeof db.totalCampaignSalawat !== "number") {
+    let sum = 0;
+    for (const m of Object.values(db.missions)) {
+      sum += m.currentCount || 0;
+    }
+    db.totalCampaignSalawat = sum;
+  }
+
+  cachedDb = db;
   return cachedDb;
 }
 
@@ -342,6 +360,80 @@ function pruneDb(data: DatabaseSchema): void {
   }
 }
 
+let isDirty = false;
+let flushTimer: NodeJS.Timeout | null = null;
+let currentFlushPromise: Promise<void> | null = null;
+const WRITE_BEHIND_INTERVAL_MS = 500;
+
+function scheduleWriteBehindFlush(): void {
+  if (flushTimer !== null) return;
+  flushTimer = setTimeout(async () => {
+    flushTimer = null;
+    await flushDirtyState().catch((err) => {
+      console.error("[db] Background write-behind flush failed:", err);
+    });
+  }, WRITE_BEHIND_INTERVAL_MS);
+}
+
+/**
+ * Flushes dirty in-memory database state to disk atomically.
+ */
+export async function flushDirtyState(): Promise<void> {
+  if (!isDirty || !cachedDb) return;
+  if (currentFlushPromise) {
+    await currentFlushPromise;
+    if (!isDirty || !cachedDb) return;
+  }
+
+  currentFlushPromise = (async () => {
+    try {
+      await dbMutex.runExclusive(async () => {
+        if (!isDirty || !cachedDb) return;
+        const snapshot = structuredClone(cachedDb);
+        isDirty = false;
+        pruneDb(snapshot);
+        await persistDb(snapshot);
+      });
+    } finally {
+      currentFlushPromise = null;
+    }
+  })();
+
+  await currentFlushPromise;
+}
+
+/**
+ * Synchronously waits for any pending background write-behind flush to complete.
+ */
+export async function forceFlush(): Promise<void> {
+  if (flushTimer) {
+    clearTimeout(flushTimer);
+    flushTimer = null;
+  }
+  await flushDirtyState();
+}
+
+/**
+ * Fast in-memory mutator for high-frequency writes (Salawat recitations).
+ * Mutates working state in RAM immediately (<0.05ms) and schedules
+ * a debounced background disk sync (every 500ms).
+ */
+export async function mutateDbFast<T>(
+  mutator: (
+    data: DatabaseSchema
+  ) => Promise<{ data: DatabaseSchema; result: T }> | { data: DatabaseSchema; result: T }
+): Promise<T> {
+  await ensureDbInitialized();
+  const current = await loadIntoCache();
+
+  const { data: updatedData, result } = await mutator(current);
+  cachedDb = updatedData;
+  isDirty = true;
+  scheduleWriteBehindFlush();
+
+  return result;
+}
+
 /**
  * Reads database state (cached after first load, mutex-protected)
  */
@@ -372,6 +464,11 @@ export async function mutateDb<T>(
     data: DatabaseSchema
   ) => Promise<{ data: DatabaseSchema; result: T }> | { data: DatabaseSchema; result: T }
 ): Promise<T> {
+  // If there are pending dirty changes from write-behind, flush them first
+  if (isDirty) {
+    await forceFlush();
+  }
+
   return dbMutex.runExclusive(async () => {
     await ensureDbInitialized();
     const workingCopy = structuredClone(await loadIntoCache());
@@ -382,4 +479,16 @@ export async function mutateDb<T>(
 
     return result;
   });
+}
+
+// Clean process shutdown handlers so dirty buffers are safely flushed
+if (typeof process !== "undefined" && typeof process.on === "function") {
+  const handleExit = () => {
+    if (isDirty) {
+      forceFlush().catch(() => {});
+    }
+  };
+  process.on("beforeExit", handleExit);
+  process.on("SIGTERM", handleExit);
+  process.on("SIGINT", handleExit);
 }

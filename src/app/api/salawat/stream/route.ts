@@ -5,13 +5,33 @@ export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
   const encoder = new TextEncoder();
+  const lastEventIdHeader = req.headers.get("last-event-id");
+  const sinceParam = req.nextUrl.searchParams.get("since");
+  const rawLastSeq = lastEventIdHeader ?? sinceParam;
+  const lastSeq = rawLastSeq ? parseInt(rawLastSeq, 10) : NaN;
 
   const stream = new ReadableStream({
     start(controller) {
-      // Send initial connection event
+      const currentSeq = sseBroadcaster.getCurrentSeq();
+
+      // Send initial connection event with current seq as ID
       controller.enqueue(
-        encoder.encode(`event: connected\ndata: ${JSON.stringify({ status: "ok", time: Date.now() })}\n\n`)
+        encoder.encode(
+          `id: ${currentSeq}\nevent: connected\ndata: ${JSON.stringify({ status: "ok", seq: currentSeq, time: Date.now() })}\n\n`
+        )
       );
+
+      // If reconnecting with a valid sequence number, replay missed events
+      if (!isNaN(lastSeq)) {
+        const { canReplay, events } = sseBroadcaster.getEventsSince(lastSeq);
+        if (canReplay) {
+          for (const ev of events) {
+            controller.enqueue(
+              encoder.encode(`id: ${ev.id}\nevent: ${ev.event}\ndata: ${JSON.stringify(ev.data)}\n\n`)
+            );
+          }
+        }
+      }
 
       const heartbeatInterval = setInterval(() => {
         try {
@@ -34,15 +54,14 @@ export async function GET(req: NextRequest) {
         } catch {}
       };
 
-      // Subscribe to broadcaster
-      unsubscribe = sseBroadcaster.subscribe((event, data) => {
+      // Subscribe to broadcaster with id
+      unsubscribe = sseBroadcaster.subscribe((event, data, id) => {
         if (req.signal.aborted || isClosed) {
           cleanup();
           return;
         }
-        // Let enqueue errors bubble so the broadcaster drops this dead subscriber
         controller.enqueue(
-          encoder.encode(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`)
+          encoder.encode(`${id ? `id: ${id}\n` : ""}event: ${event}\ndata: ${JSON.stringify(data)}\n\n`)
         );
       });
 

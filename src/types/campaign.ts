@@ -22,6 +22,7 @@ export interface DailyMission {
   currentCount: number;
   participantsCount: number;
   state: MissionState;
+  epoch?: number; // Monotonically increasing revision/reset counter
   launchTimestamp?: number;
   martyrId?: string;
   isOverrideTarget: boolean;
@@ -92,9 +93,36 @@ export interface PublicCampaignState {
 // Zod validation schemas
 export const SalawatSubmissionSchema = z.object({
   idempotencyKey: z.string().min(8).max(64),
-  count: z.number().int().min(1).max(5).default(1),
+  count: z.number().int().min(1).max(50).default(1),
   clientTimestamp: z.number().optional(),
+  visitorId: z.string().min(8).max(64).optional(),
+  clientEpoch: z.number().int().min(0).optional(),
 });
+
+export type SalawatSubmissionInput = z.infer<typeof SalawatSubmissionSchema>;
+
+export interface SalawatSubmissionResponse {
+  success: boolean;
+  seq: number;
+  epoch: number;
+  currentCount: number;
+  target: number;
+  totalCampaignSalawat: number;
+  participantsCount: number;
+  missionState: MissionState;
+  isDuplicate: boolean;
+}
+
+export interface SseSalawatUpdatePayload {
+  seq: number;
+  epoch: number;
+  date: string;
+  currentCount: number;
+  target: number;
+  totalCampaignSalawat: number;
+  participantsCount: number;
+  state: MissionState;
+}
 
 export const AdminAuthSchema = z.object({
   pin: z.string().min(4).max(32),

@@ -1,22 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { CampaignService } from "@/lib/server/campaign-service";
 import { SalawatSubmissionSchema } from "@/types/campaign";
-import { salawatLimiter, getClientIp } from "@/lib/server/rate-limit";
+import { checkSalawatRateLimit } from "@/lib/server/rate-limit";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(req: NextRequest) {
   try {
-    if (!salawatLimiter.tryConsume(getClientIp(req))) {
-      return NextResponse.json(
-        { error: "تعداد درخواست‌ها بیش از حد مجاز است. لطفاً کمی صبر کنید." },
-        { status: 429, headers: { "Retry-After": "5" } }
-      );
+    const body = await req.json().catch(() => null);
+    if (!body || typeof body !== "object") {
+      return NextResponse.json({ error: "داده‌های ورودی نامعتبر است" }, { status: 400 });
     }
 
-    const body = await req.json();
     const parseResult = SalawatSubmissionSchema.safeParse(body);
-
     if (!parseResult.success) {
       return NextResponse.json(
         { error: "داده‌های ورودی نامعتبر است", details: parseResult.error.format() },
@@ -24,11 +20,21 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { idempotencyKey, count } = parseResult.data;
-    const result = await CampaignService.submitSalawat(idempotencyKey, count);
+    const { idempotencyKey, count, visitorId } = parseResult.data;
+
+    // Dual-key rate limit: individual visitor token bucket + outer IP floodgate
+    const rateCheck = checkSalawatRateLimit(req, visitorId);
+    if (!rateCheck.allowed) {
+      return NextResponse.json(
+        { error: "تعداد درخواست‌ها بیش از حد مجاز است. لطفاً کمی صبر کنید." },
+        { status: 429, headers: { "Retry-After": (rateCheck.retryAfter ?? 4).toString() } }
+      );
+    }
+
+    const result = await CampaignService.submitSalawat(idempotencyKey, count, visitorId);
 
     if (!result.success) {
-      // e.g. the day's rocket already launched — the press was not counted
+      // The day's rocket already launched — the day is sealed
       return NextResponse.json(
         { error: "پرواز امروز ثبت شده است و صلوات جدیدی پذیرفته نمی‌شود.", result },
         { status: 409 }
