@@ -64,8 +64,8 @@
       "date": "2026-09-07",
       "dayNumber": 9,
       "target": 4500,
-      "currentCount": 1051,
-      "participantsCount": 5,
+      "currentCount": 1052,
+      "participantsCount": 6,
       "state": "ACTIVE",
       "martyrId": "martyr-1",
       "isOverrideTarget": false,
@@ -729,42 +729,6 @@
     }
   ],
   "idempotencyKeys": {
-    "dc30cb61-5ff4-40d0-b353-69d73be1412b": {
-      "timestamp": 1788627496898,
-      "count": 1
-    },
-    "a1a946e5-4661-446a-a9a9-752b402e6b8c": {
-      "timestamp": 1788627496991,
-      "count": 1
-    },
-    "0f736595-7d90-4850-bb5f-0b3814fc88b0": {
-      "timestamp": 1788627497965,
-      "count": 1
-    },
-    "167ae639-aefc-4365-851d-e85f0a61b0c5": {
-      "timestamp": 1788627498092,
-      "count": 1
-    },
-    "cdf4e7d0-1e54-46ff-8b1b-040d6dcb2ba6": {
-      "timestamp": 1788627498215,
-      "count": 1
-    },
-    "133ef5bf-a214-4f26-9ceb-e85f100e61b7": {
-      "timestamp": 1788627498283,
-      "count": 1
-    },
-    "f95c1b7e-e4c7-4ed8-ad73-c785f29f966d": {
-      "timestamp": 1788627498341,
-      "count": 1
-    },
-    "60744296-ee50-4286-8f43-ab9dfbf09b91": {
-      "timestamp": 1788627498382,
-      "count": 1
-    },
-    "20a6b920-e5bc-46d3-a3b3-a3df6201d0de": {
-      "timestamp": 1788627498416,
-      "count": 1
-    },
     "af3f71b9-e212-4190-a52d-09b84d7bc7c1": {
       "timestamp": 1788634491316,
       "count": 1
@@ -2072,6 +2036,10 @@
     "71d12d30-a55b-4725-87c2-ccf6b8d89c44": {
       "timestamp": 1788796946931,
       "count": 1
+    },
+    "612c1a24-1765-4fb6-bd62-30e45898cefc": {
+      "timestamp": 1788800843427,
+      "count": 1
     }
   },
   "auditLogs": [
@@ -2271,5 +2239,5 @@
       "details": "پایگاه داده اولیه با موفقیت راه‌اندازی شد."
     }
   ],
-  "totalCampaignSalawat": 11418
+  "totalCampaignSalawat": 11419
 }
