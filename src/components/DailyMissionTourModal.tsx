@@ -131,28 +131,34 @@ export default function DailyMissionTourModal({
   const isLetterActive = letterStage === "emerging" || letterStage === "revealed";
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-[#070b14]/90 backdrop-blur-xl animate-fade-in overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-[#050811]/85 backdrop-blur-2xl animate-fade-in overflow-y-auto">
       {/* Ambient background glow */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-rose-600/[0.08] rounded-full blur-[120px] pointer-events-none" />
       <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] h-[350px] bg-amber-500/[0.07] rounded-full blur-[90px] pointer-events-none" />
 
-      {/* Main Container with 3D Perspective */}
-      <div className="relative w-full max-w-sm sm:max-w-md my-auto rounded-3xl bg-gradient-to-b from-slate-900/95 via-[#0b101d]/95 to-slate-950/98 border border-amber-500/25 p-5 sm:p-6 shadow-[0_12px_60px_rgba(0,0,0,0.7),0_0_30px_rgba(245,158,11,0.15)] flex flex-col items-center text-center overflow-hidden min-h-[480px] sm:min-h-[510px] [perspective:1200px]">
-        {onClose && (
-          <button
-            type="button"
-            onClick={onClose}
-            className="absolute top-4 left-4 w-8 h-8 rounded-full bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700 text-slate-400 hover:text-slate-100 flex items-center justify-center transition-colors cursor-pointer z-50"
-            title="بستن"
-          >
-            <X className="w-4 h-4" />
-          </button>
-        )}
+      {onClose && (
+        <button
+          type="button"
+          onClick={onClose}
+          className="fixed top-4 left-4 sm:top-6 sm:left-6 w-9 h-9 rounded-full bg-slate-900/80 hover:bg-slate-800 border border-slate-700/80 text-slate-400 hover:text-slate-100 flex items-center justify-center transition-colors cursor-pointer z-50 shadow-lg backdrop-blur-md"
+          title="بستن"
+        >
+          <X className="w-4 h-4" />
+        </button>
+      )}
 
-        {/* ── Background Layer: Header Title (fades gracefully when letter takes focus) ── */}
+      {/* Main Container with 3D Perspective - Becomes completely transparent when letter is revealed */}
+      <div
+        className={`relative w-full max-w-sm sm:max-w-md my-auto flex flex-col items-center text-center [perspective:1200px] transition-all duration-700 ${
+          isLetterActive
+            ? "p-0 min-h-0 bg-transparent border-transparent shadow-none"
+            : "rounded-3xl bg-gradient-to-b from-slate-900/95 via-[#0b101d]/95 to-slate-950/98 border border-amber-500/25 p-5 sm:p-6 shadow-[0_12px_60px_rgba(0,0,0,0.7),0_0_30px_rgba(245,158,11,0.15)] min-h-[480px] sm:min-h-[510px]"
+        }`}
+      >
+        {/* ── Background Layer: Header Title (fades out completely when letter is revealed) ── */}
         <div
-          className={`w-full flex flex-col items-center transition-all duration-700 ${
-            isLetterActive ? "opacity-15 blur-[2px] pointer-events-none" : "opacity-100"
+          className={`w-full flex flex-col items-center transition-all duration-500 ${
+            isLetterActive ? "opacity-0 blur-sm pointer-events-none scale-90 hidden" : "opacity-100"
           }`}
         >
           <div className="relative w-11 h-11 mx-auto rounded-2xl bg-gradient-to-b from-rose-500/20 to-amber-500/10 border border-rose-500/30 flex items-center justify-center mb-2 shadow-[0_0_20px_rgba(244,63,94,0.25)] shrink-0">
@@ -167,11 +173,11 @@ export default function DailyMissionTourModal({
           </p>
         </div>
 
-        {/* ── Background Layer: 3D Envelope Canvas (remains visible behind the letter) ── */}
+        {/* ── Background Layer: 3D Envelope Canvas (fades out completely when letter is revealed) ── */}
         <div
-          className={`w-full h-64 sm:h-72 my-1 relative transition-all duration-700 ${
+          className={`w-full h-64 sm:h-72 my-1 relative transition-all duration-500 ${
             isLetterActive
-              ? "opacity-30 blur-[2px] scale-95 pointer-events-none"
+              ? "opacity-0 blur-sm scale-90 pointer-events-none hidden"
               : "opacity-100 scale-100 cursor-pointer"
           }`}
         >
@@ -195,7 +201,7 @@ export default function DailyMissionTourModal({
         {/* ── Background Layer: "Open Letter" Button (disabled while 3D is initializing) ── */}
         <div
           className={`w-full mt-2 flex flex-col items-center gap-1.5 transition-all duration-300 ${
-            isOpeningEnvelope ? "opacity-0 pointer-events-none translate-y-3" : "opacity-100"
+            isOpeningEnvelope || isLetterActive ? "opacity-0 pointer-events-none translate-y-3 hidden" : "opacity-100"
           }`}
         >
           <button
@@ -235,12 +241,12 @@ export default function DailyMissionTourModal({
 
         {/* ── Foreground Layer: Absolute Cinematic Flying Parchment Letter ── */}
         <div
-          className={`absolute inset-x-4 sm:inset-x-6 top-1/2 -translate-y-1/2 z-40 flex flex-col items-center transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+          className={`w-full max-w-sm sm:max-w-md flex flex-col items-center transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${
             letterStage === "closed"
-              ? "opacity-0 pointer-events-none"
+              ? "opacity-0 pointer-events-none absolute inset-x-0 top-1/2 -translate-y-1/2"
               : letterStage === "emerging"
-              ? "opacity-90 pointer-events-none"
-              : "opacity-100 pointer-events-auto"
+              ? "opacity-90 pointer-events-none absolute inset-x-0 top-1/2 -translate-y-1/2"
+              : "opacity-100 pointer-events-auto relative z-40"
           }`}
           style={{
             transform:

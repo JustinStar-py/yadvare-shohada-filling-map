@@ -176,8 +176,6 @@ export function getDeterministicDailyMission(
   const seed = fnv1a(`${visitorId}:${dateStr}`);
   const prng = mulberry32(seed);
   const martyrIndex = Math.floor(prng() * martyrCount);
-  // suggested count between 1 and 30
-  const suggestedCount = Math.floor(prng() * 30) + 1;
   // suggested count between 10 and 30 (inclusive)
   const suggestedCount = Math.floor(prng() * 21) + 10;
 
