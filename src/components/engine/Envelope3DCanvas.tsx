@@ -2,9 +2,12 @@
 
 import React, { useEffect, useRef } from "react";
 import * as THREE from "three";
+import { toPersianDigits } from "@/lib/utils";
 
 interface Envelope3DCanvasProps {
   isOpen: boolean;
+  martyrName?: string;
+  suggestedCount?: number;
   onLetterEmerged?: () => void;
   onOpen?: () => void;
   className?: string;
@@ -12,6 +15,8 @@ interface Envelope3DCanvasProps {
 
 export default function Envelope3DCanvas({
   isOpen,
+  martyrName = "",
+  suggestedCount,
   onLetterEmerged,
   onOpen,
   className = "",
@@ -135,11 +140,29 @@ export default function Envelope3DCanvas({
       ctx.lineWidth = 1.5;
       ctx.strokeRect(24, 24, 464, 592);
 
-      // Calligraphic header watermark (بسم الله الرحمن الرحیم)
-      ctx.font = "bold 26px Shabnam, Tahoma, sans-serif";
+      // Calligraphic header watermark
+      ctx.font = "bold 20px Shabnam, Tahoma, sans-serif";
       ctx.fillStyle = "rgba(180, 83, 9, 0.65)";
       ctx.textAlign = "center";
       ctx.fillText("بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ", 256, 75);
+
+      ctx.font = "bold 18px Shabnam, Tahoma, sans-serif";
+      ctx.fillStyle = "rgba(120, 53, 15, 0.85)";
+      ctx.fillText("به یاد شهید والامقام", 256, 125);
+
+      const displayName = martyrName
+        ? (martyrName.startsWith("شهید") ? martyrName : `شهید ${martyrName}`)
+        : "شهید والامقام";
+
+      ctx.font = "bold 25px Shabnam, Tahoma, sans-serif";
+      ctx.fillStyle = "#1e1b18";
+      ctx.fillText(displayName, 256, 185);
+
+      if (suggestedCount) {
+        ctx.font = "bold 21px Shabnam, Tahoma, sans-serif";
+        ctx.fillStyle = "#991b1b";
+        ctx.fillText(`سهم شما: ${toPersianDigits(suggestedCount)} صلوات`, 256, 245);
+      }
 
       const tex = new THREE.CanvasTexture(cvs);
       tex.colorSpace = THREE.SRGBColorSpace;
@@ -182,7 +205,6 @@ export default function Envelope3DCanvas({
 
     // ── 4. Build 3D Envelope Hierarchies ──
     const envelopeGroup = new THREE.Group();
-    // Position envelope slightly lower so the rising letter remains beautifully centered
     envelopeGroup.position.set(0, -0.2, 0);
     scene.add(envelopeGroup);
 
@@ -232,11 +254,10 @@ export default function Envelope3DCanvas({
       side: THREE.DoubleSide,
     });
     const letterMesh = new THREE.Mesh(letterGeo, letterMat);
-    // Closed position: safely inside envelope [-0.95, +0.95]
     letterMesh.position.set(0, -0.05, 0.015);
     envelopeGroup.add(letterMesh);
 
-    // Top Flap with Hinge Pivot (Hinge at top edge: Y = +envHeight / 2 = +0.95)
+    // Top Flap with Hinge Pivot
     const flapHinge = new THREE.Group();
     flapHinge.position.set(0, envHeight / 2, envDepth / 2 + 0.02);
     envelopeGroup.add(flapHinge);
@@ -290,7 +311,7 @@ export default function Envelope3DCanvas({
     scene.add(particles);
 
     // ── 5. Animation Variables & States ──
-    let flapAngle = 0; // 0 = closed, Math.PI = fully opened
+    let flapAngle = 0;
     let letterY = -0.05;
     let targetLetterY = -0.05;
     let hasTriggeredEmerged = false;
@@ -328,14 +349,12 @@ export default function Envelope3DCanvas({
 
       // Animate flap and letter unsealing
       if (isOpenRef.current) {
-        // Flap folds back smoothly around hinge X axis
         if (flapAngle < Math.PI * 0.98) {
           flapAngle += delta * 3.4;
           if (flapAngle > Math.PI * 0.98) flapAngle = Math.PI * 0.98;
           flapHinge.rotation.x = flapAngle;
         }
 
-        // Once flap is partly open, letter smoothly rises
         if (flapAngle > 0.6) {
           targetLetterY = 1.25;
           sealGlowLight.intensity = Math.min(2.0, sealGlowLight.intensity + delta * 3);
@@ -345,13 +364,11 @@ export default function Envelope3DCanvas({
         letterMesh.position.y = letterY;
         letterMesh.position.z = 0.08 + (letterY + 0.05) * 0.04;
 
-        // Trigger revealed callback once emerged
-        if (!hasTriggeredEmerged && letterY > 1.1) {
+        if (!hasTriggeredEmerged && letterY > 1.05) {
           hasTriggeredEmerged = true;
           onLetterEmergedRef.current?.();
         }
       } else {
-        // Closed state
         flapAngle = Math.max(0, flapAngle - delta * 4);
         flapHinge.rotation.x = flapAngle;
         letterY += (-0.05 - letterY) * 0.1;
@@ -360,7 +377,6 @@ export default function Envelope3DCanvas({
         sealGlowLight.intensity = Math.max(0.6, sealGlowLight.intensity - delta * 2);
       }
 
-      // Gentle floating stardust animation
       const posAttr = pGeo.attributes.position as THREE.BufferAttribute;
       const arr = posAttr.array as Float32Array;
       for (let i = 1; i < arr.length; i += 3) {
@@ -399,7 +415,7 @@ export default function Envelope3DCanvas({
         container.removeChild(renderer.domElement);
       }
     };
-  }, []);
+  }, [martyrName, suggestedCount]);
 
   const handleClick = () => {
     if (!isOpenRef.current && onOpenRef.current) {
