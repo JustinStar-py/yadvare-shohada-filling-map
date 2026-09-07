@@ -115,9 +115,18 @@ export default function DailyMissionTourModal({
     onComplete(completed);
   };
 
-  const martyrDisplayName = mission.martyr.name.startsWith("شهید")
-    ? mission.martyr.name
-    : `شهید ${mission.martyr.name}`;
+  const martyrDisplayName =
+    mission.martyr.name.startsWith("شهید") ||
+    mission.martyr.name.startsWith("سردار") ||
+    mission.martyr.name.startsWith("جانباز")
+      ? mission.martyr.name
+      : `شهید ${mission.martyr.name}`;
+
+  const martyrSubtitle = mission.martyr.name.includes("سردار")
+    ? "به یاد سردار سرافراز"
+    : mission.martyr.name.includes("جانباز")
+    ? "به یاد جانباز شهید والامقام"
+    : "به یاد شهید والامقام";
 
   const isLetterActive = letterStage === "emerging" || letterStage === "revealed";
 
@@ -242,26 +251,41 @@ export default function DailyMissionTourModal({
                 : "translateY(0px) translateZ(0px) scale(1)",
           }}
         >
-          {/* The Illuminated Parchment Letter */}
-          <div className="relative w-full p-6 sm:p-7 rounded-3xl bg-gradient-to-b from-[#fffef9] via-[#faf4e6] to-[#f4ecdc] text-slate-900 shadow-[0_25px_60px_rgba(0,0,0,0.7),0_0_40px_rgba(245,158,11,0.25)] border-2 border-amber-500/50 text-center overflow-hidden">
+          {/* The Illuminated Parchment Letter with Overlapping Martyr Portrait */}
+          <div className="relative w-full pt-12 sm:pt-14 pb-5 sm:pb-6 px-5 sm:px-7 rounded-3xl bg-gradient-to-b from-[#fffef9] via-[#faf4e6] to-[#f4ecdc] text-slate-900 shadow-[0_25px_60px_rgba(0,0,0,0.7),0_0_40px_rgba(245,158,11,0.25)] border-2 border-amber-500/50 text-center">
+            {/* Absolute Overlapping Martyr Portrait Badge (50% outside top edge, 50% resting on letter) */}
+            <div className="absolute -top-10 sm:-top-12 left-1/2 -translate-x-1/2 z-30 flex items-center justify-center pointer-events-none">
+              <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-full p-1 bg-gradient-to-b from-amber-300 via-amber-500 to-amber-700 shadow-[0_12px_28px_rgba(0,0,0,0.65),0_0_20px_rgba(245,158,11,0.45)]">
+                <div className="w-full h-full rounded-full overflow-hidden bg-slate-950 border-2 border-amber-100 flex items-center justify-center relative">
+                  {mission.martyr.photoUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={mission.martyr.photoUrl}
+                      alt={martyrDisplayName}
+                      className="w-full h-full object-cover object-top scale-105"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-b from-rose-950 to-slate-950">
+                      <MartyrTulipIcon className="w-8 h-8 text-rose-500" />
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
             {/* Parchment inner delicate border */}
             <div className="absolute inset-2 sm:inset-2.5 rounded-2xl border border-amber-600/25 pointer-events-none" />
 
-            {/* Tulip Watermark Crest */}
-            <div className="relative z-10 w-10 h-10 sm:w-11 sm:h-11 mx-auto rounded-2xl bg-gradient-to-b from-rose-500/15 to-amber-500/10 border border-rose-500/25 flex items-center justify-center mb-2.5 shadow-[0_0_15px_rgba(244,63,94,0.15)]">
-              <MartyrTulipIcon className="w-6 h-6 sm:w-7 sm:h-7" />
-            </div>
-
-            <span className="relative z-10 text-xs sm:text-sm font-semibold text-amber-900/80 block mb-1">
-              به یاد شهید والامقام
+            <span className="relative z-10 text-xs sm:text-sm font-semibold text-amber-900/80 block mb-0.5 mt-1">
+              {martyrSubtitle}
             </span>
 
             {/* Prominent, Clearly Visible Martyr Name */}
-            <h2 className="relative z-10 text-2xl sm:text-3xl font-black text-slate-950 tracking-tight my-2">
+            <h2 className="relative z-10 text-2xl sm:text-3xl font-black text-slate-950 tracking-tight my-1.5">
               {martyrDisplayName}
             </h2>
 
-            <div className="relative z-10 w-16 h-0.5 mx-auto bg-gradient-to-l from-transparent via-amber-700/35 to-transparent my-3.5" />
+            <div className="relative z-10 w-16 h-0.5 mx-auto bg-gradient-to-l from-transparent via-amber-700/35 to-transparent my-3" />
 
             {/* Assigned Salawat Share */}
             <div className="relative z-10 inline-flex items-center justify-center gap-2 px-5 py-2 rounded-2xl bg-amber-500/10 border border-amber-600/20">

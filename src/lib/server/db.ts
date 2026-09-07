@@ -67,58 +67,8 @@ function getInitialData(): DatabaseSchema {
   // Memorial date: پنج‌شنبه ۲۶ شهریور ۱۴۰۵ (2026-09-17) at 19:00 (7 PM)
   const memorialDate = "2026-09-17";
 
-  // Initial martyrs
-  const initialMartyrs: MartyrProfile[] = [
-    {
-      id: "martyr-1",
-      name: "شهید محمدابراهیم همت",
-      title: "فرمانده لشکر ۲۷ محمد رسول‌الله (ص)",
-      photoUrl: "https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?w=500&auto=format&fit=crop&q=80",
-      birthDate: "۱۳۳۴/۰۱/۱۲",
-      martyrdomDate: "۱۳۶۲/۱۲/۱۷",
-      martyrdomLocation: "جزیره مجنون (عملیات خیبر)",
-      biography: "سردار خیبر، معلمی صبور و فرمانده‌ای شجاع که با تدبیر و ایمان خود، نامی جاودان در تاریخ دفاع مقدس بر جای گذاشت. کلام پرصلابت و دل پرمهرش، پناه رزمندگان در سخت‌ترین لحظات نبرد بود.",
-      quote: "نام من اگر بماند برایم مهم نیست، اسلام باید بماند و پیروز شود.",
-      assignedDate: today,
-    },
-    {
-      id: "martyr-2",
-      name: "شهید مهدی باکری",
-      title: "فرمانده لشکر ۳۱ عاشورا",
-      photoUrl: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=500&auto=format&fit=crop&q=80",
-      birthDate: "۱۳۳۳/۰۱/۳۰",
-      martyrdomDate: "۱۳۶۳/۱۲/۲۵",
-      martyrdomLocation: "شرق دجله (عملیات بدر)",
-      biography: "شهردار پیشین ارومیه و سردار مخلص اروند، مردی از جنس اخلاص و خاکساری که تا آخرین قطره خون در کنار نیروهایش ایستاد و پیکر پاکش به زلالی آب‌های اروند پیوست.",
-      quote: "ایمان در سختی‌ها و عمل در اخلاص تجلی می‌یابد.",
-      assignedDate: getTehranDateString(new Date(now.getTime() + 1 * 24 * 60 * 60 * 1000)),
-    },
-    {
-      id: "martyr-3",
-      name: "شهید احمد کاظمی",
-      title: "فرمانده نیروی زمینی سپاه",
-      photoUrl: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500&auto=format&fit=crop&q=80",
-      birthDate: "۱۳۳۷/۰۳/۰۶",
-      martyrdomDate: "۱۳۸۴/۱۰/۱۹",
-      martyrdomLocation: "ارومیه",
-      biography: "فاتح خرمشهر و پرچم‌دار خط‌شکنی در عملیات‌های فتح‌المبین و بیت‌المقدس که تا آخرین لحظه حیات مبارک خویش، بی‌قرار وصال به همرزمان شهیدش بود.",
-      quote: "دست از کار و تلاش برای اعتلای نام اهل‌بیت برندارید.",
-      assignedDate: getTehranDateString(new Date(now.getTime() + 2 * 24 * 60 * 60 * 1000)),
-    },
-    {
-      id: "martyr-4",
-      name: "شهید مهدی زین‌الدین",
-      title: "فرمانده لشکر ۱۷ علی بن ابی‌طالب (ع)",
-      photoUrl: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=500&auto=format&fit=crop&q=80",
-      birthDate: "۱۳۳۸/۰۷/۱۸",
-      martyrdomDate: "۱۳۶۳/۰۸/۲۷",
-      martyrdomLocation: "سردشت",
-      biography: "فرمانده جوان و نخبه هوش و استراتژی در جنگ، که همواره بر تقوا، نظم و خدمت خالصانه به محرومان تاکید می‌ورزید.",
-      quote: "اولین شرط لازم برای پاسداری از اسلام، خودسازی و جهاد اکبر است.",
-      assignedDate: getTehranDateString(new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000)),
-    },
-    ...getShahidiehMartyrProfiles(),
-  ];
+  // Initial martyrs: 76 Shahidieh Martyrs
+  const initialMartyrs: MartyrProfile[] = getShahidiehMartyrProfiles();
 
   // Initial constellation stars representing previous days' launches
   const initialConstellation: ConstellationStar[] = [

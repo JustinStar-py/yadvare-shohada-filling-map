@@ -42,7 +42,7 @@ export default function DedicationCard({ martyr }: DedicationCardProps) {
               <img
                 src={martyr.photoUrl}
                 alt={martyr.name}
-                className="w-full h-full object-cover grayscale contrast-125 group-hover:grayscale-0 transition-all duration-700"
+                className="w-full h-full object-cover group-hover:scale-105 transition-all duration-700"
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center text-amber-400/50 bg-gradient-to-tr from-slate-900 to-slate-800">
