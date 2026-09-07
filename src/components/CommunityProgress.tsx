@@ -9,12 +9,14 @@ interface CommunityProgressProps {
   animatedCount: number;
   fillPercentage: number;
   onReplayLaunch?: () => void;
+  disabled?: boolean;
 }
 
 export default function CommunityProgress({
   mission,
   fillPercentage,
   onReplayLaunch,
+  disabled = false,
 }: CommunityProgressProps) {
   const { state } = mission;
   const percentage = Math.min(100, Math.max(0, fillPercentage));
@@ -72,6 +74,7 @@ export default function CommunityProgress({
               {onReplayLaunch && (
                 <button
                   type="button"
+                  disabled={disabled}
                   onClick={onReplayLaunch}
                   className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-300 hover:text-amber-200 bg-amber-500/15 border border-amber-500/30 px-2 py-0.5 rounded-full transition-colors cursor-pointer"
                   title="مشاهده دوباره مراحل پرواز"
@@ -90,6 +93,7 @@ export default function CommunityProgress({
               {onReplayLaunch && (
                 <button
                   type="button"
+                  disabled={disabled}
                   onClick={onReplayLaunch}
                   className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-300 hover:text-amber-200 bg-amber-500/20 border border-amber-400/40 px-2 py-0.5 rounded-full transition-colors cursor-pointer animate-pulse"
                   title="آغاز یا مشاهده پرواز معنوی"

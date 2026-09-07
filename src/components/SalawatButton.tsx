@@ -12,6 +12,7 @@ interface SalawatButtonProps {
   onSubmissionSuccess?: (data: SalawatSubmissionResponse, flushedCount: number) => void;
   onSubmissionRejected?: (count: number) => void;
   disabled?: boolean;
+  isLoading3D?: boolean;
 }
 
 interface Ripple {
@@ -43,6 +44,7 @@ export default function SalawatButton({
   onSubmissionSuccess,
   onSubmissionRejected,
   disabled = false,
+  isLoading3D = false,
 }: SalawatButtonProps) {
   const [ripples, setRipples] = useState<Ripple[]>([]);
   const [orbs, setOrbs] = useState<Orb[]>([]);
@@ -309,7 +311,7 @@ export default function SalawatButton({
         {/* Main CTA Button */}
         <button
           type="button"
-          disabled={disabled}
+          disabled={disabled || isLoading3D}
           onClick={handleClick}
           onMouseDown={() => setPressScale(true)}
           onMouseUp={() => setPressScale(false)}
@@ -319,7 +321,9 @@ export default function SalawatButton({
           className={`relative z-10 group overflow-hidden w-68 sm:w-76 min-h-[48px] sm:min-h-[52px] py-2.5 sm:py-3 px-6 rounded-2xl font-bold cursor-pointer touch-manipulation focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-300/80 shadow-[0_4px_16px_rgba(245,158,11,0.25)] ${
             pressScale ? "scale-[0.97]" : "hover:scale-[1.01] active:scale-[0.97]"
           } ${
-            disabled
+            isLoading3D
+              ? "bg-slate-900/85 text-amber-200/80 border border-amber-500/35 shadow-none cursor-not-allowed"
+              : disabled
               ? "bg-gradient-to-b from-slate-700 to-slate-800 text-slate-400 border border-slate-600/60 shadow-none cursor-not-allowed"
               : isCoolingDown
               ? "bg-gradient-to-b from-amber-500/90 via-amber-600/90 to-amber-700/90 text-slate-900 border border-amber-400/60"
@@ -333,7 +337,7 @@ export default function SalawatButton({
           aria-label="فرستادن صلوات و مشارکت در  پویش معنوی یادواره شهدای شهیدیه"
         >
           {/* Subtle Shimmer */}
-          {!disabled && !isCoolingDown && (
+          {!disabled && !isLoading3D && !isCoolingDown && (
             <div className="absolute inset-0 bg-gradient-to-l from-transparent via-white/15 to-transparent translate-x-[-160%] group-hover:translate-x-[160%] transition-transform duration-1000 ease-out pointer-events-none" />
           )}
 
@@ -359,14 +363,23 @@ export default function SalawatButton({
             />
           ))}
 
-          <div className="relative z-10 flex items-center justify-center">
-            <span
-              className={`text-sm sm:text-base font-bold tracking-wide drop-shadow-[0_1px_1px_rgba(255,255,255,0.25)] ${
-                disabled ? "text-slate-400" : "text-slate-950"
-              }`}
-            >
-              اللّهُمَّ صَلِّ عَلی مُحَمَّدٍ وَ آلِ مُحَمَّد
-            </span>
+          <div className="relative z-10 flex items-center justify-center gap-2">
+            {isLoading3D ? (
+              <>
+                <div className="w-4 h-4 rounded-full border-2 border-amber-400/30 border-t-amber-400 animate-spin shrink-0" />
+                <span className="text-xs sm:text-sm font-bold text-amber-200/90 tracking-wide">
+                  در حال آماده‌سازی صحنه پرواز...
+                </span>
+              </>
+            ) : (
+              <span
+                className={`text-sm sm:text-base font-bold tracking-wide drop-shadow-[0_1px_1px_rgba(255,255,255,0.25)] ${
+                  disabled ? "text-slate-400" : "text-slate-950"
+                }`}
+              >
+                اللّهُمَّ صَلِّ عَلی مُحَمَّدٍ وَ آلِ مُحَمَّد
+              </span>
+            )}
           </div>
         </button>
       </div>

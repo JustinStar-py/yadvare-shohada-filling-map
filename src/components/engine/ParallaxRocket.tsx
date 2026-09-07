@@ -16,6 +16,7 @@ interface ParallaxRocketProps {
   hasLiftedOff: boolean;
   pulseTrigger: number;
   onFlightComplete?: () => void;
+  onReady?: () => void;
 }
 
 export default function ParallaxRocket({
@@ -25,6 +26,7 @@ export default function ParallaxRocket({
   hasLiftedOff,
   pulseTrigger,
   onFlightComplete,
+  onReady,
 }: ParallaxRocketProps) {
   const [use3D, setUse3D] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -41,6 +43,7 @@ export default function ParallaxRocket({
     const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (prefersReducedMotion) {
       setUse3D(false);
+      onReady?.();
       return;
     }
 
@@ -49,9 +52,13 @@ export default function ParallaxRocket({
       const gl = canvas.getContext("webgl2") || canvas.getContext("webgl");
       if (gl) {
         setUse3D(true);
+      } else {
+        setUse3D(false);
+        onReady?.();
       }
     } catch {
       setUse3D(false);
+      onReady?.();
     }
   }, []);
 
@@ -118,6 +125,7 @@ export default function ParallaxRocket({
             hasLiftedOff={hasLiftedOff}
             pulseTrigger={pulseTrigger}
             onFlightComplete={onFlightComplete}
+            onReady={onReady}
           />
         </div>
       ) : (

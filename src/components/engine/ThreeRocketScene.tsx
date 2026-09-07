@@ -11,6 +11,7 @@ interface ThreeRocketSceneProps {
   hasLiftedOff: boolean;
   pulseTrigger: number;
   onFlightComplete?: () => void;
+  onReady?: () => void;
 }
 
 const GOLD_COLOR = new THREE.Color("#f59e0b");
@@ -49,6 +50,7 @@ export default function ThreeRocketScene({
   hasLiftedOff,
   pulseTrigger,
   onFlightComplete,
+  onReady,
 }: ThreeRocketSceneProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
 
@@ -58,6 +60,8 @@ export default function ThreeRocketScene({
   const liftedRef = useRef(hasLiftedOff);
   const pulseRef = useRef(0);
   const onFlightCompleteRef = useRef(onFlightComplete);
+  const onReadyRef = useRef(onReady);
+  useEffect(() => { onReadyRef.current = onReady; }, [onReady]);
 
   useEffect(() => { onFlightCompleteRef.current = onFlightComplete; }, [onFlightComplete]);
   useEffect(() => { progressRef.current = Math.min(1, Math.max(0, fillPercentage / 100)); }, [fillPercentage]);
@@ -788,6 +792,7 @@ export default function ThreeRocketScene({
     let flightElapsedTime = 0;
     let isFlightActive = false;
     let flightFinishedNotified = false;
+    let hasNotifiedReady = false;
 
     const animate = (now?: number) => {
       animId = requestAnimationFrame(animate);
@@ -1212,6 +1217,11 @@ export default function ThreeRocketScene({
       smokeGeo.attributes.age.needsUpdate = true;
 
       renderer.render(scene, camera);
+
+      if (!hasNotifiedReady) {
+        hasNotifiedReady = true;
+        onReadyRef.current?.();
+      }
     };
 
     animate();

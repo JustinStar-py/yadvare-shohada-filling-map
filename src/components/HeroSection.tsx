@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import ParallaxRocket from "./engine/ParallaxRocket";
 import CommunityProgress from "./CommunityProgress";
 import SalawatButton from "./SalawatButton";
@@ -41,6 +41,16 @@ export default function HeroSection({
   onOpenMissionCard,
 }: HeroSectionProps) {
   const { mission, daysRemaining, campaignPhase } = campaignState;
+  const [isRocketReady, setIsRocketReady] = useState(false);
+
+  // Safety fallback: unlock after 3.5s if WebGL takes longer or is disabled
+  useEffect(() => {
+    if (isRocketReady) return;
+    const timer = setTimeout(() => {
+      setIsRocketReady(true);
+    }, 3500);
+    return () => clearTimeout(timer);
+  }, [isRocketReady]);
 
   // Single source of animation truth: both counter and rocket liquid lock to this value
   const animatedCount = useCountUp(mission.currentCount, 850, true);
