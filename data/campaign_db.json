@@ -64,8 +64,8 @@
       "date": "2026-09-07",
       "dayNumber": 9,
       "target": 4500,
-      "currentCount": 20,
-      "participantsCount": 1,
+      "currentCount": 1050,
+      "participantsCount": 5,
       "state": "ACTIVE",
       "martyrId": "martyr-1",
       "isOverrideTarget": false,
@@ -73,54 +73,6 @@
     }
   },
   "martyrs": [
-    {
-      "id": "martyr-1",
-      "name": "شهید محمدابراهیم همت",
-      "title": "فرمانده لشکر ۲۷ محمد رسول‌الله (ص)",
-      "photoUrl": "https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?w=500&auto=format&fit=crop&q=80",
-      "birthDate": "۱۳۳۴/۰۱/۱۲",
-      "martyrdomDate": "۱۳۶۲/۱۲/۱۷",
-      "martyrdomLocation": "جزیره مجنون (عملیات خیبر)",
-      "biography": "سردار خیبر، معلمی صبور و فرمانده‌ای شجاع که با تدبیر و ایمان خود، نامی جاودان در تاریخ دفاع مقدس بر جای گذاشت. کلام پرصلابت و دل پرمهرش، پناه رزمندگان در سخت‌ترین لحظات نبرد بود.",
-      "quote": "نام من اگر بماند برایم مهم نیست، اسلام باید بماند و پیروز شود.",
-      "assignedDate": "2026-09-01"
-    },
-    {
-      "id": "martyr-2",
-      "name": "شهید مهدی باکری",
-      "title": "فرمانده لشکر ۳۱ عاشورا",
-      "photoUrl": "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=500&auto=format&fit=crop&q=80",
-      "birthDate": "۱۳۳۳/۰۱/۳۰",
-      "martyrdomDate": "۱۳۶۳/۱۲/۲۵",
-      "martyrdomLocation": "شرق دجله (عملیات بدر)",
-      "biography": "شهردار پیشین ارومیه و سردار مخلص اروند، مردی از جنس اخلاص و خاکساری که تا آخرین قطره خون در کنار نیروهایش ایستاد و پیکر پاکش به زلالی آب‌های اروند پیوست.",
-      "quote": "ایمان در سختی‌ها و عمل در اخلاص تجلی می‌یابد.",
-      "assignedDate": "2026-09-02"
-    },
-    {
-      "id": "martyr-3",
-      "name": "شهید احمد کاظمی",
-      "title": "فرمانده نیروی زمینی سپاه",
-      "photoUrl": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500&auto=format&fit=crop&q=80",
-      "birthDate": "۱۳۳۷/۰۳/۰۶",
-      "martyrdomDate": "۱۳۸۴/۱۰/۱۹",
-      "martyrdomLocation": "ارومیه",
-      "biography": "فاتح خرمشهر و پرچم‌دار خط‌شکنی در عملیات‌های فتح‌المبین و بیت‌المقدس که تا آخرین لحظه حیات مبارک خویش، بی‌قرار وصال به همرزمان شهیدش بود.",
-      "quote": "دست از کار و تلاش برای اعتلای نام اهل‌بیت برندارید.",
-      "assignedDate": "2026-09-03"
-    },
-    {
-      "id": "martyr-4",
-      "name": "شهید مهدی زین‌الدین",
-      "title": "فرمانده لشکر ۱۷ علی بن ابی‌طالب (ع)",
-      "photoUrl": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=500&auto=format&fit=crop&q=80",
-      "birthDate": "۱۳۳۸/۰۷/۱۸",
-      "martyrdomDate": "۱۳۶۳/۰۸/۲۷",
-      "martyrdomLocation": "سردشت",
-      "biography": "فرمانده جوان و نخبه هوش و استراتژی در جنگ، که همواره بر تقوا، نظم و خدمت خالصانه به محرومان تاکید می‌ورزید.",
-      "quote": "اولین شرط لازم برای پاسداری از اسلام، خودسازی و جهاد اکبر است.",
-      "assignedDate": "2026-09-04"
-    },
     {
       "id": "martyr-sh-1",
       "name": "شهید محمدحسن گلمحمدی",
@@ -2080,9 +2032,87 @@
     "3a965de6-e94d-4393-b36e-551fe120e219": {
       "timestamp": 1788781605937,
       "count": 2
+    },
+    "50aed5a1-2d82-447d-a175-77fc11f530a8": {
+      "timestamp": 1788789589842,
+      "count": 5
+    },
+    "84029b41-a34d-4705-9ba8-f7e7f480e0a6": {
+      "timestamp": 1788789603477,
+      "count": 1
+    },
+    "274df298-3613-4634-9cdf-7f21dbcf48b6": {
+      "timestamp": 1788790667295,
+      "count": 1
+    },
+    "b071e53d-3834-4a07-8a24-fc3890871165": {
+      "timestamp": 1788790999463,
+      "count": 3
+    },
+    "81eab83a-e7fc-4c95-af98-1566328ef15e": {
+      "timestamp": 1788791393470,
+      "count": 5
+    },
+    "f9823cfe-07e4-452f-96cb-e93b167d6865": {
+      "timestamp": 1788791408500,
+      "count": 3
+    },
+    "ad763bb0-89aa-49db-85d9-55871d10ca35": {
+      "timestamp": 1788791914322,
+      "count": 5
+    },
+    "97b0e663-c822-45ae-976d-60b6965b616d": {
+      "timestamp": 1788791928441,
+      "count": 5
+    },
+    "b7016d56-d093-4ec9-9367-f8894711802f": {
+      "timestamp": 1788792060835,
+      "count": 2
     }
   },
   "auditLogs": [
+    {
+      "id": "8d8f3cff-b48c-4076-b984-e0b74b6708be",
+      "timestamp": 1788792122737,
+      "action": "ADMIN_SALAWAT_BULK",
+      "details": "500 صلوات آزمایشی توسط مدیریت ثبت شد.",
+      "ip": "::1"
+    },
+    {
+      "id": "9c18561b-4408-4b12-a683-b2b1bce3568a",
+      "timestamp": 1788792120341,
+      "action": "ADMIN_SALAWAT_BULK",
+      "details": "500 صلوات آزمایشی توسط مدیریت ثبت شد.",
+      "ip": "::1"
+    },
+    {
+      "id": "2c486281-6fcc-4f93-95a7-2bbf956c0f7a",
+      "timestamp": 1788792097604,
+      "action": "MARTYR_DELETED",
+      "details": "شهید شهید مهدی زین‌الدین از سامانه حذف شد.",
+      "ip": "::1"
+    },
+    {
+      "id": "225fa98f-c307-4bca-940f-8189c05a0d23",
+      "timestamp": 1788792094430,
+      "action": "MARTYR_DELETED",
+      "details": "شهید شهید احمد کاظمی از سامانه حذف شد.",
+      "ip": "::1"
+    },
+    {
+      "id": "68ccf51e-f349-47d0-b070-3233869370ef",
+      "timestamp": 1788792091221,
+      "action": "MARTYR_DELETED",
+      "details": "شهید شهید مهدی باکری از سامانه حذف شد.",
+      "ip": "::1"
+    },
+    {
+      "id": "9e4e5e57-dec8-41dd-8cc9-32e3e86f2ef6",
+      "timestamp": 1788792084136,
+      "action": "MARTYR_DELETED",
+      "details": "شهید شهید محمدابراهیم همت از سامانه حذف شد.",
+      "ip": "::1"
+    },
     {
       "id": "a7a00f01-6a60-4538-bbde-36b7ff6bdc4b",
       "timestamp": 1788776589041,
@@ -2237,5 +2267,5 @@
       "details": "پایگاه داده اولیه با موفقیت راه‌اندازی شد."
     }
   ],
-  "totalCampaignSalawat": 11387
+  "totalCampaignSalawat": 11417
 }
