@@ -135,7 +135,7 @@ export default function HeroSection({
 
       {/* ── Mid-Stage: Balanced Vertical Framing Counters (Goal on Left, Live Salawat on Right) ── */}
       <div
-        className={`absolute inset-x-0 top-[33%] sm:top-[34%] md:top-[35%] -translate-y-1/2 w-full max-w-sm sm:max-w-md md:max-w-lg mx-auto px-4 sm:px-8 md:px-12 flex items-stretch justify-between pointer-events-none z-10 transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+        className={`absolute inset-x-0 top-[33%] sm:top-[34%] md:top-[38%] lg:top-[40%] -translate-y-1/2 w-full max-w-sm sm:max-w-md md:max-w-xl lg:max-w-3xl xl:max-w-4xl mx-auto px-4 sm:px-6 md:px-8 lg:px-12 flex items-stretch justify-between pointer-events-none z-10 transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${
           hasLiftedOff
             ? "-translate-y-16 opacity-0 scale-95"
             : "translate-y-0 opacity-100 scale-100"
@@ -143,25 +143,25 @@ export default function HeroSection({
         style={{ direction: "ltr" }}
       >
         {/* Left Side: Target Goal (Vertical Column Box) */}
-        <div className="flex flex-col items-center justify-between px-3 py-3.5 sm:px-3.5 sm:py-4 rounded-2xl bg-slate-900/70 border border-slate-700/50 backdrop-blur-md shadow-[0_8px_24px_rgba(0,0,0,0.45)] w-[76px] sm:w-[88px] md:w-[96px] min-h-[250px] sm:min-h-[270px] md:min-h-[290px] pointer-events-auto select-none">
-          <div className="w-full flex flex-col items-center pb-2 border-b border-white/[0.08] text-center">
-            <span className="text-sm sm:text-base md:text-lg font-bold text-slate-300 drop-shadow-[0_1px_4px_rgba(0,0,0,0.9)]">
+        <div className="flex flex-col items-center justify-between px-2.5 py-3 sm:px-3 sm:py-3.5 md:px-3.5 md:py-4 rounded-2xl bg-slate-900/70 border border-slate-700/50 backdrop-blur-md shadow-[0_8px_24px_rgba(0,0,0,0.45)] w-[72px] sm:w-[80px] md:w-[88px] lg:w-[94px] min-h-[210px] sm:min-h-[220px] md:min-h-[230px] lg:min-h-[240px] pointer-events-auto select-none">
+          <div className="w-full flex flex-col items-center pb-1.5 sm:pb-2 border-b border-white/[0.08] text-center">
+            <span className="text-xs sm:text-sm md:text-base font-bold text-slate-300 drop-shadow-[0_1px_4px_rgba(0,0,0,0.9)]">
               هدف
             </span>
           </div>
-          <div className="flex-1 flex items-center justify-center text-3xl sm:text-4xl md:text-5xl font-extrabold text-slate-100 tracking-tight drop-shadow-[0_2px_12px_rgba(0,0,0,0.8)] py-1">
+          <div className="flex-1 flex items-center justify-center text-2xl sm:text-3xl md:text-3xl lg:text-4xl font-extrabold text-slate-100 tracking-tight drop-shadow-[0_2px_12px_rgba(0,0,0,0.8)] py-0.5">
             <OdometerNumber value={mission.target} vertical />
           </div>
         </div>
 
         {/* Right Side: Live Salawat Counter (Vertical Column Box, Dominant with Rolling Odometer) */}
-        <div className="flex flex-col items-center justify-between px-3 py-3.5 sm:px-3.5 sm:py-4 rounded-2xl bg-slate-900/70 border border-amber-500/35 backdrop-blur-md shadow-[0_8px_28px_rgba(245,158,11,0.22),0_4px_16px_rgba(0,0,0,0.5)] w-[76px] sm:w-[88px] md:w-[96px] min-h-[250px] sm:min-h-[270px] md:min-h-[290px] pointer-events-auto select-none">
-          <div className="w-full flex flex-col items-center pb-2 border-b border-amber-500/20 text-center">
-            <span className="text-sm sm:text-base md:text-lg font-black text-amber-300 drop-shadow-[0_1px_6px_rgba(245,158,11,0.6)]">
+        <div className="flex flex-col items-center justify-between px-2.5 py-3 sm:px-3 sm:py-3.5 md:px-3.5 md:py-4 rounded-2xl bg-slate-900/70 border border-amber-500/35 backdrop-blur-md shadow-[0_8px_28px_rgba(245,158,11,0.22),0_4px_16px_rgba(0,0,0,0.5)] w-[72px] sm:w-[80px] md:w-[88px] lg:w-[94px] min-h-[210px] sm:min-h-[220px] md:min-h-[230px] lg:min-h-[240px] pointer-events-auto select-none">
+          <div className="w-full flex flex-col items-center pb-1.5 sm:pb-2 border-b border-amber-500/20 text-center">
+            <span className="text-xs sm:text-sm md:text-base font-black text-amber-300 drop-shadow-[0_1px_6px_rgba(245,158,11,0.6)]">
               صلوات
             </span>
           </div>
-          <div className="flex-1 flex items-center justify-center text-4xl sm:text-5xl md:text-6xl font-black text-amber-300 tracking-tight drop-shadow-[0_2px_22px_rgba(245,158,11,0.75)] drop-shadow-[0_4px_10px_rgba(0,0,0,0.9)] py-1">
+          <div className="flex-1 flex items-center justify-center text-3xl sm:text-3xl md:text-4xl lg:text-4xl font-black text-amber-300 tracking-tight drop-shadow-[0_2px_22px_rgba(245,158,11,0.75)] drop-shadow-[0_4px_10px_rgba(0,0,0,0.9)] py-0.5">
             <OdometerNumber value={mission.currentCount} vertical />
           </div>
         </div>
@@ -169,7 +169,7 @@ export default function HeroSection({
 
       {/* ── Bottom: Synchronized Progress + Salawat CTA ── */}
       <div
-        className={`w-full flex flex-col items-center gap-1 shrink-0 pb-1 z-20 transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+        className={`w-full flex flex-col items-center gap-1 md:gap-2 shrink-0 pb-1.5 sm:pb-2 md:pb-3 lg:pb-4 z-20 transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${
           hasLiftedOff
             ? "translate-y-28 opacity-0 pointer-events-none scale-95"
             : "translate-y-0 opacity-100 scale-100"

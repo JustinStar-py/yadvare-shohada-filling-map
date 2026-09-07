@@ -67,7 +67,7 @@ export default function OdometerNumber({
     <div
       className={`tabular-nums select-none ${
         vertical
-          ? "inline-flex flex-col items-center justify-center gap-1"
+          ? "inline-flex flex-col items-center justify-center gap-0.5 sm:gap-1"
           : "inline-flex items-center justify-center tracking-tight"
       } ${className}`}
       style={{ direction: "ltr" }}

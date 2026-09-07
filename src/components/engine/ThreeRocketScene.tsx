@@ -81,8 +81,15 @@ export default function ThreeRocketScene({
     const scene = new THREE.Scene();
     const width = container.clientWidth || 240;
     const height = container.clientHeight || 460;
-    const camera = new THREE.PerspectiveCamera(32, width / height, 0.1, 100);
-    camera.position.set(0, 0.1, 7.2);
+    const initAspect = width / height;
+    const isWidescreenInit = initAspect > 1.15;
+    const isPortraitMobInit = initAspect < 0.7;
+    const initFov = isPortraitMobInit ? 38 : isWidescreenInit ? 30 : 32;
+    const initZ = isPortraitMobInit ? 7.8 : isWidescreenInit ? 8.8 : 7.4;
+    let currentBaseCameraY = isWidescreenInit ? 0.22 : isPortraitMobInit ? 0.1 : 0.15;
+
+    const camera = new THREE.PerspectiveCamera(initFov, initAspect, 0.1, 100);
+    camera.position.set(0, currentBaseCameraY, initZ);
 
     let renderer: THREE.WebGLRenderer;
     try {
@@ -615,13 +622,22 @@ export default function ThreeRocketScene({
       const aspect = w / h;
       camera.aspect = aspect;
 
-      // Adaptive vertical FOV: on narrow portrait mobile, open FOV slightly so side banners fit easily
+      // Adaptive vertical FOV and camera framing:
+      // - On narrow portrait mobile (aspect < 0.7): wider fov so rocket & text fit side margins
+      // - On widescreen laptop/desktop (aspect > 1.15): zoomed back slightly and centered with ample top/bottom headroom
+      // - On tablet / square screens: balanced mid values
       if (aspect < 0.7) {
         camera.fov = 38; // Wider horizontal corridor for mobile screens
         camera.position.z = 7.8;
+        currentBaseCameraY = 0.1;
+      } else if (aspect > 1.15) {
+        camera.fov = 30;
+        camera.position.z = 8.8;
+        currentBaseCameraY = 0.22;
       } else {
         camera.fov = 32;
-        camera.position.z = 7.2;
+        camera.position.z = 7.4;
+        currentBaseCameraY = 0.15;
       }
       camera.updateProjectionMatrix();
       renderer.setSize(w, h);
@@ -870,7 +886,7 @@ export default function ThreeRocketScene({
           // Rocket trembles on pad, engines spool up, pad deluge smoke billows
           const ignFrac = t / IGNITION_DUR;
           ascentY = 0;
-          targetCameraY = 0.1;
+          targetCameraY = currentBaseCameraY;
           engineIntensity = ignFrac * 0.9;
           isPadSmokeActive = true;
           const rumble = Math.sin(elapsed * 48) * 0.007 * ignFrac;
@@ -888,7 +904,7 @@ export default function ThreeRocketScene({
 
           // Camera smoothly cranes up, arriving locked on booster midpoint at apogee
           const targetBoosterCenter = PEAK_ALTITUDE + BOOSTER_MID_Y;
-          targetCameraY = 0.1 + (targetBoosterCenter - 0.1) * curve;
+          targetCameraY = currentBaseCameraY + (targetBoosterCenter - currentBaseCameraY) * curve;
 
           engineIntensity = 1.0;
           isPadSmokeActive = ascentY < 1.4;
@@ -946,9 +962,9 @@ export default function ThreeRocketScene({
           engineIntensity = 0.88; // Retro-thruster burn
           isPadSmokeActive = ascentY < 1.2; // Ground cushion smoke near pad ring
 
-          // Camera follows booster down, smoothly blending back to pad framing (0.1) as it lands
+          // Camera follows booster down, smoothly blending back to pad framing as it lands
           const currentBoosterCenter = ascentY + BOOSTER_MID_Y;
-          targetCameraY = 0.1 + (currentBoosterCenter - 0.1) * (1 - descCurve);
+          targetCameraY = currentBaseCameraY + (currentBoosterCenter - currentBaseCameraY) * (1 - descCurve);
 
         } else if (t < REDOCK_START) {
           // ── Phase 5: Booster Touchdown on Pad (24.6s → 25.6s) ──
@@ -961,7 +977,7 @@ export default function ThreeRocketScene({
           boosterGroup.position.set(0, 0, 0);
           capsuleGroup.position.set(0, 25.0, 0);
           capsuleGroup.visible = false;
-          targetCameraY = 0.1;
+          targetCameraY = currentBaseCameraY;
           engineIntensity = Math.max(0, 0.3 * (1 - touchFrac));
           isPadSmokeActive = touchFrac < 0.5;
 
@@ -981,7 +997,7 @@ export default function ThreeRocketScene({
           ascentY = 0;
           rocketGroup.position.set(0, 0, 0);
           boosterGroup.position.set(0, 0, 0);
-          targetCameraY = 0.1;
+          targetCameraY = currentBaseCameraY;
           engineIntensity = 0;
           isPadSmokeActive = false;
 
@@ -1000,7 +1016,7 @@ export default function ThreeRocketScene({
           dockingFlashMat.opacity = Math.max(0, dockingFlashMat.opacity - dt * 2.0);
 
           ascentY = 0;
-          targetCameraY = 0.1;
+          targetCameraY = currentBaseCameraY;
           engineIntensity = 0;
           isPadSmokeActive = false;
           haloMat.opacity = 0.45 + Math.sin(elapsed * 2.0) * 0.15;
@@ -1009,7 +1025,7 @@ export default function ThreeRocketScene({
           // Flight complete — Rocket unified, restored majestically on launch pad
           isFlightActive = false;
           ascentY = 0;
-          targetCameraY = 0.1;
+          targetCameraY = currentBaseCameraY;
           engineIntensity = 0;
           isPadSmokeActive = false;
           rocketGroup.position.set(0, floatY, 0);
@@ -1121,7 +1137,7 @@ export default function ThreeRocketScene({
       } else {
         // Stationary on pad
         const camAlpha = 1 - Math.exp(-dt / CAM_SMOOTH_TAU);
-        camera.position.y += (0.1 - camera.position.y) * camAlpha;
+        camera.position.y += (currentBaseCameraY - camera.position.y) * camAlpha;
         boosterGroup.position.set(0, 0, 0);
         capsuleGroup.position.set(0, 0, 0);
         capsuleGroup.visible = true;
