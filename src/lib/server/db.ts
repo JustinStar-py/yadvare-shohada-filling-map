@@ -7,6 +7,7 @@ import {
   ConstellationStar,
   AdminAuditLog,
 } from "@/types/campaign";
+import { getShahidiehMartyrProfiles } from "@/lib/data/shohada-shahidieh";
 import { getTehranDateString } from "@/lib/utils";
 import { hashPin } from "./pin";
 
@@ -62,10 +63,9 @@ let writeCounter = 0;
 function getInitialData(): DatabaseSchema {
   const today = getTehranDateString(); // e.g. 2026-09-01
 
-  // Calculate memorial date 15 days in the future
   const now = new Date();
-  const memorialDateObj = new Date(now.getTime() + 15 * 24 * 60 * 60 * 1000);
-  const memorialDate = getTehranDateString(memorialDateObj);
+  // Memorial date: پنج‌شنبه ۲۶ شهریور ۱۴۰۵ (2026-09-17) at 19:00 (7 PM)
+  const memorialDate = "2026-09-17";
 
   // Initial martyrs
   const initialMartyrs: MartyrProfile[] = [
@@ -117,6 +117,7 @@ function getInitialData(): DatabaseSchema {
       quote: "اولین شرط لازم برای پاسداری از اسلام، خودسازی و جهاد اکبر است.",
       assignedDate: getTehranDateString(new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000)),
     },
+    ...getShahidiehMartyrProfiles(),
   ];
 
   // Initial constellation stars representing previous days' launches
@@ -162,6 +163,7 @@ function getInitialData(): DatabaseSchema {
     campaignSubtitle: "هر صلوات، یک قدم تا پرواز به سوی افق روشن شهادت",
     memorialTitle: "یادواره شهدای والامقام و والامقامان میهن",
     memorialDate: memorialDate,
+    memorialTime: "19:00",
     memorialLocation: "تهران، مصلای بزرگ امام خمینی (ره) - سالن همایش‌های بین‌المللی",
     campaignStartDate: getTehranDateString(new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000)),
     campaignEndDate: memorialDate,
