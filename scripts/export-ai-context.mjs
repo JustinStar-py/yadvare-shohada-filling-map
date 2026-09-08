@@ -60,6 +60,7 @@ const keyFiles = [
     relPath: "src/components/engine/Envelope3DCanvas.tsx",
   },
 
+  // 2. Interactive UI & User Experience
   // 2. Interactive UI & User Experience (Hero, Modals, Buttons, Live Stats)
   {
     category: "2. UI/UX & Interactive Components",
@@ -178,6 +179,9 @@ const keyFiles = [
 const MASTER_AI_PROMPT = `================================================================================
 MASTER PROMPT FOR ADVANCED AI (GPT-6 ASTRA / CLAUDE 3.7 / CREATIVE TECHNOLOGIST)
 ================================================================================
+ROLE:
+You are a World-Class Principal Creative Technologist, Staff Design Engineer (following
+Emil Kowalski / animations.dev standards), Senior Three.js / WebGL Shader Specialist,
 ROLE & PERSONA:
 You are a World-Class Principal Creative Technologist, Staff Design Engineer (steeped in
 Emil Kowalski / animations.dev principles), Senior Three.js / WebGL Shader Specialist,
@@ -201,9 +205,11 @@ CORE CONCEPT:
 5. High emotional resonance: connection with martyrs, Iranian technological strength, and solemn beauty.
 
 --------------------------------------------------------------------------------
+YOUR OBJECTIVES & HIGH-PRIORITY DELIVERABLES:
 YOUR CORE MISSIONS & DELIVERABLES:
 --------------------------------------------------------------------------------
 
+🎯 1. MULTIPLE IRANIAN BALLISTIC & HYPERSONIC MISSILE 3D MODELS (چندین مدل موشک ایرانی)
 🎯 MISSION 1: MULTIPLE IRANIAN BALLISTIC & HYPERSONIC MISSILE 3D MODELS
 Currently, \`ThreeRocketScene.tsx\` renders a single procedural 3D rocket.
 We want you to architect and provide modular code supporting MULTIPLE distinct Iranian missile models
@@ -236,6 +242,16 @@ that can be selected, previewed, or switched (e.g. via a \`missileModel\` prop o
 
 ---
 
+🎯 2. EMIL KOWALSKI DESIGN ENGINEERING (UI/UX & MICRO-INTERACTIONS)
+Elevate the entire frontend experience following the principles of animations.dev / Emil Kowalski:
+  - **Natural Spring & Physics**: Replace generic linear/ease transitions with calibrated bezier curves:
+    \`cubic-bezier(0.23, 1, 0.32, 1)\` for dialogs and entrances, and spring-like responsiveness.
+  - **Tactile Salawat Button**: Immediate active feedback (\`scale(0.97)\` in 160ms), glowing aura burst
+    on click, particle dispersion, rolling odometer counter numbers, and haptic feedback.
+  - **Unobstructed Cinematic Launch View**:
+    During the countdown and flight, the overlay MUST gracefully fade out without any dark blue tint
+    obscuring the rocket. The rocket should be front and center, scaled up heroically in the viewport!
+  - **Smooth Modals**: Use \`useModalTransition\` pattern with backdrop-blur, scale-in, and zero layout shift.
 🎯 MISSION 2: UI/UX ELEVATION & EMIL KOWALSKI DESIGN ENGINEERING
 Apply Emil Kowalski's core philosophy (from animations.dev) across all UI/UX components:
 
@@ -269,6 +285,7 @@ Apply Emil Kowalski's core philosophy (from animations.dev) across all UI/UX com
 
 ---
 
+🎯 3. CODE CLEANLINESS, PERFORMANCE & ARCHITECTURE
 🎯 MISSION 3: CODE CLEANLINESS, PERFORMANCE & ARCHITECTURE
   - Fully compatible with Next.js 16.3 (Turbopack) & React 19.
   - Zero memory leaks in Three.js: strict disposal of geometries, materials, textures, and requestAnimationFrame.
@@ -277,9 +294,11 @@ Apply Emil Kowalski's core philosophy (from animations.dev) across all UI/UX com
 
 ---
 
+🎯 4. OUTPUT INSTRUCTIONS:
 🎯 MISSION 4: OUTPUT INSTRUCTIONS:
 Please provide:
 1. Complete, drop-in replacement code for the upgraded \`ThreeRocketScene.tsx\` (with multi-missile support).
+2. Code for accompanying components that need updating (e.g. \`ParallaxRocket.tsx\`, \`HeroSection.tsx\`, or \`LaunchOverlay.tsx\`).
 2. Code for UI/UX components that need upgrading (e.g. \`SalawatButton.tsx\`, \`HeroSection.tsx\`, \`LaunchOverlay.tsx\`, \`ConstellationView.tsx\`, etc.).
 3. Clear instructions on how to toggle or select between the different missile models.
 Do NOT use lazy placeholders like "// rest of code remains same" for crucial logic. Provide full, working files!

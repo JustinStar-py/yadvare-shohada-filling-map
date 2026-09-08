@@ -9,12 +9,15 @@ const ThreeRocketScene = dynamic(() => import("./ThreeRocketScene"), {
   ssr: false,
 });
 
+import { MissileModel } from "./missile-catalog";
+
 interface ParallaxRocketProps {
   fillPercentage: number;
   missionState: MissionState;
   isLaunching: boolean;
   hasLiftedOff: boolean;
   pulseTrigger: number;
+  missileModel?: MissileModel;
   onFlightComplete?: () => void;
   onReady?: () => void;
 }
@@ -25,6 +28,7 @@ export default function ParallaxRocket({
   isLaunching,
   hasLiftedOff,
   pulseTrigger,
+  missileModel,
   onFlightComplete,
   onReady,
 }: ParallaxRocketProps) {
@@ -57,6 +61,7 @@ export default function ParallaxRocket({
             isLaunching={isLaunching}
             hasLiftedOff={hasLiftedOff}
             pulseTrigger={pulseTrigger}
+            missileModel={missileModel}
             onFlightComplete={onFlightComplete}
             onReady={handleSceneReady}
           />

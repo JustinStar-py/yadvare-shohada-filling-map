@@ -11,6 +11,7 @@ import { useCountUp } from "@/lib/client/use-count-up";
 import { Calendar, Target, Sparkles } from "lucide-react";
 import { UserDailyMission } from "@/components/DailyMissionTourModal";
 import MemorialDialogModal from "./MemorialDialogModal";
+import { MISSILE_MODELS, MissileModel } from "./engine/missile-catalog";
 
 interface HeroSectionProps {
   campaignState: PublicCampaignState;
@@ -43,6 +44,7 @@ export default function HeroSection({
   onRenewMission,
 }: HeroSectionProps) {
   const { mission, daysRemaining, campaignPhase } = campaignState;
+  const [selectedMissile, setSelectedMissile] = useState<MissileModel>("kheibar");
   const [isRocketReady, setIsRocketReady] = useState(false);
   const [showMemorialModal, setShowMemorialModal] = useState(false);
 
@@ -95,6 +97,32 @@ export default function HeroSection({
             اطلاعات مراسم ↗
           </span>
         </button>
+
+        {/* ── Sleek Dark-Glass Iranian Missile Model Selector ── */}
+        <div
+          className="inline-flex items-center gap-1 sm:gap-1.5 p-1 rounded-full bg-slate-950/75 border border-amber-500/25 backdrop-blur-md shadow-[0_4px_20px_rgba(0,0,0,0.6)] select-none pointer-events-auto"
+          dir="rtl"
+        >
+          {MISSILE_MODELS.map((item) => {
+            const active = selectedMissile === item.id;
+            return (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => setSelectedMissile(item.id)}
+                disabled={isLaunching}
+                className={`px-2.5 sm:px-3.5 py-0.5 sm:py-1 rounded-full text-[11px] sm:text-xs font-bold transition-all duration-160 cursor-pointer ${
+                  active
+                    ? "bg-amber-500/25 text-amber-300 border border-amber-500/50 shadow-[0_0_12px_rgba(245,158,11,0.28)]"
+                    : "text-slate-400 hover:text-slate-200 hover:bg-white/5 border border-transparent"
+                }`}
+                title={item.caption}
+              >
+                {item.label}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {/* ── Full-Viewport 3D Rocket Stage Canvas ── */}
@@ -105,6 +133,7 @@ export default function HeroSection({
           isLaunching={isLaunching}
           hasLiftedOff={hasLiftedOff}
           pulseTrigger={energyBurstTrigger}
+          missileModel={selectedMissile}
           onFlightComplete={onFlightComplete}
         />
       </div>
