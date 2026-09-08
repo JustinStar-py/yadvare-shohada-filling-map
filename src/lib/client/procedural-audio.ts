@@ -17,7 +17,7 @@ class ProceduralAudioEngine {
   private ambientGain: GainNode | null = null;
   private noiseBuffer: AudioBuffer | null = null;
   private bgMusic: HTMLAudioElement | null = null;
-  private musicVolume: number = 0.10; // 10% volume per specification
+  private musicVolume: number = 0.85; // 85% volume per specification
 
   constructor() {
     if (typeof window !== "undefined") {
@@ -117,7 +117,7 @@ class ProceduralAudioEngine {
           console.error("Playground audio error:", audio.error);
         });
         audio.addEventListener("playing", () => {
-          console.log("Playground background music playing at 10% volume");
+          console.log("Playground background music playing at 85% volume");
         });
 
         this.bgMusic = audio;
