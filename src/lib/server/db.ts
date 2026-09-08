@@ -54,6 +54,7 @@ const dbMutex = new AsyncMutex();
 
 // In-memory cache: avoids re-reading the file on every request (single-process server)
 let cachedDb: DatabaseSchema | null = null;
+let lastDiskMtimeMs = 0;
 let lastBackupAt = 0;
 let writeCounter = 0;
 
@@ -198,7 +199,13 @@ async function readJsonFile(file: string): Promise<DatabaseSchema | null> {
  * Loads from disk with corruption recovery: primary file → backup → fresh state.
  */
 async function loadIntoCache(): Promise<DatabaseSchema> {
-  if (cachedDb) {
+  let diskMtime = 0;
+  try {
+    const stat = await fs.stat(DB_FILE);
+    diskMtime = stat.mtimeMs;
+  } catch {}
+
+  if (cachedDb && !isDirty && diskMtime > 0 && diskMtime <= lastDiskMtimeMs) {
     if (typeof cachedDb.totalCampaignSalawat !== "number") {
       let sum = 0;
       for (const m of Object.values(cachedDb.missions)) {
@@ -242,6 +249,7 @@ async function loadIntoCache(): Promise<DatabaseSchema> {
   }
 
   cachedDb = db;
+  lastDiskMtimeMs = diskMtime || Date.now();
   return cachedDb;
 }
 
@@ -317,6 +325,12 @@ async function persistDb(data: DatabaseSchema): Promise<void> {
   }
 
   cachedDb = data;
+  try {
+    const stat = await fs.stat(DB_FILE);
+    lastDiskMtimeMs = stat.mtimeMs;
+  } catch {
+    lastDiskMtimeMs = Date.now();
+  }
 }
 
 /**

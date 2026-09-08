@@ -7,7 +7,7 @@ import {
   AdminAuditLog,
   SalawatSubmissionResponse,
 } from "@/types/campaign";
-import { readDb, mutateDb, mutateDbFast, DatabaseSchema } from "./db";
+import { readDb, mutateDb, mutateDbFast, forceFlush, DatabaseSchema } from "./db";
 import { sseBroadcaster } from "./sse-broadcaster";
 import { getTehranDateString, getDaysDifference, generateUUID } from "@/lib/utils";
 import { hashPin } from "./pin";
@@ -644,7 +644,7 @@ export class CampaignService {
     count: number,
     ip?: string
   ): Promise<{ currentCount: number; target: number; state: DailyMission["state"] }> {
-    return mutateDbFast<{ currentCount: number; target: number; state: DailyMission["state"] }>(async (db) => {
+    const res = await mutateDbFast<{ currentCount: number; target: number; state: DailyMission["state"] }>(async (db) => {
       const today = getTehranDateString(new Date(), db.settings.dailyResetHour ?? 0);
       const mission = this.ensureMissionForDate(db, today);
 
@@ -692,6 +692,8 @@ export class CampaignService {
         },
       };
     });
+    await forceFlush().catch(() => {});
+    return res;
   }
 
   /**

@@ -4,7 +4,6 @@ import React, { useEffect, useRef } from "react";
 import * as THREE from "three";
 import { MissionState } from "@/types/campaign";
 import { MissileModel } from "./missile-catalog";
-
 interface ThreeRocketSceneProps {
   fillPercentage: number;
   missionState: MissionState;
@@ -133,6 +132,7 @@ export default function ThreeRocketScene({
 
     // ── Materials ──
     const hullMaterial = new THREE.MeshStandardMaterial({ color: TITANIUM_COLOR, metalness: 0.58, roughness: 0.32 });
+    const carbonMaterial = new THREE.MeshStandardMaterial({ color: new THREE.Color("#1a1f26"), metalness: 0.42, roughness: 0.55 });
     const goldMaterial = new THREE.MeshStandardMaterial({ color: GOLD_COLOR, emissive: GOLD_COLOR, emissiveIntensity: 0.45, metalness: 0.85, roughness: 0.22 });
     const nozzleMaterial = new THREE.MeshStandardMaterial({ color: NOZZLE_COLOR, metalness: 0.85, roughness: 0.38, side: THREE.DoubleSide });
     const glassMaterial = new THREE.MeshPhysicalMaterial({
@@ -142,200 +142,221 @@ export default function ThreeRocketScene({
     const fuelMaterial = new THREE.MeshStandardMaterial({ color: GOLD_COLOR, emissive: GOLD_COLOR, emissiveIntensity: 0.95, roughness: 0.2, metalness: 0.3, transparent: true, opacity: 0.92 });
     const meniscusMaterial = new THREE.MeshBasicMaterial({ color: 0xfffbeb, transparent: true, opacity: 0.95 });
 
-    const carbonMaterial = new THREE.MeshStandardMaterial({ color: 0x1e2026, metalness: 0.55, roughness: 0.45 });
-    const graphiteTipMaterial = new THREE.MeshStandardMaterial({ color: 0x121316, metalness: 0.35, roughness: 0.7 });
-
-    // Rocket Dimensions
+    // ── Capsule Parts (upper stage) ──
     const noseStart = 0.55;
+    const noseH = 1.35;
     const baseR = 0.32;
 
-    // ── Multi-Model Stencil Decal Texture Generator ──
-    const createModelDecalTexture = (label: string): THREE.CanvasTexture => {
-      const canvas = document.createElement("canvas");
-      canvas.width = 512;
-      canvas.height = 2048;
-      const ctx = canvas.getContext("2d");
-      if (ctx) {
-        ctx.clearRect(0, 0, 512, 2048);
-        ctx.save();
-        ctx.translate(256, 1024);
-        ctx.rotate(Math.PI / 2);
-        ctx.fillStyle = "#000000";
-        ctx.font = '900 135px "Arial Black", "Impact", "Trebuchet MS", sans-serif';
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-        ctx.fillText(label, 0, 0);
+    // 1) Kheibar-Shecan Nose: Aerodynamic ogive curve
+    const kheibarNosePts: THREE.Vector2[] = [];
+    for (let i = 0; i <= 14; i++) {
+      const t = i / 14;
+      const r = baseR * Math.sqrt(Math.max(0, 1 - t * t)) * (1 - 0.06 * t);
+      kheibarNosePts.push(new THREE.Vector2(Math.max(r, 0.002), noseStart + t * noseH));
+    }
+    const kheibarNoseGeo = new THREE.LatheGeometry(kheibarNosePts, 40);
 
-        ctx.strokeStyle = "#000000";
-        ctx.lineWidth = 10;
-        ctx.beginPath();
-        ctx.moveTo(-820, 0);
-        ctx.lineTo(-720, 0);
-        ctx.moveTo(720, 0);
-        ctx.lineTo(820, 0);
-        ctx.stroke();
-        ctx.restore();
-      }
-      const texture = new THREE.CanvasTexture(canvas);
-      texture.colorSpace = THREE.SRGBColorSpace;
-      texture.minFilter = THREE.LinearFilter;
-      texture.magFilter = THREE.LinearFilter;
-      return texture;
+    // 2) Fattah-1 Nose: Pointed hypersonic glide warhead
+    const fattahNosePts: THREE.Vector2[] = [];
+    for (let i = 0; i <= 16; i++) {
+      const t = i / 16;
+      const r = baseR * Math.pow(1 - t, 0.72) * (1 + 0.08 * Math.sin(t * Math.PI));
+      fattahNosePts.push(new THREE.Vector2(Math.max(r, 0.001), noseStart + t * 1.45));
+    }
+    const fattahNoseGeo = new THREE.LatheGeometry(fattahNosePts, 40);
+
+    // 3) Sejjil Nose: Solid-propellant rounded ogive
+    const sejjilNosePts: THREE.Vector2[] = [];
+    for (let i = 0; i <= 14; i++) {
+      const t = i / 14;
+      const r = baseR * Math.sqrt(Math.max(0, 1 - t * t));
+      sejjilNosePts.push(new THREE.Vector2(Math.max(r, 0.002), noseStart + t * 1.25));
+    }
+    const sejjilNoseGeo = new THREE.LatheGeometry(sejjilNosePts, 40);
+
+    // 4) Khorramshahr-4 Nose: Heavy blunt conical re-entry warhead
+    const khorramshahrNosePts: THREE.Vector2[] = [];
+    for (let i = 0; i <= 14; i++) {
+      const t = i / 14;
+      const r = t < 0.2 ? baseR * (1 + 0.05 * (1 - t * 5)) : baseR * (1 - (t - 0.2) * 1.08);
+      khorramshahrNosePts.push(new THREE.Vector2(Math.max(r, 0.035), noseStart + t * 1.15));
+    }
+    const khorramshahrNoseGeo = new THREE.LatheGeometry(khorramshahrNosePts, 40);
+
+    const noseMesh = new THREE.Mesh(kheibarNoseGeo, hullMaterial);
+    capsuleGroup.add(noseMesh);
+
+    const beaconMesh = new THREE.Mesh(new THREE.SphereGeometry(0.045, 16, 16), goldMaterial);
+    beaconMesh.position.set(0, noseStart + noseH, 0);
+    capsuleGroup.add(beaconMesh);
+
+    const upperCollar = new THREE.Mesh(new THREE.TorusGeometry(baseR + 0.005, 0.018, 14, 48), goldMaterial);
+    upperCollar.rotation.x = Math.PI / 2;
+    upperCollar.position.y = noseStart;
+    capsuleGroup.add(upperCollar);
+
+    const noseBand = new THREE.Mesh(new THREE.TorusGeometry(0.18, 0.008, 12, 40), goldMaterial);
+    noseBand.rotation.x = Math.PI / 2;
+    noseBand.position.y = noseStart + 1.05;
+    capsuleGroup.add(noseBand);
+
+    // ── Dedicated Physical Accessories for Each Missile Model ──
+    // A) Kheibar: 4 mid-fuselage canards on boosterGroup
+    const kheibarCanardsGroup = new THREE.Group();
+    const kheibarCanardShape = new THREE.Shape();
+    kheibarCanardShape.moveTo(0, 0);
+    kheibarCanardShape.lineTo(0.24, -0.16);
+    kheibarCanardShape.lineTo(0, -0.22);
+    kheibarCanardShape.closePath();
+    const kheibarCanardGeo = new THREE.ExtrudeGeometry(kheibarCanardShape, { depth: 0.015, bevelEnabled: false });
+    for (let i = 0; i < 4; i++) {
+      const arm = new THREE.Group();
+      arm.rotation.y = (i * Math.PI) / 2;
+      const m = new THREE.Mesh(kheibarCanardGeo, hullMaterial);
+      m.position.set(baseR * 0.95, 0.46, -0.0075);
+      arm.add(m);
+      kheibarCanardsGroup.add(arm);
+    }
+    boosterGroup.add(kheibarCanardsGroup);
+
+    // B) Fattah: 4 hypersonic maneuvering fins at the base of the nose cone on capsuleGroup
+    const fattahGliderGroup = new THREE.Group();
+    const fattahGliderShape = new THREE.Shape();
+    fattahGliderShape.moveTo(0, 0);
+    fattahGliderShape.lineTo(0.25, -0.10);
+    fattahGliderShape.lineTo(0.18, -0.22);
+    fattahGliderShape.lineTo(0, -0.22);
+    fattahGliderShape.closePath();
+    const fattahGliderGeo = new THREE.ExtrudeGeometry(fattahGliderShape, { depth: 0.015, bevelEnabled: false });
+    for (let i = 0; i < 4; i++) {
+      const arm = new THREE.Group();
+      arm.rotation.y = (i * Math.PI) / 2;
+      const m = new THREE.Mesh(fattahGliderGeo, carbonMaterial);
+      m.position.set(baseR * 0.95, noseStart + 0.12, -0.0075);
+      arm.add(m);
+      fattahGliderGroup.add(arm);
+    }
+    capsuleGroup.add(fattahGliderGroup);
+
+    // C) Sejjil: 2 wide golden interstage staging rings on boosterGroup
+    const sejjilRingsGroup = new THREE.Group();
+    const sejjilRing1 = new THREE.Mesh(new THREE.TorusGeometry(baseR + 0.010, 0.018, 14, 48), goldMaterial);
+    sejjilRing1.rotation.x = Math.PI / 2;
+    sejjilRing1.position.y = -0.82;
+    sejjilRingsGroup.add(sejjilRing1);
+    const sejjilRing2 = new THREE.Mesh(new THREE.TorusGeometry(baseR + 0.010, 0.018, 14, 48), goldMaterial);
+    sejjilRing2.rotation.x = Math.PI / 2;
+    sejjilRing2.position.y = -1.05;
+    sejjilRingsGroup.add(sejjilRing2);
+    boosterGroup.add(sejjilRingsGroup);
+
+    // D) Khorramshahr: Heavy payload collar ring on capsuleGroup
+    const khorramshahrCollarGroup = new THREE.Group();
+    const collarMesh = new THREE.Mesh(new THREE.CylinderGeometry(baseR * 1.08, baseR * 1.04, 0.10, 40), goldMaterial);
+    collarMesh.position.y = noseStart + 0.06;
+    khorramshahrCollarGroup.add(collarMesh);
+    capsuleGroup.add(khorramshahrCollarGroup);
+
+    // ── Dynamic Missile Stencil Decal Canvas & Texture ──
+    const decalCanvas = document.createElement("canvas");
+    decalCanvas.width = 512;
+    decalCanvas.height = 2048;
+    const decalCtx = decalCanvas.getContext("2d");
+    const modelTexture = new THREE.CanvasTexture(decalCanvas);
+    modelTexture.colorSpace = THREE.SRGBColorSpace;
+    modelTexture.minFilter = THREE.LinearFilter;
+    modelTexture.magFilter = THREE.LinearFilter;
+
+    const renderDecalText = (model: MissileModel) => {
+      if (!decalCtx) return;
+      decalCtx.clearRect(0, 0, 512, 2048);
+      decalCtx.save();
+      decalCtx.translate(256, 1024);
+      decalCtx.rotate(Math.PI / 2);
+
+      const isFattah = model === "fattah";
+      decalCtx.fillStyle = isFattah ? "#ffffff" : "#000000";
+      decalCtx.font = '900 145px "Arial Black", "Impact", "Trebuchet MS", sans-serif';
+      decalCtx.textAlign = "center";
+      decalCtx.textBaseline = "middle";
+
+      let text = "Kheibar Shecan";
+      if (model === "fattah") text = "Fattah 1";
+      else if (model === "sejjil") text = "Sejjil";
+      else if (model === "khorramshahr") text = "Khorramshahr 4";
+
+      decalCtx.fillText(text, 0, 0);
+
+      decalCtx.strokeStyle = isFattah ? "rgba(255, 255, 255, 0.7)" : "#000000";
+      decalCtx.lineWidth = 10;
+      decalCtx.beginPath();
+      decalCtx.moveTo(-820, 0); decalCtx.lineTo(-720, 0);
+      decalCtx.moveTo(720, 0); decalCtx.lineTo(820, 0);
+      decalCtx.stroke();
+
+      decalCtx.restore();
+      modelTexture.needsUpdate = true;
     };
 
-    // ── Build Capsule for Selected Iranian Missile Model ──
-    const buildCapsule = (model: MissileModel) => {
-      while (capsuleGroup.children.length > 0) {
-        const child = capsuleGroup.children[0] as THREE.Mesh;
-        capsuleGroup.remove(child);
-        if (child.geometry) child.geometry.dispose();
-        if (child.material) {
-          if (Array.isArray(child.material)) {
-            child.material.forEach((m) => {
-              if ("map" in m && m.map) (m.map as THREE.Texture).dispose();
-              m.dispose();
-            });
-          } else {
-            const m = child.material as THREE.Material & { map?: THREE.Texture };
-            if (m.map) m.map.dispose();
-            m.dispose();
-          }
-        }
+    const modelDecalMat = new THREE.MeshBasicMaterial({
+      map: modelTexture,
+      transparent: true,
+      depthWrite: false,
+      polygonOffset: true,
+      polygonOffsetFactor: -4,
+      polygonOffsetUnits: -4,
+      side: THREE.DoubleSide,
+    });
+
+    const decalPts: THREE.Vector2[] = [];
+    for (let y = 0.62; y <= 1.48; y += 0.04) {
+      const t = (y - noseStart) / noseH;
+      const r = baseR * Math.sqrt(Math.max(0, 1 - t * t)) * (1 - 0.06 * t) + 0.010;
+      decalPts.push(new THREE.Vector2(r, y));
+    }
+    const modelDecalArc = Math.PI * 0.40;
+    const modelDecalGeo = new THREE.LatheGeometry(decalPts, 24, -modelDecalArc / 2, modelDecalArc);
+    for (let i = 0; i < 4; i++) {
+      const decalMesh = new THREE.Mesh(modelDecalGeo, modelDecalMat);
+      decalMesh.rotation.y = (i * Math.PI) / 2;
+      capsuleGroup.add(decalMesh);
+    }
+
+    // Dynamic model switcher
+    const applyMissileModel = (model: MissileModel) => {
+      renderDecalText(model);
+
+      if (model === "fattah") {
+        noseMesh.geometry = fattahNoseGeo;
+        noseMesh.material = carbonMaterial;
+        beaconMesh.position.set(0, noseStart + 1.45, 0);
+      } else if (model === "sejjil") {
+        noseMesh.geometry = sejjilNoseGeo;
+        noseMesh.material = hullMaterial;
+        beaconMesh.position.set(0, noseStart + 1.25, 0);
+      } else if (model === "khorramshahr") {
+        noseMesh.geometry = khorramshahrNoseGeo;
+        noseMesh.material = hullMaterial;
+        beaconMesh.position.set(0, noseStart + 1.15, 0);
+      } else {
+        noseMesh.geometry = kheibarNoseGeo;
+        noseMesh.material = hullMaterial;
+        beaconMesh.position.set(0, noseStart + noseH, 0);
       }
 
-      const noseH = model === "fattah" ? 1.48 : model === "khorramshahr" ? 1.22 : 1.35;
-
-      const nosePts: THREE.Vector2[] = [];
-      const segments = 16;
-      for (let i = 0; i <= segments; i++) {
-        const t = i / segments;
-        let r = 0;
-        if (model === "fattah") {
-          // Biconic hypersonic profile: waist at t ~ 0.35, then sleek conical to tip
-          if (t < 0.35) {
-            const tSub = t / 0.35;
-            r = baseR * (1 - 0.22 * tSub);
-          } else {
-            const tSub = (t - 0.35) / 0.65;
-            r = baseR * 0.78 * Math.pow(1 - tSub, 0.88);
-          }
-        } else if (model === "sejjil") {
-          // Heavy double-cone ballistic profile
-          if (t < 0.28) {
-            r = baseR * (1 - 0.12 * (t / 0.28));
-          } else {
-            r = baseR * 0.88 * Math.sqrt(Math.max(0, 1 - Math.pow((t - 0.28) / 0.72, 1.6)));
-          }
-        } else if (model === "khorramshahr") {
-          // Blunt conical heavy warhead
-          r = baseR * (1 - 0.94 * Math.pow(t, 0.92));
-        } else {
-          // Kheibar: classic slender ogive
-          r = baseR * Math.sqrt(Math.max(0, 1 - t * t)) * (1 - 0.06 * t);
-        }
-        nosePts.push(new THREE.Vector2(Math.max(r, 0.002), noseStart + t * noseH));
-      }
-
-      const noseGeometry = new THREE.LatheGeometry(nosePts, 40);
-      const noseMesh = new THREE.Mesh(
-        noseGeometry,
-        model === "fattah" ? carbonMaterial : hullMaterial
-      );
-      capsuleGroup.add(noseMesh);
-
-      // Tip beacon / nose cap
-      const beaconMesh = new THREE.Mesh(
-        new THREE.SphereGeometry(0.045, 16, 16),
-        model === "fattah" ? graphiteTipMaterial : goldMaterial
-      );
-      beaconMesh.position.set(0, noseStart + noseH, 0);
-      capsuleGroup.add(beaconMesh);
-
-      // Upper collar ring
-      const upperCollar = new THREE.Mesh(new THREE.TorusGeometry(baseR + 0.005, 0.018, 14, 48), goldMaterial);
-      upperCollar.rotation.x = Math.PI / 2;
-      upperCollar.position.y = noseStart;
-      capsuleGroup.add(upperCollar);
-
-      // Model-specific mid-band
-      const noseBand = new THREE.Mesh(new THREE.TorusGeometry(baseR * 0.56, 0.008, 12, 40), goldMaterial);
-      noseBand.rotation.x = Math.PI / 2;
-      noseBand.position.y = noseStart + noseH * 0.55;
-      capsuleGroup.add(noseBand);
-
-      // If Sejjil, add secondary interstage collar
-      if (model === "sejjil") {
-        const interstageCollar = new THREE.Mesh(new THREE.TorusGeometry(baseR * 0.88, 0.012, 12, 40), goldMaterial);
-        interstageCollar.rotation.x = Math.PI / 2;
-        interstageCollar.position.y = noseStart + noseH * 0.28;
-        capsuleGroup.add(interstageCollar);
-      }
-
-      // If Kheibar, add 4 mid-body maneuver fins
-      if (model === "kheibar") {
-        const finShape = new THREE.Shape();
-        finShape.moveTo(0, 0);
-        finShape.lineTo(0.12, -0.08);
-        finShape.lineTo(0.08, -0.18);
-        finShape.lineTo(0, -0.16);
-        finShape.closePath();
-        const midFinGeo = new THREE.ExtrudeGeometry(finShape, { depth: 0.008, bevelEnabled: false });
-        for (let i = 0; i < 4; i++) {
-          const finMesh = new THREE.Mesh(midFinGeo, hullMaterial);
-          finMesh.rotation.y = (i * Math.PI) / 2;
-          finMesh.position.set(0, noseStart + 0.35, 0);
-          finMesh.translateX(baseR * 0.88);
-          capsuleGroup.add(finMesh);
-        }
-      }
-
-      // Stencil decal text for each model
-      const decalLabel =
-        model === "fattah"
-          ? "FATTAH-1 HYPERSONIC"
-          : model === "sejjil"
-          ? "SEJJIL-2 BALLISTIC"
-          : model === "khorramshahr"
-          ? "KHORRAMSHAHR-4"
-          : "KHEIBAR SHECAN";
-
-      const decalTexture = createModelDecalTexture(decalLabel);
-      const decalMat = new THREE.MeshBasicMaterial({
-        map: decalTexture,
-        transparent: true,
-        depthWrite: false,
-        polygonOffset: true,
-        polygonOffsetFactor: -4,
-        polygonOffsetUnits: -4,
-        side: THREE.DoubleSide,
-      });
-
-      const decalPts: THREE.Vector2[] = [];
-      const decalYMin = noseStart + 0.08;
-      const decalYMax = noseStart + noseH * 0.65;
-      for (let y = decalYMin; y <= decalYMax; y += 0.04) {
-        const t = (y - noseStart) / noseH;
-        const r = baseR * Math.sqrt(Math.max(0, 1 - t * t)) * (1 - 0.06 * t) + 0.010;
-        decalPts.push(new THREE.Vector2(r, y));
-      }
-      const modelDecalArc = Math.PI * 0.40;
-      const modelDecalGeo = new THREE.LatheGeometry(decalPts, 24, -modelDecalArc / 2, modelDecalArc);
-      for (let i = 0; i < 4; i++) {
-        const decalMesh = new THREE.Mesh(modelDecalGeo, decalMat);
-        decalMesh.rotation.y = (i * Math.PI) / 2;
-        capsuleGroup.add(decalMesh);
-      }
-
-      // Capsule docking baseplate
-      const capsuleBase = new THREE.Mesh(new THREE.CylinderGeometry(baseR * 0.98, baseR * 0.96, 0.03, 36), hullMaterial);
-      capsuleBase.position.set(0, noseStart - 0.015, 0);
-      capsuleGroup.add(capsuleBase);
+      kheibarCanardsGroup.visible = model === "kheibar";
+      fattahGliderGroup.visible = model === "fattah";
+      sejjilRingsGroup.visible = model === "sejjil";
+      khorramshahrCollarGroup.visible = model === "khorramshahr";
     };
 
-    buildCapsule(modelRef.current);
-    onModelChangeRef.current = (newModel: MissileModel) => {
-      buildCapsule(newModel);
-    };
+    onModelChangeRef.current = applyMissileModel;
+    applyMissileModel(modelRef.current);
+
+    // Capsule docking baseplate
+    const capsuleBase = new THREE.Mesh(new THREE.CylinderGeometry(baseR * 0.98, baseR * 0.96, 0.03, 36), hullMaterial);
+    capsuleBase.position.set(0, noseStart - 0.015, 0);
+    capsuleGroup.add(capsuleBase);
 
     const capsuleRcsLight = new THREE.PointLight(GOLD_LIGHT, 0, 2.2);
     capsuleRcsLight.position.set(0, noseStart - 0.05, 0);
@@ -1369,6 +1390,14 @@ export default function ThreeRocketScene({
         if (Array.isArray(mat)) mat.forEach((m) => m.dispose());
         else if (mat) mat.dispose();
       });
+      kheibarNoseGeo.dispose();
+      fattahNoseGeo.dispose();
+      sejjilNoseGeo.dispose();
+      khorramshahrNoseGeo.dispose();
+      kheibarCanardGeo.dispose();
+      fattahGliderGeo.dispose();
+      carbonMaterial.dispose();
+      modelTexture.dispose();
       renderer.dispose();
       scene.clear();
     };

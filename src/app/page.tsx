@@ -62,13 +62,14 @@ export default function HomePage() {
   // Fetch initial campaign state
   const loadState = useCallback(async () => {
     try {
-      const res = await fetch("/api/campaign/state");
+      const res = await fetch("/api/campaign/state", { cache: "no-store" });
       if (res.ok) {
         const data: PublicCampaignState = await res.json();
         serverCountRef.current = data.mission.currentCount;
         inFlightCountRef.current = 0;
         displayedCountRef.current = data.mission.currentCount;
         lastEpochRef.current = data.mission.epoch ?? 1;
+        stateRef.current = data;
         setState(data);
         missionStateRef.current = data.mission.state;
 
@@ -145,6 +146,10 @@ export default function HomePage() {
   useEffect(() => {
     ceremonyCompletedDateRef.current = ceremonyCompletedDate;
   }, [ceremonyCompletedDate]);
+
+  useEffect(() => {
+    stateRef.current = state;
+  }, [state]);
 
   // Sacred golden bloom when the day's target is reached (once per transition)
   useEffect(() => {
