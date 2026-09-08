@@ -85,7 +85,7 @@ export default function ThreeRocketScene({
     const isWidescreenInit = initAspect > 1.15;
     const isPortraitMobInit = initAspect < 0.7;
     const initFov = isPortraitMobInit ? 38 : isWidescreenInit ? 30 : 32;
-    const initZ = isPortraitMobInit ? 7.8 : isWidescreenInit ? 8.8 : 7.4;
+    const initZ = isPortraitMobInit ? 9.0 : isWidescreenInit ? 10.0 : 8.5;
     let currentBaseCameraY = isWidescreenInit ? 0.22 : isPortraitMobInit ? 0.1 : 0.15;
 
     const camera = new THREE.PerspectiveCamera(initFov, initAspect, 0.1, 100);
@@ -628,15 +628,15 @@ export default function ThreeRocketScene({
       // - On tablet / square screens: balanced mid values
       if (aspect < 0.7) {
         camera.fov = 38; // Wider horizontal corridor for mobile screens
-        camera.position.z = 7.8;
+        camera.position.z = 9.0;
         currentBaseCameraY = 0.1;
       } else if (aspect > 1.15) {
         camera.fov = 30;
-        camera.position.z = 8.8;
+        camera.position.z = 10.0;
         currentBaseCameraY = 0.22;
       } else {
         camera.fov = 32;
-        camera.position.z = 7.4;
+        camera.position.z = 8.5;
         currentBaseCameraY = 0.15;
       }
       camera.updateProjectionMatrix();

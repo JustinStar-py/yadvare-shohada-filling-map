@@ -418,7 +418,7 @@ export default function AdminPage() {
             <div className="flex items-center gap-2.5">
               <MartyrTulipIcon className="w-6 h-6" />
               <h1 className="text-xl font-bold text-slate-100">
-                پنل مدیریت  پویش معنوی یادواره شهدای شهیدیه
+                پنل مدیریت پویش معنوی یادواره ۷۶ شهید شهیدیه میبد
               </h1>
             </div>
             <p className="text-xs text-slate-400 mt-1">

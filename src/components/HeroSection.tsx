@@ -143,25 +143,25 @@ export default function HeroSection({
         style={{ direction: "ltr" }}
       >
         {/* Left Side: Target Goal (Vertical Column Box) */}
-        <div className="flex flex-col items-center justify-between px-3 py-3.5 rounded-2xl bg-slate-900/70 border border-slate-700/50 backdrop-blur-md shadow-[0_8px_24px_rgba(0,0,0,0.45)] w-[76px] min-h-[240px] pointer-events-auto select-none">
-          <div className="w-full flex flex-col items-center pb-2 border-b border-white/[0.08] text-center">
-            <span className="text-sm font-bold text-slate-300 drop-shadow-[0_1px_4px_rgba(0,0,0,0.9)]">
+        <div className="flex flex-col items-center justify-between px-2.5 py-2.5 rounded-2xl bg-slate-900/70 border border-slate-700/50 backdrop-blur-md shadow-[0_8px_24px_rgba(0,0,0,0.45)] w-[62px] min-h-[190px] pointer-events-auto select-none">
+          <div className="w-full flex flex-col items-center pb-1.5 border-b border-white/[0.08] text-center">
+            <span className="text-xs font-bold text-slate-300 drop-shadow-[0_1px_4px_rgba(0,0,0,0.9)]">
               هدف
             </span>
           </div>
-          <div className="flex-1 flex items-center justify-center text-3xl font-extrabold text-slate-100 tracking-tight drop-shadow-[0_2px_12px_rgba(0,0,0,0.8)] py-1">
+          <div className="flex-1 flex items-center justify-center text-2xl font-extrabold text-slate-100 tracking-tight drop-shadow-[0_2px_12px_rgba(0,0,0,0.8)] py-0.5">
             <OdometerNumber value={mission.target} vertical />
           </div>
         </div>
 
         {/* Right Side: Live Salawat Counter (Vertical Column Box) */}
-        <div className="flex flex-col items-center justify-between px-3 py-3.5 rounded-2xl bg-slate-900/70 border border-amber-500/35 backdrop-blur-md shadow-[0_8px_28px_rgba(245,158,11,0.22),0_4px_16px_rgba(0,0,0,0.5)] w-[76px] min-h-[240px] pointer-events-auto select-none">
-          <div className="w-full flex flex-col items-center pb-2 border-b border-amber-500/20 text-center">
-            <span className="text-sm font-black text-amber-300 drop-shadow-[0_1px_6px_rgba(245,158,11,0.6)]">
+        <div className="flex flex-col items-center justify-between px-2.5 py-2.5 rounded-2xl bg-slate-900/70 border border-amber-500/35 backdrop-blur-md shadow-[0_8px_28px_rgba(245,158,11,0.22),0_4px_16px_rgba(0,0,0,0.5)] w-[62px] min-h-[190px] pointer-events-auto select-none">
+          <div className="w-full flex flex-col items-center pb-1.5 border-b border-amber-500/20 text-center">
+            <span className="text-xs font-black text-amber-300 drop-shadow-[0_1px_6px_rgba(245,158,11,0.6)]">
               صلوات
             </span>
           </div>
-          <div className="flex-1 flex items-center justify-center text-4xl font-black text-amber-300 tracking-tight drop-shadow-[0_2px_22px_rgba(245,158,11,0.75)] drop-shadow-[0_4px_10px_rgba(0,0,0,0.9)] py-1">
+          <div className="flex-1 flex items-center justify-center text-2xl font-black text-amber-300 tracking-tight drop-shadow-[0_2px_22px_rgba(245,158,11,0.75)] drop-shadow-[0_4px_10px_rgba(0,0,0,0.9)] py-0.5">
             <OdometerNumber value={mission.currentCount} vertical />
           </div>
         </div>
@@ -177,8 +177,8 @@ export default function HeroSection({
         style={{ direction: "rtl" }}
       >
         {/* Right Side on Screen in RTL (Right Flank: Live Salawat Counter) */}
-        <div className="flex flex-col gap-2 p-4 lg:p-5 rounded-2xl bg-slate-900/80 border border-amber-500/35 backdrop-blur-md shadow-[0_8px_32px_rgba(245,158,11,0.18),0_4px_16px_rgba(0,0,0,0.5)] w-56 lg:w-64 pointer-events-auto select-none">
-          <div className="flex items-center justify-between pb-2 border-b border-amber-500/20">
+        <div className="flex flex-col gap-1.5 p-3.5 lg:p-4 rounded-2xl bg-slate-900/80 border border-amber-500/35 backdrop-blur-md shadow-[0_8px_32px_rgba(245,158,11,0.18),0_4px_16px_rgba(0,0,0,0.5)] w-48 lg:w-56 pointer-events-auto select-none">
+          <div className="flex items-center justify-between pb-1.5 border-b border-amber-500/20">
             <div className="flex items-center gap-2">
               <Sparkles className="w-4 h-4 text-amber-400 shrink-0" />
               <span className="text-xs lg:text-sm font-black text-amber-300">
@@ -190,12 +190,12 @@ export default function HeroSection({
               <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500" />
             </span>
           </div>
-          <div className="py-1 flex items-baseline gap-2">
+          <div className="py-0.5 flex items-baseline gap-2">
             <OdometerNumber
               value={mission.currentCount}
               vertical={false}
               showCommas={true}
-              className="text-3xl lg:text-4xl font-black text-amber-300 tracking-tight drop-shadow-[0_2px_16px_rgba(245,158,11,0.65)]"
+              className="text-2xl lg:text-3xl font-black text-amber-300 tracking-tight drop-shadow-[0_2px_16px_rgba(245,158,11,0.65)]"
             />
             <span className="text-xs font-semibold text-amber-300/80">صلوات</span>
           </div>
@@ -206,8 +206,8 @@ export default function HeroSection({
         </div>
 
         {/* Left Side on Screen in RTL (Left Flank: Target Goal) */}
-        <div className="flex flex-col gap-2 p-4 lg:p-5 rounded-2xl bg-slate-900/80 border border-slate-700/60 backdrop-blur-md shadow-[0_8px_32px_rgba(0,0,0,0.5)] w-56 lg:w-64 pointer-events-auto select-none">
-          <div className="flex items-center justify-between pb-2 border-b border-white/[0.08]">
+        <div className="flex flex-col gap-1.5 p-3.5 lg:p-4 rounded-2xl bg-slate-900/80 border border-slate-700/60 backdrop-blur-md shadow-[0_8px_32px_rgba(0,0,0,0.5)] w-48 lg:w-56 pointer-events-auto select-none">
+          <div className="flex items-center justify-between pb-1.5 border-b border-white/[0.08]">
             <div className="flex items-center gap-2">
               <Target className="w-4 h-4 text-slate-400 shrink-0" />
               <span className="text-xs lg:text-sm font-bold text-slate-300">
@@ -218,12 +218,12 @@ export default function HeroSection({
               روز {toPersianDigits(mission.dayNumber)}
             </span>
           </div>
-          <div className="py-1 flex items-baseline gap-2">
+          <div className="py-0.5 flex items-baseline gap-2">
             <OdometerNumber
               value={mission.target}
               vertical={false}
               showCommas={true}
-              className="text-2xl lg:text-3xl font-extrabold text-slate-100 tracking-tight drop-shadow-[0_2px_12px_rgba(0,0,0,0.8)]"
+              className="text-xl lg:text-2xl font-extrabold text-slate-100 tracking-tight drop-shadow-[0_2px_12px_rgba(0,0,0,0.8)]"
             />
             <span className="text-xs font-medium text-slate-400">صلوات</span>
           </div>

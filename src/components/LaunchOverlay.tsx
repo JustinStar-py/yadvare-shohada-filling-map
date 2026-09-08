@@ -144,11 +144,6 @@ export default function LaunchOverlay({
             <div className="w-14 h-14 rounded-full bg-rose-500/10 border border-rose-500/30 flex items-center justify-center shadow-[0_0_20px_rgba(225,29,72,0.25)]">
               <MartyrTulipIcon className="w-8 h-8" />
             </div>
-            <p className="text-sm font-medium text-slate-300">
-              آماده‌سازی پرواز معنوی امروز به یاد
-            </p>
-            <h3 className="text-xl font-bold text-amber-200">{martyrName || "شهدای والامقام"}</h3>
-
             {/* Countdown numeral with progress ring */}
             <div className="relative w-40 h-40 my-1">
               <svg viewBox="0 0 100 100" className="absolute inset-0 -rotate-90">
@@ -181,10 +176,6 @@ export default function LaunchOverlay({
                 </span>
               </div>
             </div>
-
-            <p className="text-xs text-slate-400">
-              اللهم صل علی محمد و آل محمد و عجل فرجهم
-            </p>
           </div>
         )}
 

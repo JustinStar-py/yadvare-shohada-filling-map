@@ -109,7 +109,7 @@ function getInitialData(): DatabaseSchema {
   };
 
   const initialSettings: CampaignSettings = {
-    campaignTitle: " پویش معنوی یادواره شهدای شهیدیه",
+    campaignTitle: "پویش معنوی یادواره ۷۶ شهید شهیدیه میبد",
     campaignSubtitle: "هر صلوات، یک قدم تا پرواز به سوی افق روشن شهادت",
     memorialTitle: "یادواره شهدای والامقام و والامقامان میهن",
     memorialDate: memorialDate,

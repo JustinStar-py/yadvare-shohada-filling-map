@@ -64,7 +64,7 @@ export default function Header({ tehranDate }: HeaderProps) {
         </div>
         <div>
           <h1 className="text-sm sm:text-base font-bold text-slate-100 tracking-wide">
-             پویش معنوی یادواره شهدای شهیدیه
+            پویش معنوی یادواره ۷۶ شهید شهیدیه میبد
           </h1>
           <p className="text-[11px] text-slate-500 hidden sm:block">
             {mounted && tehranDate ? `امروز ${formatShortJalaliDate(tehranDate)}` : "یادواره شهدای والامقام"}
