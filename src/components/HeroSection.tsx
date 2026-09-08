@@ -93,31 +93,31 @@ export default function HeroSection({
 
         {userMission && (
           userMission.userContributed >= userMission.suggestedCount ? (
-            <div className="mt-1.5 inline-flex items-center gap-2 max-w-full flex-wrap justify-center animate-fade-in">
-              {/* Badge: عهد شما تمام شد */}
+            <div className="mt-1.5 inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold backdrop-blur-md transition-all duration-300 bg-emerald-950/85 border border-emerald-500/45 text-emerald-200 shadow-[0_0_15px_rgba(16,185,129,0.25)] animate-fade-in">
+              {/* Tap to view completed martyr letter */}
               <button
                 type="button"
                 onClick={onOpenMissionCard}
-                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold backdrop-blur-md transition-all duration-300 shadow-sm active:scale-95 bg-emerald-950/85 border border-emerald-500/45 text-emerald-200 shadow-[0_0_15px_rgba(16,185,129,0.25)] hover:bg-emerald-900/80 cursor-pointer"
+                className="inline-flex items-center gap-1.5 text-emerald-100 hover:text-emerald-300 transition-colors cursor-pointer"
                 title="مشاهده نامه شهید"
               >
                 <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
                 <span>عهد شما تمام شد</span>
-                <span className="text-emerald-400/60">•</span>
-                <span className="text-emerald-300/90 text-[11px] font-normal">{userMission.martyr.name}</span>
               </button>
 
-              {/* Action Button: عهد مجدد */}
               {onRenewMission && (
-                <button
-                  type="button"
-                  onClick={onRenewMission}
-                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold backdrop-blur-md transition-all duration-300 active:scale-95 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-slate-950 hover:brightness-110 shadow-[0_0_16px_rgba(245,158,11,0.35)] cursor-pointer"
-                  title="شروع یک عهد معنوی جدید با شهیدی دیگر"
-                >
-                  <Sparkles className="w-3.5 h-3.5 text-slate-950" />
-                  <span>عهد مجدد</span>
-                </button>
+                <>
+                  <span className="w-px h-3.5 bg-emerald-500/35" />
+                  <button
+                    type="button"
+                    onClick={onRenewMission}
+                    className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-slate-950 hover:brightness-110 active:scale-95 transition-all shadow-[0_0_10px_rgba(245,158,11,0.3)] cursor-pointer"
+                    title="شروع یک عهد معنوی جدید با شهیدی دیگر"
+                  >
+                    <Sparkles className="w-3 h-3 text-slate-950" />
+                    <span>تجدید عهد</span>
+                  </button>
+                </>
               )}
             </div>
           ) : (

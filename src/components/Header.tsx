@@ -60,7 +60,7 @@ export default function Header({ tehranDate }: HeaderProps) {
         <YadvareLogo className="w-11 h-11 drop-shadow-[0_2px_12px_rgba(245,158,11,0.25)]" priority />
         <div>
           <h1 className="text-sm sm:text-base font-bold text-slate-100 tracking-wide">
-            پویش معنوی یادواره ۷۶ شهید شهیدیه میبد
+            پویش معنوی یادواره ۷۶ شهید شهیدیه 
           </h1>
           <p className="text-[11px] text-slate-500 hidden sm:block">
             {mounted && tehranDate ? `امروز ${formatShortJalaliDate(tehranDate)}` : "یادواره شهدای والامقام"}
