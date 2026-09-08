@@ -3,7 +3,8 @@
 import React, { useEffect, useRef } from "react";
 import * as THREE from "three";
 import { MissionState } from "@/types/campaign";
-import { MissileModel } from "./missile-catalog";
+import { MissileModel, getMissileConfig } from "./missile-catalog";
+
 interface ThreeRocketSceneProps {
   fillPercentage: number;
   missionState: MissionState;
@@ -267,15 +268,14 @@ export default function ThreeRocketScene({
     modelTexture.minFilter = THREE.LinearFilter;
     modelTexture.magFilter = THREE.LinearFilter;
 
-    const renderDecalText = (model: MissileModel) => {
+    const renderDecalText = (model: MissileModel, textColor: string) => {
       if (!decalCtx) return;
       decalCtx.clearRect(0, 0, 512, 2048);
       decalCtx.save();
       decalCtx.translate(256, 1024);
       decalCtx.rotate(Math.PI / 2);
 
-      const isFattah = model === "fattah";
-      decalCtx.fillStyle = isFattah ? "#ffffff" : "#000000";
+      decalCtx.fillStyle = textColor;
       decalCtx.font = '900 145px "Arial Black", "Impact", "Trebuchet MS", sans-serif';
       decalCtx.textAlign = "center";
       decalCtx.textBaseline = "middle";
@@ -287,7 +287,7 @@ export default function ThreeRocketScene({
 
       decalCtx.fillText(text, 0, 0);
 
-      decalCtx.strokeStyle = isFattah ? "rgba(255, 255, 255, 0.7)" : "#000000";
+      decalCtx.strokeStyle = textColor === "#ffffff" ? "rgba(255, 255, 255, 0.7)" : "rgba(0, 0, 0, 0.75)";
       decalCtx.lineWidth = 10;
       decalCtx.beginPath();
       decalCtx.moveTo(-820, 0); decalCtx.lineTo(-720, 0);
@@ -322,43 +322,29 @@ export default function ThreeRocketScene({
       capsuleGroup.add(decalMesh);
     }
 
-    // Dynamic model switcher - Warhead and Booster share identical colors for each missile
+    // Dynamic model switcher - Warhead and Booster share identical distinct colors for each missile
     const applyMissileModel = (model: MissileModel) => {
-      renderDecalText(model);
+      const cfg = getMissileConfig(model);
+      renderDecalText(model, cfg.textColor);
+
+      hullMaterial.color.set(cfg.colorHex);
+      hullMaterial.metalness = cfg.metalness;
+      hullMaterial.roughness = cfg.roughness;
 
       if (model === "fattah") {
-        // Deep stealth graphite/carbon dark metal for both warhead AND booster
-        hullMaterial.color.set("#222730");
-        hullMaterial.metalness = 0.52;
-        hullMaterial.roughness = 0.44;
         noseMesh.geometry = fattahNoseGeo;
-        noseMesh.material = hullMaterial;
         beaconMesh.position.set(0, noseStart + 1.45, 0);
       } else if (model === "sejjil") {
-        // Strategic warm desert titanium for both warhead AND booster
-        hullMaterial.color.set("#c8c0b0");
-        hullMaterial.metalness = 0.62;
-        hullMaterial.roughness = 0.34;
         noseMesh.geometry = sejjilNoseGeo;
-        noseMesh.material = hullMaterial;
         beaconMesh.position.set(0, noseStart + 1.25, 0);
       } else if (model === "khorramshahr") {
-        // Heavy armor tactical slate metallic for both warhead AND booster
-        hullMaterial.color.set("#3c434f");
-        hullMaterial.metalness = 0.60;
-        hullMaterial.roughness = 0.35;
         noseMesh.geometry = khorramshahrNoseGeo;
-        noseMesh.material = hullMaterial;
         beaconMesh.position.set(0, noseStart + 1.15, 0);
       } else {
-        // Kheibar: Classic aerospace silver-titanium for both warhead AND booster
-        hullMaterial.color.set(TITANIUM_COLOR);
-        hullMaterial.metalness = 0.58;
-        hullMaterial.roughness = 0.32;
         noseMesh.geometry = kheibarNoseGeo;
-        noseMesh.material = hullMaterial;
         beaconMesh.position.set(0, noseStart + noseH, 0);
       }
+      noseMesh.material = hullMaterial;
       hullMaterial.needsUpdate = true;
 
       kheibarCanardsGroup.visible = model === "kheibar";

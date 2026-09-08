@@ -752,12 +752,20 @@ export default function AdminPage() {
                   <Rocket className="w-4 h-4 text-amber-400" />
                   <span>مدل موشک فعال در پویش (نمایش سه‌بعدی و انتخاب آنلاین)</span>
                 </h3>
-                <span className="text-xs text-amber-300 font-bold bg-amber-500/15 border border-amber-500/40 px-3 py-1 rounded-full self-start sm:self-auto">
-                  مدل فعال فعلی: {MISSILE_MODELS.find((m) => m.id === (settings?.activeMissileModel || "kheibar"))?.label}
+                <span className="text-xs text-amber-300 font-bold bg-amber-500/15 border border-amber-500/40 px-3 py-1 rounded-full self-start sm:self-auto flex items-center gap-2">
+                  <span>مدل فعال: {MISSILE_MODELS.find((m) => m.id === (settings?.activeMissileModel || "kheibar"))?.label}</span>
+                  <span
+                    className="w-2.5 h-2.5 rounded-full inline-block border border-white/40 shadow-sm"
+                    style={{
+                      backgroundColor:
+                        MISSILE_MODELS.find((m) => m.id === (settings?.activeMissileModel || "kheibar"))?.colorHex ||
+                        "#c5beaf",
+                    }}
+                  />
                 </span>
               </div>
               <p className="text-xs text-slate-400">
-                مدیر گرامی، مدل‌های سه‌بعدی موشک‌ها با مشخصات ظاهری، رنگ یکپارچه کلاهک و بوستر و مخزن متالیک شفاف در باکس زیر نمایش داده شده‌اند. برای تغییر مدل موشک صفحه اصلی، روی کارت موردنظر کلیک کنید:
+                مدیر گرامی، هر یک از موشک‌ها دارای رنگ‌آمیزی و هویت بصری متمایز (فیلی، قهوه‌ای دارک، قهوه‌ای خاکی و قهوه‌ای برنزه دودی)، رنگ یکپارچه کلاهک و بوستر، و استوانه متالیک شفاف نمایش سوخت صلوات است. برای تغییر موشک صفحه اصلی، روی کارت موردنظر کلیک کنید:
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {MISSILE_MODELS.map((item) => {
@@ -774,9 +782,16 @@ export default function AdminPage() {
                       }`}
                     >
                       <div className="w-full flex items-center justify-between">
-                        <span className={`text-sm font-black ${isSelected ? "text-amber-300" : "text-slate-200"}`}>
-                          {item.label}
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <span
+                            className="w-3 h-3 rounded-full border border-white/20 shadow-sm shrink-0"
+                            style={{ backgroundColor: item.colorHex }}
+                            title={item.colorName}
+                          />
+                          <span className={`text-sm font-black ${isSelected ? "text-amber-300" : "text-slate-200"}`}>
+                            {item.label}
+                          </span>
+                        </div>
                         {isSelected ? (
                           <span className="text-[10px] bg-amber-500 text-slate-950 font-bold px-2 py-0.5 rounded-full shadow-sm">
                             فعال در پویش ✓
@@ -793,7 +808,19 @@ export default function AdminPage() {
                         <Missile3DThumbnail model={item.id} isSelected={isSelected} className="w-full h-full" />
                       </div>
 
-                      <p className="text-[11px] text-slate-400 leading-relaxed">{item.caption}</p>
+                      <div className="flex flex-col gap-1.5 w-full">
+                        <div className="flex items-center justify-between text-[11px] pt-1 border-t border-slate-800/80">
+                          <span className="text-slate-400">رنگ پوشش بدنه:</span>
+                          <span className="font-bold text-slate-200 flex items-center gap-1.5 text-[11px]">
+                            <span
+                              className="w-2 h-2 rounded-full inline-block border border-white/20"
+                              style={{ backgroundColor: item.colorHex }}
+                            />
+                            {item.colorName}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-slate-400 leading-relaxed">{item.caption}</p>
+                      </div>
                     </button>
                   );
                 })}
@@ -1239,7 +1266,7 @@ export default function AdminPage() {
               >
                 {MISSILE_MODELS.map((m) => (
                   <option key={m.id} value={m.id}>
-                    {m.label} ({m.caption})
+                    {m.label} ({m.colorName})
                   </option>
                 ))}
               </select>

@@ -15,7 +15,7 @@
     "visualPreset": "balanced",
     "finalMessage": "در این مسیر نورانی، با هم هزاران صلوات تقدیم روح پرفتوح شهدا کردیم. یادشان تا ابد در دل‌ها جاودان باد.",
     "isCompleted": false,
-    "activeMissileModel": "fattah",
+    "activeMissileModel": "kheibar",
     "adminPinHash": "scrypt$916426ebc2ae319ade07e1ade525eb6e$80ccb1fff0f01f4d34d5e0d1053a259a391d9b8d85e3338256b523224f1258c9"
   },
   "missions": {
@@ -90,10 +90,10 @@
       "currentCount": 5500,
       "participantsCount": 0,
       "state": "LAUNCHED",
-      "epoch": 1,
+      "epoch": 2,
       "martyrId": "martyr-sh-11",
       "isOverrideTarget": false,
-      "launchTimestamp": 1788904176809
+      "launchTimestamp": 1788906207547
     }
   },
   "martyrs": [
@@ -760,42 +760,10 @@
       "x": 30,
       "y": 17,
       "brightness": 1,
-      "launchedAt": 1788904176809
+      "launchedAt": 1788906207547
     }
   ],
   "idempotencyKeys": {
-    "55dab36c-449b-42f5-b710-33e56d679d93": {
-      "timestamp": 1788732920424,
-      "count": 1
-    },
-    "f47c6d3f-374e-422f-bd06-a5a73dab39e6": {
-      "timestamp": 1788732921535,
-      "count": 1
-    },
-    "728b36e8-9f96-4dd1-80ea-a1c9730a235a": {
-      "timestamp": 1788732922608,
-      "count": 1
-    },
-    "d8b3600f-1329-4223-a4ef-ae18c3588d03": {
-      "timestamp": 1788732924019,
-      "count": 1
-    },
-    "e0649ab5-3c66-46e5-8732-c1ab8443322c": {
-      "timestamp": 1788732926263,
-      "count": 1
-    },
-    "885f290d-d074-4108-bca2-d3931e1507f6": {
-      "timestamp": 1788732928083,
-      "count": 1
-    },
-    "6b73986e-55c7-4f88-b5a0-494db9f5d7c8": {
-      "timestamp": 1788733391407,
-      "count": 5
-    },
-    "347c86e6-e38c-4c31-bf7a-aa9fa02c2370": {
-      "timestamp": 1788733403782,
-      "count": 5
-    },
     "test-batch-node-1788733429166": {
       "timestamp": 1788733429644,
       "count": 5
@@ -982,6 +950,48 @@
     }
   },
   "auditLogs": [
+    {
+      "id": "a6228476-1b34-49f6-b318-925f49ef1503",
+      "timestamp": 1788906207550,
+      "action": "LAUNCH_EXECUTED",
+      "details": "پرتاب راکت روز 11 با 5500 صلوات انجام شد.",
+      "ip": "::1"
+    },
+    {
+      "id": "b8718298-842b-4230-ac7a-5d9564f2f5d3",
+      "timestamp": 1788906108962,
+      "action": "ADMIN_SALAWAT_BULK",
+      "details": "3500 صلوات آزمایشی توسط مدیریت ثبت شد.",
+      "ip": "::1"
+    },
+    {
+      "id": "e1678799-aafc-485e-a282-4531c95ec3de",
+      "timestamp": 1788905936143,
+      "action": "ADMIN_SALAWAT_BULK",
+      "details": "1000 صلوات آزمایشی توسط مدیریت ثبت شد.",
+      "ip": "::1"
+    },
+    {
+      "id": "18820465-62c8-44cf-8d76-7c1de0ff674b",
+      "timestamp": 1788905935152,
+      "action": "ADMIN_SALAWAT_BULK",
+      "details": "1000 صلوات آزمایشی توسط مدیریت ثبت شد.",
+      "ip": "::1"
+    },
+    {
+      "id": "beaf8986-1323-4ff5-94c0-75f5eaec6930",
+      "timestamp": 1788905932482,
+      "action": "RESET_SALAWAT",
+      "details": "صفر کردن صلوات‌های امروز (2026-09-09) توسط مدیر.",
+      "ip": "::1"
+    },
+    {
+      "id": "0d69bee5-36a2-4de1-8c7b-e35531c44d74",
+      "timestamp": 1788905834865,
+      "action": "SETTINGS_UPDATED",
+      "details": "تنظیمات کلی پویش بروزرسانی شد.",
+      "ip": "::1"
+    },
     {
       "id": "ab86cc07-3f73-4c12-8ecb-bc14aaa3c42a",
       "timestamp": 1788905336541,

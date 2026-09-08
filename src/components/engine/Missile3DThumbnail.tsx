@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef } from "react";
 import * as THREE from "three";
-import { MissileModel } from "./missile-catalog";
+import { MissileModel, getMissileConfig } from "./missile-catalog";
 
 interface Missile3DThumbnailProps {
   model: MissileModel;
@@ -66,28 +66,12 @@ export default function Missile3DThumbnail({
     const GOLD_COLOR = new THREE.Color("#f59e0b");
     const NOZZLE_COLOR = new THREE.Color("#1e2430");
 
-    let hullColor = "#d4cec2";
-    let hullMetalness = 0.58;
-    let hullRoughness = 0.32;
-
-    if (model === "fattah") {
-      hullColor = "#222730";
-      hullMetalness = 0.52;
-      hullRoughness = 0.44;
-    } else if (model === "sejjil") {
-      hullColor = "#c8c0b0";
-      hullMetalness = 0.62;
-      hullRoughness = 0.34;
-    } else if (model === "khorramshahr") {
-      hullColor = "#3c434f";
-      hullMetalness = 0.60;
-      hullRoughness = 0.35;
-    }
+    const cfg = getMissileConfig(model);
 
     const hullMaterial = new THREE.MeshStandardMaterial({
-      color: new THREE.Color(hullColor),
-      metalness: hullMetalness,
-      roughness: hullRoughness,
+      color: new THREE.Color(cfg.colorHex),
+      metalness: cfg.metalness,
+      roughness: cfg.roughness,
     });
 
     const goldMaterial = new THREE.MeshStandardMaterial({
