@@ -66,41 +66,18 @@ export default function CommunityProgress({
       {(isLaunched || isReady) && (
         <div className="flex flex-wrap items-center justify-center gap-2 text-[11px] text-slate-400 min-h-[18px]">
           {isLaunched ? (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5">
               <span className="text-emerald-300 font-medium flex items-center gap-1">
                 <CheckCircle className="w-3.5 h-3.5" />
                 پرواز امروز به آسمان پیوست
               </span>
-              {onReplayLaunch && (
-                <button
-                  type="button"
-                  disabled={disabled}
-                  onClick={onReplayLaunch}
-                  className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-300 hover:text-amber-200 bg-amber-500/15 border border-amber-500/30 px-2 py-0.5 rounded-full cursor-pointer emil-btn"
-                  title="مشاهده دوباره مراحل پرواز"
-                >
-                  <Sparkles className="w-2.5 h-2.5" />
-                  <span>مشاهده دوباره پرواز</span>
-                </button>
-              )}
             </div>
           ) : (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5">
               <span className="text-amber-200 font-bold flex items-center gap-1">
                 <Sparkles className="w-3.5 h-3.5 text-amber-400" />
                 <span>آماده پرواز</span>
               </span>
-              {onReplayLaunch && (
-                <button
-                  type="button"
-                  disabled={disabled}
-                  onClick={onReplayLaunch}
-                  className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-300 hover:text-amber-200 bg-amber-500/20 border border-amber-400/40 px-2 py-0.5 rounded-full cursor-pointer animate-pulse emil-btn"
-                  title="آغاز یا مشاهده پرواز معنوی"
-                >
-                  <span>مشاهده پرواز</span>
-                </button>
-              )}
             </div>
           )}
         </div>
