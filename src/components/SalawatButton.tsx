@@ -318,7 +318,7 @@ export default function SalawatButton({
           onMouseLeave={() => setPressScale(false)}
           onTouchStart={() => setPressScale(true)}
           onTouchEnd={() => setPressScale(false)}
-          className={`relative z-10 group overflow-hidden w-72 sm:w-84 min-h-[48px] sm:min-h-[52px] py-2.5 sm:py-3 rounded-2xl font-bold cursor-pointer touch-manipulation focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-300/80 shadow-[0_4px_16px_rgba(245,158,11,0.25)] ${
+          className={`relative z-10 group overflow-hidden w-72 sm:w-84 max-w-[calc(100vw-2rem)] min-h-[48px] sm:min-h-[52px] py-2.5 sm:py-3 rounded-2xl font-bold cursor-pointer touch-manipulation focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-300/80 shadow-[0_4px_16px_rgba(245,158,11,0.25)] ${
             pressScale ? "scale-[0.97]" : "hover:scale-[1.01] active:scale-[0.97]"
           } ${
             isLoading3D

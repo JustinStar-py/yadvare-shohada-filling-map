@@ -32,7 +32,7 @@ export default function CommunityProgress({
             <div className="flex items-center justify-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/25 shadow-sm">
               <CheckCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-400 shrink-0" />
               <span className="text-emerald-300 font-bold text-[11px] sm:text-xs leading-relaxed text-center">
-                عزیزان، سوخت پرواز امروز با صلوات‌های پرمهرتان تأمین شد؛ سپاسگزاریم ✨
+                با همراهی شما عزیزان، سوخت پرواز امروز با صلوات‌های پرمهرتان تأمین شد؛ سپاسگزاریم ✨
               </span>
             </div>
           ) : (
@@ -44,8 +44,8 @@ export default function CommunityProgress({
         </div>
       )}
 
-      {/* Progress track — significantly thicker, luminous golden energy beam (Placed below status line) */}
-      <div className="w-full relative h-5 sm:h-6 py-0.5 sm:py-1">
+      {/* Progress track — identical width to SalawatButton (Placed below status line) */}
+      <div className="w-72 sm:w-84 max-w-[calc(100vw-2rem)] relative h-5 sm:h-6 py-0.5 sm:py-1">
         <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-3.5 sm:h-4.5 rounded-full bg-slate-950/80 border border-amber-500/25 shadow-[inset_0_2px_4px_rgba(0,0,0,0.85)] overflow-hidden" />
 
         <div
