@@ -154,6 +154,7 @@ export class CampaignService {
         visualPreset: db.settings.visualPreset,
         finalMessage: db.settings.finalMessage,
         isCompleted: db.settings.isCompleted,
+        activeMissileModel: db.settings.activeMissileModel || "kheibar",
       },
     };
   }
@@ -520,6 +521,21 @@ export class CampaignService {
         action: "SETTINGS_UPDATED",
         details: "تنظیمات کلی پویش بروزرسانی شد.",
         ip,
+      });
+
+      const nextSeq = sseBroadcaster.getCurrentSeq() + 1;
+      sseBroadcaster.broadcast("settings_update", {
+        seq: nextSeq,
+        settings: {
+          activeMissileModel: db.settings.activeMissileModel || "kheibar",
+          visualPreset: db.settings.visualPreset,
+          campaignTitle: db.settings.campaignTitle,
+          campaignSubtitle: db.settings.campaignSubtitle,
+          memorialTitle: db.settings.memorialTitle,
+          memorialDate: db.settings.memorialDate,
+          memorialLocation: db.settings.memorialLocation,
+          memorialTime: db.settings.memorialTime || "19:00",
+        },
       });
 
       return {

@@ -15,6 +15,7 @@
     "visualPreset": "balanced",
     "finalMessage": "در این مسیر نورانی، با هم هزاران صلوات تقدیم روح پرفتوح شهدا کردیم. یادشان تا ابد در دل‌ها جاودان باد.",
     "isCompleted": false,
+    "activeMissileModel": "kheibar",
     "adminPinHash": "scrypt$916426ebc2ae319ade07e1ade525eb6e$80ccb1fff0f01f4d34d5e0d1053a259a391d9b8d85e3338256b523224f1258c9"
   },
   "missions": {

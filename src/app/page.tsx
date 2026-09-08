@@ -279,14 +279,33 @@ export default function HomePage() {
 
           // Don't replay the ceremony for the user who just completed it
           if (ceremonyCompletedDateRef.current !== mission.date) {
-            // The ceremony starts with the overlay: isLaunching drives the
-            // countdown engine glow + pad venting. The rocket itself lifts
-            // off at T-0 (onLiftOff -> hasLiftedOff), never during the count.
             setIsLaunching(true);
             setShowLaunchOverlay(true);
           }
         } catch (err) {
           console.error("SSE launch parse error:", err);
+        }
+      });
+
+      eventSource.addEventListener("settings_update", (e) => {
+        try {
+          const payload = JSON.parse(e.data);
+          if (payload.settings) {
+            setState((prev) => {
+              if (!prev) return prev;
+              const next = {
+                ...prev,
+                settings: {
+                  ...prev.settings,
+                  ...payload.settings,
+                },
+              };
+              stateRef.current = next;
+              return next;
+            });
+          }
+        } catch (err) {
+          console.error("SSE settings parse error:", err);
         }
       });
 

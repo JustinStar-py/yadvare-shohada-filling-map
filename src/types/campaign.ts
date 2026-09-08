@@ -40,6 +40,8 @@ export interface ConstellationStar {
   launchedAt: number;
 }
 
+export type MissileModel = "kheibar" | "fattah" | "sejjil" | "khorramshahr";
+
 export interface CampaignSettings {
   campaignTitle: string;
   campaignSubtitle: string;
@@ -59,6 +61,7 @@ export interface CampaignSettings {
   visualPreset: "calm" | "balanced" | "intense";
   finalMessage: string;
   isCompleted: boolean;
+  activeMissileModel?: MissileModel;
 }
 
 export interface AdminAuditLog {
@@ -91,6 +94,7 @@ export interface PublicCampaignState {
     visualPreset: "calm" | "balanced" | "intense";
     finalMessage: string;
     isCompleted: boolean;
+    activeMissileModel?: MissileModel;
   };
 }
 
@@ -147,6 +151,7 @@ export const UpdateSettingsSchema = z.object({
   visualPreset: z.enum(["calm", "balanced", "intense"]).optional(),
   finalMessage: z.string().max(500).optional(),
   adminPin: z.string().min(4).max(32).optional(),
+  activeMissileModel: z.enum(["kheibar", "fattah", "sejjil", "khorramshahr"]).optional(),
 });
 
 export const TargetOverrideSchema = z.object({

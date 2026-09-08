@@ -322,27 +322,44 @@ export default function ThreeRocketScene({
       capsuleGroup.add(decalMesh);
     }
 
-    // Dynamic model switcher
+    // Dynamic model switcher - Warhead and Booster share identical colors for each missile
     const applyMissileModel = (model: MissileModel) => {
       renderDecalText(model);
 
       if (model === "fattah") {
+        // Deep stealth graphite/carbon dark metal for both warhead AND booster
+        hullMaterial.color.set("#222730");
+        hullMaterial.metalness = 0.52;
+        hullMaterial.roughness = 0.44;
         noseMesh.geometry = fattahNoseGeo;
-        noseMesh.material = carbonMaterial;
+        noseMesh.material = hullMaterial;
         beaconMesh.position.set(0, noseStart + 1.45, 0);
       } else if (model === "sejjil") {
+        // Strategic warm desert titanium for both warhead AND booster
+        hullMaterial.color.set("#c8c0b0");
+        hullMaterial.metalness = 0.62;
+        hullMaterial.roughness = 0.34;
         noseMesh.geometry = sejjilNoseGeo;
         noseMesh.material = hullMaterial;
         beaconMesh.position.set(0, noseStart + 1.25, 0);
       } else if (model === "khorramshahr") {
+        // Heavy armor tactical slate metallic for both warhead AND booster
+        hullMaterial.color.set("#3c434f");
+        hullMaterial.metalness = 0.60;
+        hullMaterial.roughness = 0.35;
         noseMesh.geometry = khorramshahrNoseGeo;
         noseMesh.material = hullMaterial;
         beaconMesh.position.set(0, noseStart + 1.15, 0);
       } else {
+        // Kheibar: Classic aerospace silver-titanium for both warhead AND booster
+        hullMaterial.color.set(TITANIUM_COLOR);
+        hullMaterial.metalness = 0.58;
+        hullMaterial.roughness = 0.32;
         noseMesh.geometry = kheibarNoseGeo;
         noseMesh.material = hullMaterial;
         beaconMesh.position.set(0, noseStart + noseH, 0);
       }
+      hullMaterial.needsUpdate = true;
 
       kheibarCanardsGroup.visible = model === "kheibar";
       fattahGliderGroup.visible = model === "fattah";
@@ -368,9 +385,51 @@ export default function ThreeRocketScene({
     const CHAMBER_BOTTOM_Y = CHAMBER_CENTER_Y - CHAMBER_H / 2;
     const chamberRadius = baseR;
 
-    const glassTube = new THREE.Mesh(new THREE.CylinderGeometry(chamberRadius, chamberRadius, CHAMBER_H, 36, 1, true), glassMaterial);
-    glassTube.position.y = CHAMBER_CENTER_Y;
-    boosterGroup.add(glassTube);
+    // ── Light Translucent Metallic Layer around Tank (showing golden fuel inside) ──
+    const translucentMetalMaterial = new THREE.MeshPhysicalMaterial({
+      color: 0xdde4ec, // Light titanium / platinum sheen
+      metalness: 0.82, // High metallic reflection
+      roughness: 0.16, // Polished aerospace metal
+      transparent: true,
+      opacity: 0.44, // Slightly transparent to showcase the filled golden fuel inside
+      transmission: isMobile ? 0.35 : 0.54, // Light transmits through the cylinder
+      ior: 1.50,
+      depthWrite: false,
+      side: THREE.DoubleSide,
+    });
+
+    const tankMetalCylinder = new THREE.Mesh(
+      new THREE.CylinderGeometry(chamberRadius, chamberRadius, CHAMBER_H, 40, 1, true),
+      translucentMetalMaterial
+    );
+    tankMetalCylinder.position.y = CHAMBER_CENTER_Y;
+    boosterGroup.add(tankMetalCylinder);
+
+    // Structural lightweight metallic ribbing & longitudinal support struts around the tank
+    const tankStrutsGroup = new THREE.Group();
+    const strutGeo = new THREE.CylinderGeometry(0.012, 0.012, CHAMBER_H, 10);
+    for (let i = 0; i < 4; i++) {
+      const angle = (i * Math.PI) / 2;
+      const strut = new THREE.Mesh(strutGeo, hullMaterial);
+      strut.position.set(
+        Math.cos(angle) * (chamberRadius + 0.003),
+        CHAMBER_CENTER_Y,
+        Math.sin(angle) * (chamberRadius + 0.003)
+      );
+      tankStrutsGroup.add(strut);
+    }
+    // Subtle calibrated fuel level graduation rings (at 25%, 50%, 75%)
+    for (const ratio of [0.25, 0.5, 0.75]) {
+      const ringY = CHAMBER_BOTTOM_Y + CHAMBER_H * ratio;
+      const gaugeRing = new THREE.Mesh(
+        new THREE.TorusGeometry(chamberRadius + 0.002, 0.005, 8, 36),
+        goldMaterial
+      );
+      gaugeRing.rotation.x = Math.PI / 2;
+      gaugeRing.position.y = ringY;
+      tankStrutsGroup.add(gaugeRing);
+    }
+    boosterGroup.add(tankStrutsGroup);
 
     const spine = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, CHAMBER_H, 16), hullMaterial);
     spine.position.set(0, CHAMBER_CENTER_Y, -chamberRadius * 0.62);
