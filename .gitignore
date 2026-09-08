@@ -27,6 +27,7 @@ data/campaign_db.corrupt-*.json
 # AI/session working notes
 important-code.txt
 rocket-code-bundle.txt
+project-ai-context.txt
 
 # debug
 npm-debug.log*

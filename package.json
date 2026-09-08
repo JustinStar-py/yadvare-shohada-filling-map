@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "check-types": "tsc --noEmit",
-    "convert:photos": "node scripts/convert-martyr-photos.mjs"
+    "convert:photos": "node scripts/convert-martyr-photos.mjs",
+    "export-ai": "node scripts/export-ai-context.mjs"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.5",
