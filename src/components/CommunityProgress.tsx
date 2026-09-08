@@ -25,7 +25,26 @@ export default function CommunityProgress({
 
   return (
     <div className="w-full max-w-sm sm:max-w-md md:max-w-lg mx-auto px-2 flex flex-col items-center gap-1 sm:gap-1.5 text-center">
-      {/* Progress track — significantly thicker, luminous golden energy beam */}
+      {/* Actionable status line only when ready or launched (Placed on top) */}
+      {(isLaunched || isReady) && (
+        <div className="flex flex-wrap items-center justify-center gap-2 text-[11px] text-slate-400 min-h-[18px] mb-0.5">
+          {isLaunched ? (
+            <div className="flex items-center justify-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/25 shadow-sm">
+              <CheckCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-400 shrink-0" />
+              <span className="text-emerald-300 font-bold text-[11px] sm:text-xs leading-relaxed text-center">
+                عزیزان، سوخت پرواز امروز با صلوات‌های پرمهرتان تأمین شد؛ سپاسگزاریم ✨
+              </span>
+            </div>
+          ) : (
+            <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/25">
+              <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+              <span className="text-amber-200 font-bold text-xs">آماده پرواز</span>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Progress track — significantly thicker, luminous golden energy beam (Placed below status line) */}
       <div className="w-full relative h-5 sm:h-6 py-0.5 sm:py-1">
         <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-3.5 sm:h-4.5 rounded-full bg-slate-950/80 border border-amber-500/25 shadow-[inset_0_2px_4px_rgba(0,0,0,0.85)] overflow-hidden" />
 
@@ -61,27 +80,6 @@ export default function CommunityProgress({
           </div>
         )}
       </div>
-
-      {/* Actionable status line only when ready or launched */}
-      {(isLaunched || isReady) && (
-        <div className="flex flex-wrap items-center justify-center gap-2 text-[11px] text-slate-400 min-h-[18px]">
-          {isLaunched ? (
-            <div className="flex items-center justify-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/25">
-              <CheckCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-400 shrink-0" />
-              <span className="text-emerald-300 font-bold text-[11px] sm:text-xs leading-relaxed text-center">
-                با همراهی شما عزیزان، سوخت پرواز امروز با صلوات‌های پرمهرتان تأمین شد؛ سپاسگزاریم ✨
-              </span>
-            </div>
-          ) : (
-            <div className="flex items-center gap-1.5">
-              <span className="text-amber-200 font-bold flex items-center gap-1">
-                <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                <span>آماده پرواز</span>
-              </span>
-            </div>
-          )}
-        </div>
-      )}
     </div>
   );
 }
