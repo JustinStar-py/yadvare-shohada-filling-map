@@ -60,7 +60,7 @@ const keyFiles = [
     relPath: "src/components/engine/Envelope3DCanvas.tsx",
   },
 
-  // 2. Interactive UI & User Experience
+  // 2. Interactive UI & User Experience (Hero, Modals, Buttons, Live Stats)
   {
     category: "2. UI/UX & Interactive Components",
     description: "Main viewport hero orchestration, title ribbons, live progress & countdown badge",
@@ -98,8 +98,53 @@ const keyFiles = [
   },
   {
     category: "2. UI/UX & Interactive Components",
+    description: "Interactive celestial constellation canvas of martyr stars, meteors, glowing badges & star modals",
+    relPath: "src/components/ConstellationView.tsx",
+  },
+  {
+    category: "2. UI/UX & Interactive Components",
+    description: "Social share card modal with native Web Share API & clipboard copy with feedback",
+    relPath: "src/components/ShareCardModal.tsx",
+  },
+  {
+    category: "2. UI/UX & Interactive Components",
     description: "Guided onboarding mission tour modal introducing campaign mechanics to new visitors",
     relPath: "src/components/DailyMissionTourModal.tsx",
+  },
+  {
+    category: "2. UI/UX & Interactive Components",
+    description: "Collective milestone record celebration card for community achievements",
+    relPath: "src/components/CollectiveRecord.tsx",
+  },
+  {
+    category: "2. UI/UX & Interactive Components",
+    description: "Community progress tracker displaying daily & total contributions",
+    relPath: "src/components/CommunityProgress.tsx",
+  },
+  {
+    category: "2. UI/UX & Interactive Components",
+    description: "Campaign spiritual narrative story modal/section",
+    relPath: "src/components/CampaignStory.tsx",
+  },
+  {
+    category: "2. UI/UX & Interactive Components",
+    description: "Memorial event location & date details component",
+    relPath: "src/components/MemorialInfo.tsx",
+  },
+  {
+    category: "2. UI/UX & Interactive Components",
+    description: "Rolling mechanical/digital odometer number component with tabular font metrics",
+    relPath: "src/components/ui/OdometerNumber.tsx",
+  },
+  {
+    category: "2. UI/UX & Interactive Components",
+    description: "Official memorial identity logo with golden halo lighting & eager LCP optimization",
+    relPath: "src/components/ui/YadvareLogo.tsx",
+  },
+  {
+    category: "2. UI/UX & Interactive Components",
+    description: "Symbolic martyr red tulip emblem with subtle glow filter",
+    relPath: "src/components/ui/MartyrTulipIcon.tsx",
   },
 
   // 3. Application Orchestration & Styling
@@ -133,9 +178,9 @@ const keyFiles = [
 const MASTER_AI_PROMPT = `================================================================================
 MASTER PROMPT FOR ADVANCED AI (GPT-6 ASTRA / CLAUDE 3.7 / CREATIVE TECHNOLOGIST)
 ================================================================================
-ROLE:
-You are a World-Class Principal Creative Technologist, Staff Design Engineer (following
-Emil Kowalski / animations.dev standards), Senior Three.js / WebGL Shader Specialist,
+ROLE & PERSONA:
+You are a World-Class Principal Creative Technologist, Staff Design Engineer (steeped in
+Emil Kowalski / animations.dev principles), Senior Three.js / WebGL Shader Specialist,
 and Lead React 19 / Next.js 16 (Turbopack) Fullstack Architect.
 
 --------------------------------------------------------------------------------
@@ -156,10 +201,10 @@ CORE CONCEPT:
 5. High emotional resonance: connection with martyrs, Iranian technological strength, and solemn beauty.
 
 --------------------------------------------------------------------------------
-YOUR OBJECTIVES & HIGH-PRIORITY DELIVERABLES:
+YOUR CORE MISSIONS & DELIVERABLES:
 --------------------------------------------------------------------------------
 
-🎯 1. MULTIPLE IRANIAN BALLISTIC & HYPERSONIC MISSILE 3D MODELS (چندین مدل موشک ایرانی)
+🎯 MISSION 1: MULTIPLE IRANIAN BALLISTIC & HYPERSONIC MISSILE 3D MODELS
 Currently, \`ThreeRocketScene.tsx\` renders a single procedural 3D rocket.
 We want you to architect and provide modular code supporting MULTIPLE distinct Iranian missile models
 that can be selected, previewed, or switched (e.g. via a \`missileModel\` prop or selector):
@@ -191,20 +236,40 @@ that can be selected, previewed, or switched (e.g. via a \`missileModel\` prop o
 
 ---
 
-🎯 2. EMIL KOWALSKI DESIGN ENGINEERING (UI/UX & MICRO-INTERACTIONS)
-Elevate the entire frontend experience following the principles of animations.dev / Emil Kowalski:
-  - **Natural Spring & Physics**: Replace generic linear/ease transitions with calibrated bezier curves:
-    \`cubic-bezier(0.23, 1, 0.32, 1)\` for dialogs and entrances, and spring-like responsiveness.
-  - **Tactile Salawat Button**: Immediate active feedback (\`scale(0.97)\` in 160ms), glowing aura burst
-    on click, particle dispersion, rolling odometer counter numbers, and haptic feedback.
-  - **Unobstructed Cinematic Launch View**:
-    During the countdown and flight, the overlay MUST gracefully fade out without any dark blue tint
-    obscuring the rocket. The rocket should be front and center, scaled up heroically in the viewport!
-  - **Smooth Modals**: Use \`useModalTransition\` pattern with backdrop-blur, scale-in, and zero layout shift.
+🎯 MISSION 2: UI/UX ELEVATION & EMIL KOWALSKI DESIGN ENGINEERING
+Apply Emil Kowalski's core philosophy (from animations.dev) across all UI/UX components:
+
+1. **Taste & Invisible Correctness**:
+   - The best details users never consciously notice; when features function exactly as expected,
+     interfaces feel naturally great.
+   - Beauty is leverage. Good defaults and good animations make the experience unforgettable.
+
+2. **Micro-interaction Guidelines**:
+   - **No lazy transitions**: Never use \`transition: all\`. Specify exact transition properties (\`transition: transform 160ms cubic-bezier(0.23, 1, 0.32, 1), opacity 160ms ease-out\`).
+   - **Nothing appears from nothing**: Never pop elements with \`scale(0)\`. Modals and cards should scale from \`scale(0.95)\` with \`opacity: 0\` to \`scale(1)\` with \`opacity: 1\`.
+   - **Custom Curves**: Use calibrated bezier curves:
+     - Modals / Entrances: \`cubic-bezier(0.23, 1, 0.32, 1)\` (fast response, smooth settle).
+     - Dropdowns / Quick reveals: \`ease-out\` (never sluggish \`ease-in\`).
+   - **Tactile Buttons**: Every button MUST have a satisfying tactile \`:active\` state:
+     \`active:scale-[0.97] transition-transform duration-160 ease-out\`
+   - **Salawat Button Micro-physics**:
+     - Fast click feedback (ripple or particle spark burst, immediate counter increment).
+     - Rolling digits with \`OdometerNumber\` for an organic mechanical feel.
+   - **Unobstructed Launch Overlay**:
+     - When the launch countdown reaches 0, the modal overlay MUST gracefully exit completely so
+       the user has a clear, unobstructed cinematic view of the rocket lifting off.
+   - **Celestial Constellation (\`ConstellationView.tsx\`)**:
+     - Smooth hover cards for martyr stars, shimmering twinkle, subtle meteor streaks, and
+       frictionless touch dragging on mobile.
+
+3. **Required Review Format**:
+   For any UI changes you propose, include a clear markdown table:
+   | Before | After | Why |
+   | --- | --- | --- |
 
 ---
 
-🎯 3. CODE CLEANLINESS, PERFORMANCE & ARCHITECTURE
+🎯 MISSION 3: CODE CLEANLINESS, PERFORMANCE & ARCHITECTURE
   - Fully compatible with Next.js 16.3 (Turbopack) & React 19.
   - Zero memory leaks in Three.js: strict disposal of geometries, materials, textures, and requestAnimationFrame.
   - Adaptive resolution: smooth 60fps on mobile devices and low-end GPUs.
@@ -212,10 +277,10 @@ Elevate the entire frontend experience following the principles of animations.de
 
 ---
 
-🎯 4. OUTPUT INSTRUCTIONS:
+🎯 MISSION 4: OUTPUT INSTRUCTIONS:
 Please provide:
 1. Complete, drop-in replacement code for the upgraded \`ThreeRocketScene.tsx\` (with multi-missile support).
-2. Code for accompanying components that need updating (e.g. \`ParallaxRocket.tsx\`, \`HeroSection.tsx\`, or \`LaunchOverlay.tsx\`).
+2. Code for UI/UX components that need upgrading (e.g. \`SalawatButton.tsx\`, \`HeroSection.tsx\`, \`LaunchOverlay.tsx\`, \`ConstellationView.tsx\`, etc.).
 3. Clear instructions on how to toggle or select between the different missile models.
 Do NOT use lazy placeholders like "// rest of code remains same" for crucial logic. Provide full, working files!
 
@@ -342,3 +407,4 @@ bundleFiles().catch((err) => {
   console.error("Fatal error bundling files:", err);
   process.exit(1);
 });
+
