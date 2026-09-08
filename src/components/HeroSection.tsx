@@ -11,6 +11,7 @@ import { useCountUp } from "@/lib/client/use-count-up";
 import { Calendar, Target, Sparkles, Check } from "lucide-react";
 import MartyrTulipIcon from "@/components/ui/MartyrTulipIcon";
 import { UserDailyMission } from "@/components/DailyMissionTourModal";
+import MemorialDialogModal from "./MemorialDialogModal";
 
 interface HeroSectionProps {
   campaignState: PublicCampaignState;
@@ -44,6 +45,7 @@ export default function HeroSection({
 }: HeroSectionProps) {
   const { mission, daysRemaining, campaignPhase } = campaignState;
   const [isRocketReady, setIsRocketReady] = useState(false);
+  const [showMemorialModal, setShowMemorialModal] = useState(false);
 
   // Safety fallback: unlock after 3.5s if WebGL takes longer or is disabled
   useEffect(() => {
@@ -72,8 +74,13 @@ export default function HeroSection({
             : "translate-y-0 opacity-100 scale-100"
         }`}
       >
-        <div className="inline-flex items-center gap-2.5 px-5 py-2 sm:px-6 sm:py-2.5 rounded-full bg-slate-900/85 border border-amber-500/35 shadow-[0_4px_20px_rgba(0,0,0,0.5),0_0_12px_rgba(245,158,11,0.15)] backdrop-blur-md">
-          <Calendar className="w-4.5 h-4.5 sm:w-5 sm:h-5 text-amber-400 shrink-0" />
+        <button
+          type="button"
+          onClick={() => setShowMemorialModal(true)}
+          className="group inline-flex items-center gap-2.5 px-4 sm:px-6 py-2 sm:py-2.5 rounded-full bg-slate-900/85 border border-amber-500/35 hover:border-amber-400/70 shadow-[0_4px_20px_rgba(0,0,0,0.5),0_0_12px_rgba(245,158,11,0.15)] hover:shadow-[0_4px_25px_rgba(245,158,11,0.25)] backdrop-blur-md transition-all duration-300 active:scale-95 cursor-pointer"
+          title="مشاهده اطلاعات و شمارشگر معکوس یادواره شهدا"
+        >
+          <Calendar className="w-4.5 h-4.5 sm:w-5 sm:h-5 text-amber-400 group-hover:scale-110 transition-transform shrink-0" />
           <span className="text-sm sm:text-base font-bold text-slate-100">
             {campaignPhase === "memorial_day" ? (
               <strong className="text-amber-300 font-black">امروز، روز برگزاری یادواره شهدا</strong>
@@ -89,7 +96,10 @@ export default function HeroSection({
           <span className="text-xs sm:text-sm text-slate-300 font-semibold">
             روز {toPersianDigits(mission.dayNumber)} پویش
           </span>
-        </div>
+          <span className="text-[10px] text-amber-400/80 bg-amber-500/15 border border-amber-500/30 px-2 py-0.5 rounded-full font-medium hidden sm:inline-flex items-center gap-1 group-hover:bg-amber-500/25 transition-colors">
+            اطلاعات مراسم ↗
+          </span>
+        </button>
 
         {userMission && (
           userMission.userContributed >= userMission.suggestedCount ? (
@@ -279,6 +289,19 @@ export default function HeroSection({
           disabled={isLaunching || campaignPhase === "archived"}
         />
       </div>
+
+      {/* Memorial Event Information & Countdown Dialog Modal */}
+      <MemorialDialogModal
+        isOpen={showMemorialModal}
+        onClose={() => setShowMemorialModal(false)}
+        memorialTitle={campaignState.settings.memorialTitle}
+        memorialDate={campaignState.memorialDate}
+        memorialTime={campaignState.memorialTime || campaignState.settings.memorialTime}
+        memorialLocation={campaignState.settings.memorialLocation}
+        daysRemaining={daysRemaining}
+        dayNumber={mission.dayNumber}
+        campaignPhase={campaignPhase}
+      />
     </section>
   );
 }

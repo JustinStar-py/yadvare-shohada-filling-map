@@ -61,10 +61,6 @@ export default function MemorialInfo({
               <p className="text-xs text-slate-300/90 leading-relaxed">
                 {memorialLocation || "مصلای بزرگ امام خمینی (ره)"}
               </p>
-              <div className="flex items-center gap-1.5 text-[11px] text-emerald-400/90 mt-2.5">
-                <Radio className="w-3 h-3 animate-pulse" />
-                <span>همراه با پخش زنده اینترنتی</span>
-              </div>
             </div>
           </div>
         </div>
