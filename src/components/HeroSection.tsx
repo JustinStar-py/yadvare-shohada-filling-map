@@ -8,8 +8,7 @@ import OdometerNumber from "./ui/OdometerNumber";
 import { PublicCampaignState, SalawatSubmissionResponse } from "@/types/campaign";
 import { toPersianDigits } from "@/lib/utils";
 import { useCountUp } from "@/lib/client/use-count-up";
-import { Calendar, Target, Sparkles, Check } from "lucide-react";
-import MartyrTulipIcon from "@/components/ui/MartyrTulipIcon";
+import { Calendar, Target, Sparkles } from "lucide-react";
 import { UserDailyMission } from "@/components/DailyMissionTourModal";
 import MemorialDialogModal from "./MemorialDialogModal";
 
@@ -92,66 +91,10 @@ export default function HeroSection({
               </>
             )}
           </span>
-          <span className="text-amber-500/40 text-sm">•</span>
-          <span className="text-xs sm:text-sm text-slate-300 font-semibold">
-            روز {toPersianDigits(mission.dayNumber)} پویش
-          </span>
           <span className="text-[10px] text-amber-400/80 bg-amber-500/15 border border-amber-500/30 px-2 py-0.5 rounded-full font-medium hidden sm:inline-flex items-center gap-1 group-hover:bg-amber-500/25 transition-colors duration-160">
             اطلاعات مراسم ↗
           </span>
         </button>
-
-        {userMission && (
-          userMission.userContributed >= userMission.suggestedCount ? (
-            <div className="mt-1.5 inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold backdrop-blur-md bg-emerald-950/85 border border-emerald-500/45 text-emerald-200 shadow-[0_0_15px_rgba(16,185,129,0.25)] animate-fade-in">
-              {/* Tap to view completed martyr letter */}
-              <button
-                type="button"
-                onClick={onOpenMissionCard}
-                className="inline-flex items-center gap-1.5 text-emerald-100 hover:text-emerald-300 cursor-pointer emil-btn"
-                title="مشاهده نامه شهید"
-              >
-                <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                <span>عهد شما تمام شد</span>
-              </button>
-
-              {onRenewMission && (
-                <>
-                  <span className="w-px h-3.5 bg-emerald-500/35" />
-                  <button
-                    type="button"
-                    onClick={onRenewMission}
-                    className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-slate-950 hover:brightness-110 shadow-[0_0_10px_rgba(245,158,11,0.3)] cursor-pointer emil-btn"
-                    title="شروع یک عهد معنوی جدید با شهیدی دیگر"
-                  >
-                    <Sparkles className="w-3 h-3 text-slate-950" />
-                    <span>تجدید عهد</span>
-                  </button>
-                </>
-              )}
-            </div>
-          ) : (
-            <button
-              type="button"
-              onClick={onOpenMissionCard}
-              className="mt-1.5 inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-medium backdrop-blur-md shadow-sm bg-slate-900/85 border border-rose-500/30 text-slate-200 hover:border-amber-500/45 hover:bg-slate-900 cursor-pointer emil-btn"
-              title="مشاهده نامه و عهد معنوی امروز"
-            >
-              <MartyrTulipIcon className="w-3.5 h-3.5 shrink-0" />
-              <span className="text-slate-300">عهد امروز:</span>
-              <span className="font-bold text-amber-300">{userMission.martyr.name}</span>
-              <span className="text-slate-500">•</span>
-              <span className="tabular-nums font-bold text-slate-100 inline-flex items-center gap-1">
-                <span className="text-amber-300 font-black transition-all duration-200">
-                  {toPersianDigits(userMission.userContributed)}
-                </span>
-                <span className="text-slate-400 font-medium text-[11px]">از</span>
-                <span>{toPersianDigits(userMission.suggestedCount)}</span>
-                <span className="text-slate-300">صلوات</span>
-              </span>
-            </button>
-          )
-        )}
       </div>
 
       {/* ── Full-Viewport 3D Rocket Stage Canvas ── */}
