@@ -14,7 +14,10 @@ export default function DedicationCard({ martyr }: DedicationCardProps) {
       <section className="w-full max-w-3xl mx-auto px-4 py-8">
         <div className="glass-panel rounded-3xl p-8 text-center text-slate-400 text-sm leading-relaxed">
           <Award className="w-8 h-8 text-amber-400/50 mx-auto mb-3" />
-          پرواز امروز به یاد تمامی شهدای والامقام میهن اسلامی تقدیم می‌شود.
+          <p>
+            هنوز هیچ پروازی به یاد شهید والامقام امروز ثبت نشده است. شما می‌توانید با
+            ثبت صلوات، پرواز معنوی امروز را به یاد شهید والامقام ثبت کنید.
+          </p>
         </div>
       </section>
     );

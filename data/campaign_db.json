@@ -2,10 +2,10 @@
   "settings": {
     "campaignTitle": "پویش معنوی یادواره ۷۶ شهید شهیدیه میبد",
     "campaignSubtitle": "هر صلوات، یک قدم تا پرواز به سوی افق روشن شهادت",
-    "memorialTitle": "یادواره شهدای والامقام و والامقامان میهن",
+    "memorialTitle": "یادواره ۷۶ شهید والامقام شهیدیه میبد",
     "memorialDate": "2026-09-17",
     "memorialTime": "19:00",
-    "memorialLocation": "تهران، مصلای بزرگ امام خمینی (ره) - سالن همایش‌های بین‌المللی",
+    "memorialLocation": "یزد، میبد، شهیدیه، مسجد امام (عج)",
     "campaignStartDate": "2026-08-30",
     "campaignEndDate": "2026-09-17",
     "dailyResetHour": 0,
@@ -75,8 +75,8 @@
       "date": "2026-09-08",
       "dayNumber": 10,
       "target": 5000,
-      "currentCount": 0,
-      "participantsCount": 0,
+      "currentCount": 28,
+      "participantsCount": 1,
       "state": "ACTIVE",
       "epoch": 4,
       "martyrId": "martyr-sh-10",
@@ -740,154 +740,6 @@
     }
   ],
   "idempotencyKeys": {
-    "f8a091dd-c473-4dba-8800-41903e03e053": {
-      "timestamp": 1788658996800,
-      "count": 1
-    },
-    "f090dddf-ccfd-47eb-b1d3-aaf93e7fa976": {
-      "timestamp": 1788659027793,
-      "count": 1
-    },
-    "999e3eae-634c-481f-8fa4-27e2730c10d5": {
-      "timestamp": 1788659030204,
-      "count": 1
-    },
-    "72e4b42e-9818-48e6-a0c2-164194406a18": {
-      "timestamp": 1788659031469,
-      "count": 1
-    },
-    "c634e37e-59a1-4140-8aff-0f10758b1c6f": {
-      "timestamp": 1788659032038,
-      "count": 1
-    },
-    "e916c41d-6b13-400d-b72e-14e8f174b232": {
-      "timestamp": 1788659032649,
-      "count": 1
-    },
-    "e239eb94-baf5-4f5e-ae66-dbfbdf5882e9": {
-      "timestamp": 1788659033315,
-      "count": 1
-    },
-    "ad143dca-0d02-48c6-abaa-dedd74935c76": {
-      "timestamp": 1788659033940,
-      "count": 1
-    },
-    "ad84c08d-ec02-4ede-86a0-6fd4750430bc": {
-      "timestamp": 1788659034530,
-      "count": 1
-    },
-    "108377a3-144e-4e0b-9bfb-950a48c5f2c9": {
-      "timestamp": 1788659035084,
-      "count": 1
-    },
-    "470d37ea-ebb8-4719-846a-95c26f29e363": {
-      "timestamp": 1788659309094,
-      "count": 1
-    },
-    "88050bc2-79d0-4ff1-8e18-75607b36f259": {
-      "timestamp": 1788659870661,
-      "count": 1
-    },
-    "2c201627-4a99-4262-9e32-73e19dbbc79b": {
-      "timestamp": 1788659871652,
-      "count": 1
-    },
-    "a15decdb-d80d-4068-b018-7a19db53d172": {
-      "timestamp": 1788659872843,
-      "count": 1
-    },
-    "3053d60d-79bf-4107-a457-fa768341350e": {
-      "timestamp": 1788660578398,
-      "count": 1
-    },
-    "076e6555-c671-401e-9cbb-6dc59aa80c50": {
-      "timestamp": 1788660579426,
-      "count": 1
-    },
-    "b315b15c-cee7-4a43-a309-587f3cacca32": {
-      "timestamp": 1788660608535,
-      "count": 1
-    },
-    "d1fa92af-0b3a-4f97-87a5-d81f889442d5": {
-      "timestamp": 1788660609221,
-      "count": 1
-    },
-    "f2949503-1a62-419b-b570-890b5aef2841": {
-      "timestamp": 1788660609448,
-      "count": 1
-    },
-    "00746ca3-9a52-4cf0-89ac-bee3e4229caa": {
-      "timestamp": 1788660609617,
-      "count": 1
-    },
-    "11fa19b6-02c0-4613-affe-c9d88b66aa17": {
-      "timestamp": 1788660609805,
-      "count": 1
-    },
-    "55950941-80ed-427f-9668-e1c055e6ec14": {
-      "timestamp": 1788660615630,
-      "count": 1
-    },
-    "bbac6c2e-0d87-4022-96fc-35070be687d8": {
-      "timestamp": 1788660615884,
-      "count": 1
-    },
-    "a53c13ff-8ce1-4d43-b6ea-cb5adb3e945b": {
-      "timestamp": 1788660616092,
-      "count": 1
-    },
-    "75b5457a-8cb6-45da-afc9-947f20a703b1": {
-      "timestamp": 1788660616273,
-      "count": 1
-    },
-    "1c0ed7c1-07cf-45f8-84dc-71a50455cf8e": {
-      "timestamp": 1788660669932,
-      "count": 1
-    },
-    "0edddd02-6efc-46af-a9b0-37460e9ac7b3": {
-      "timestamp": 1788660671442,
-      "count": 1
-    },
-    "99dc2047-97bc-44ce-91a9-9b2d44d43761": {
-      "timestamp": 1788660673374,
-      "count": 1
-    },
-    "c8148891-3d36-4dce-b739-244666c3fd8e": {
-      "timestamp": 1788660674198,
-      "count": 1
-    },
-    "3c4835a9-ad17-4cb3-b3fb-193f4d875dd9": {
-      "timestamp": 1788663026574,
-      "count": 1
-    },
-    "9742716d-eadc-429f-a697-6742705fd658": {
-      "timestamp": 1788663027005,
-      "count": 1
-    },
-    "f2e965e5-a48c-4ca0-bf0c-2899a20d1d6a": {
-      "timestamp": 1788663040420,
-      "count": 1
-    },
-    "f19e1717-c631-4b66-b4f5-ef0ee6445be0": {
-      "timestamp": 1788663048105,
-      "count": 1
-    },
-    "ffe16bc6-ce9a-4677-82ae-ca2163a1cf68": {
-      "timestamp": 1788663190961,
-      "count": 1
-    },
-    "b82e325c-af11-4540-8613-04c5760fa10b": {
-      "timestamp": 1788679601459,
-      "count": 1
-    },
-    "4c9572f9-eb5e-47cb-8d08-035bf10b5d1d": {
-      "timestamp": 1788679602122,
-      "count": 1
-    },
-    "bedb74f9-5f8c-468e-a266-bcf54ab47da1": {
-      "timestamp": 1788679602383,
-      "count": 1
-    },
     "f503fed7-f8ca-4b97-95a4-6f6a36508956": {
       "timestamp": 1788684227441,
       "count": 1
@@ -1487,6 +1339,34 @@
     "612c1a24-1765-4fb6-bd62-30e45898cefc": {
       "timestamp": 1788800843427,
       "count": 1
+    },
+    "d4868491-2d98-4be3-b925-75b71de912f0": {
+      "timestamp": 1788852458442,
+      "count": 3
+    },
+    "4bfe1dcf-6428-4eba-9953-8617d4c7dc58": {
+      "timestamp": 1788852516738,
+      "count": 4
+    },
+    "5539f3f6-449d-460a-a9aa-0a8e54f9fff0": {
+      "timestamp": 1788854140731,
+      "count": 5
+    },
+    "a23fcb71-8872-4937-9a51-ee933c671434": {
+      "timestamp": 1788854159253,
+      "count": 5
+    },
+    "7062d741-7dba-409d-b8b5-f228ac811e1c": {
+      "timestamp": 1788854177903,
+      "count": 5
+    },
+    "fe7e8199-bf49-4cd4-bdec-8e5085862ae2": {
+      "timestamp": 1788854190981,
+      "count": 5
+    },
+    "5c25ce56-731f-45e2-a739-a762d09ad89f": {
+      "timestamp": 1788854202534,
+      "count": 1
     }
   },
   "auditLogs": [
@@ -1728,5 +1608,5 @@
       "details": "پایگاه داده اولیه با موفقیت راه‌اندازی شد."
     }
   ],
-  "totalCampaignSalawat": 12419
+  "totalCampaignSalawat": 12447
 }

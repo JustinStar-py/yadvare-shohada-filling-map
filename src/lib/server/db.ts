@@ -111,10 +111,10 @@ function getInitialData(): DatabaseSchema {
   const initialSettings: CampaignSettings = {
     campaignTitle: "پویش معنوی یادواره ۷۶ شهید شهیدیه میبد",
     campaignSubtitle: "هر صلوات، یک قدم تا پرواز به سوی افق روشن شهادت",
-    memorialTitle: "یادواره شهدای والامقام و والامقامان میهن",
+    memorialTitle: "یادواره ۷۶ شهید والامقام شهیدیه میبد",
     memorialDate: memorialDate,
     memorialTime: "19:00",
-    memorialLocation: "تهران، مصلای بزرگ امام خمینی (ره) - سالن همایش‌های بین‌المللی",
+    memorialLocation: "میبد, شهیدیه, مسجد امام (ره)",
     campaignStartDate: getTehranDateString(new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000)),
     campaignEndDate: memorialDate,
     dailyResetHour: 0,

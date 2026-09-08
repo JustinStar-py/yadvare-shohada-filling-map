@@ -3,6 +3,7 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { formatPersianNumber, toPersianDigits, formatShortJalaliDate } from "@/lib/utils";
 import { Share2, X, Check, Copy, Send } from "lucide-react";
+import YadvareLogo from "@/components/ui/YadvareLogo";
 
 interface ShareCardModalProps {
   isOpen: boolean;
@@ -94,7 +95,11 @@ export default function ShareCardModal({
           <div className="absolute top-10 left-8 w-1 h-1 rounded-full bg-slate-300/60" />
           <div className="absolute top-16 right-16 w-1 h-1 rounded-full bg-slate-300/40" />
 
-          <span className="relative text-[11px] text-amber-400/90 font-semibold tracking-wide">
+          <div className="flex justify-center mb-2.5">
+            <YadvareLogo className="w-12 h-12 drop-shadow-[0_2px_10px_rgba(245,158,11,0.3)]" />
+          </div>
+
+          <span className="relative text-xs text-amber-400/90 font-semibold tracking-wide">
             پویش معنوی یادواره ۷۶ شهید شهیدیه میبد
           </span>
 

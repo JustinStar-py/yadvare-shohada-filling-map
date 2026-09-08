@@ -4,7 +4,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { toPersianDigits } from "@/lib/utils";
 import { soundEngine } from "@/lib/client/procedural-audio";
 import { X } from "lucide-react";
-import MartyrTulipIcon from "@/components/ui/MartyrTulipIcon";
+import YadvareLogo from "@/components/ui/YadvareLogo";
 
 interface LaunchOverlayProps {
   isOpen: boolean;
@@ -141,8 +141,8 @@ export default function LaunchOverlay({
       >
         {phase === "countdown" && (
           <div className="flex flex-col items-center gap-4 bg-slate-950/70 border border-amber-500/25 p-7 rounded-3xl shadow-[0_12px_40px_rgba(0,0,0,0.6)] backdrop-blur-md">
-            <div className="w-14 h-14 rounded-full bg-rose-500/10 border border-rose-500/30 flex items-center justify-center shadow-[0_0_20px_rgba(225,29,72,0.25)]">
-              <MartyrTulipIcon className="w-8 h-8" />
+            <div className="w-16 h-16 rounded-full bg-amber-500/10 border border-amber-500/30 flex items-center justify-center shadow-[0_0_20px_rgba(245,158,11,0.35)]">
+              <YadvareLogo className="w-11 h-11 drop-shadow-md" />
             </div>
             {/* Countdown numeral with progress ring */}
             <div className="relative w-40 h-40 my-1">

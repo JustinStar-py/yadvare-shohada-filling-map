@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { Volume2, VolumeX } from "lucide-react";
-import MartyrTulipIcon from "@/components/ui/MartyrTulipIcon";
+import YadvareLogo from "@/components/ui/YadvareLogo";
 import { soundEngine } from "@/lib/client/procedural-audio";
 import { formatShortJalaliDate } from "@/lib/utils";
 
@@ -57,11 +57,7 @@ export default function Header({ tehranDate }: HeaderProps) {
     >
       {/* Brand identity */}
       <div className="flex items-center gap-3">
-        <div className="relative w-10 h-10  p-[1.5px]">
-          <div className="w-full h-full rounded-[14px] flex items-center justify-center overflow-hidden">
-            <MartyrTulipIcon className="w-8 h-8" />
-          </div>
-        </div>
+        <YadvareLogo className="w-11 h-11 drop-shadow-[0_2px_12px_rgba(245,158,11,0.25)]" priority />
         <div>
           <h1 className="text-sm sm:text-base font-bold text-slate-100 tracking-wide">
             پویش معنوی یادواره ۷۶ شهید شهیدیه میبد

@@ -33,6 +33,14 @@ export const metadata: Metadata = {
   title: "پویش معنوی یادواره ۷۶ شهید شهیدیه میبد | هر صلوات، یک قدم تا پرواز",
   description: "پویش مردمی و مشارکتی گرامیداشت یادواره ۷۶ شهید والامقام شهیدیه میبد - ثبت صلوات روزانه و تکمیل پرواز معنوی",
   keywords: ["یادواره شهدا", "صلوات", "پویش معنوی", "شهدا", "شهیدیه میبد", "دفاع مقدس"],
+  icons: {
+    icon: [
+      { url: "/images/shohada/Yadvarh Shohada Logo.webp", type: "image/webp" },
+      { url: "/icon.png", sizes: "192x192", type: "image/png" },
+    ],
+    apple: "/apple-icon.png",
+    shortcut: "/favicon.ico",
+  },
 };
 
 export const viewport: Viewport = {

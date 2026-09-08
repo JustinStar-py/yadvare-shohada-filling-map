@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import MartyrTulipIcon from "@/components/ui/MartyrTulipIcon";
+import YadvareLogo from "@/components/ui/YadvareLogo";
 import {
   Shield,
   Rocket,
@@ -366,8 +366,8 @@ export default function AdminPage() {
     return (
       <div className="min-h-screen bg-[#090d16] text-slate-100 flex items-center justify-center p-4">
         <div className="w-full max-w-sm p-8 rounded-3xl bg-slate-900/90 border border-amber-500/30 shadow-2xl text-center">
-          <div className="w-14 h-14 mx-auto rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 mb-4">
-            <Lock className="w-7 h-7" />
+          <div className="flex justify-center mb-4">
+            <YadvareLogo className="w-16 h-16 drop-shadow-[0_4px_16px_rgba(245,158,11,0.35)]" priority />
           </div>
           <h2 className="text-xl font-bold text-slate-100 mb-1">
             ورود به پنل مدیریت پویش
@@ -415,8 +415,8 @@ export default function AdminPage() {
         {/* Top Header */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-6 rounded-3xl bg-slate-900/80 border border-slate-800 shadow-lg">
           <div>
-            <div className="flex items-center gap-2.5">
-              <MartyrTulipIcon className="w-6 h-6" />
+            <div className="flex items-center gap-3">
+              <YadvareLogo className="w-10 h-10 drop-shadow-[0_2px_8px_rgba(245,158,11,0.25)]" />
               <h1 className="text-xl font-bold text-slate-100">
                 پنل مدیریت پویش معنوی یادواره ۷۶ شهید شهیدیه میبد
               </h1>

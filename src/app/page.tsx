@@ -13,7 +13,7 @@ import LaunchOverlay from "@/components/LaunchOverlay";
 import ShareCardModal from "@/components/ShareCardModal";
 import { PublicCampaignState, SalawatSubmissionResponse, MartyrProfile } from "@/types/campaign";
 import { soundEngine } from "@/lib/client/procedural-audio";
-import MartyrTulipIcon from "@/components/ui/MartyrTulipIcon";
+import YadvareLogo from "@/components/ui/YadvareLogo";
 import { generateUUID } from "@/lib/utils";
 import DailyMissionTourModal, { UserDailyMission } from "@/components/DailyMissionTourModal";
 import { getOrCreateVisitorId } from "@/lib/client/visitor-id";
@@ -564,11 +564,10 @@ export default function HomePage() {
   if (loading || !state) {
     return (
       <div className="min-h-screen bg-[#090d16] flex flex-col items-center justify-center text-slate-100 p-4">
-        <div className="relative w-20 h-20 mb-5">
-          <div className="absolute inset-0 rounded-full border border-rose-500/30 animate-shockwave" />
-          <div className="absolute inset-0 rounded-full bg-rose-500/10 border border-rose-500/40 flex items-center justify-center animate-pulse">
-            <MartyrTulipIcon className="w-10 h-10" />
-          </div>
+        <div className="relative w-24 h-24 mb-5 flex items-center justify-center">
+          <div className="absolute inset-0 rounded-full border border-amber-500/30 animate-shockwave" />
+          <div className="absolute inset-0 rounded-full bg-amber-500/10 border border-amber-500/30 flex items-center justify-center animate-pulse" />
+          <YadvareLogo className="w-16 h-16 drop-shadow-[0_0_20px_rgba(245,158,11,0.5)] z-10" priority />
         </div>
         <p className="text-sm font-semibold text-amber-300/90 animate-pulse tracking-wide">
           در حال برقراری ارتباط با پویش یادواره شهدا...
@@ -647,12 +646,15 @@ export default function HomePage() {
       </main>
 
       {/* Solemn Footer */}
-      <footer className="w-full py-9 border-t border-slate-900/90 text-center text-xs text-slate-500 relative z-10">
-        <div className="w-16 h-px mx-auto mb-6 bg-gradient-to-l from-transparent via-amber-500/40 to-transparent" />
+      <footer className="w-full py-10 border-t border-slate-900/90 text-center text-xs text-slate-500 relative z-10">
+        <div className="flex justify-center mb-4">
+          <YadvareLogo className="w-12 h-12 opacity-80 hover:opacity-100 transition-opacity drop-shadow-[0_2px_8px_rgba(245,158,11,0.2)]" />
+        </div>
+        <div className="w-16 h-px mx-auto mb-5 bg-gradient-to-l from-transparent via-amber-500/40 to-transparent" />
         <p className="max-w-md mx-auto px-4 leading-loose">
           «اللّهُمَّ صَلِّ عَلی مُحَمَّدٍ وَ آلِ مُحَمَّدٍ وَ عَجِّل فَرَجَهُم»
           <br />
-          پویش مردمی و معنوی گرامیداشت یادواره شهدای والامقام میهن اسلامی
+          پویش مردمی و معنوی یادواره ۷۶ شهید شهیدیه میبد
         </p>
       </footer>
 

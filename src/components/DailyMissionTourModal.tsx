@@ -6,6 +6,7 @@ import { MartyrProfile } from "@/types/campaign";
 import { toPersianDigits } from "@/lib/utils";
 import { soundEngine } from "@/lib/client/procedural-audio";
 import MartyrTulipIcon from "@/components/ui/MartyrTulipIcon";
+import YadvareLogo from "@/components/ui/YadvareLogo";
 import { Mail, Check, X } from "lucide-react";
 
 // WebGL budget optimization: Load 3D Envelope dynamically on client only when modal is mounted
@@ -161,8 +162,8 @@ export default function DailyMissionTourModal({
             isLetterActive ? "opacity-0 blur-sm pointer-events-none scale-90 hidden" : "opacity-100"
           }`}
         >
-          <div className="relative w-11 h-11 mx-auto rounded-2xl bg-gradient-to-b from-rose-500/20 to-amber-500/10 border border-rose-500/30 flex items-center justify-center mb-2 shadow-[0_0_20px_rgba(244,63,94,0.25)] shrink-0">
-            <MartyrTulipIcon className="w-6 h-6" />
+          <div className="relative w-12 h-12 mx-auto rounded-2xl bg-gradient-to-b from-amber-500/20 to-amber-500/10 border border-amber-500/30 flex items-center justify-center mb-2 shadow-[0_0_20px_rgba(245,158,11,0.25)] shrink-0">
+            <YadvareLogo className="w-8 h-8 drop-shadow-sm" />
           </div>
 
           <span className="text-xs font-bold text-amber-400/90 mb-0.5">
