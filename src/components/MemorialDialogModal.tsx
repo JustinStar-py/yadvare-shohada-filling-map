@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import YadvareLogo from "@/components/ui/YadvareLogo";
 import { formatJalaliDate, toPersianDigits } from "@/lib/utils";
+import { useModalTransition } from "@/lib/client/use-modal-transition";
 
 interface MemorialDialogModalProps {
   isOpen: boolean;
@@ -67,6 +68,7 @@ export default function MemorialDialogModal({
 }: MemorialDialogModalProps) {
   const [copied, setCopied] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const { mounted: isModalMounted, visible: isModalVisible } = useModalTransition(isOpen, 180);
 
   const targetIso = useMemo(() => {
     return `${memorialDate || "2026-09-17"}T${memorialTime || "19:00"}:00+03:30`;
@@ -146,14 +148,16 @@ export default function MemorialDialogModal({
     return `https://www.google.com/maps/search/?api=1&query=${query}`;
   }, [memorialLocation]);
 
-  if (!isOpen) return null;
+  if (!isModalMounted) return null;
 
   return (
     <div
       role="dialog"
       aria-modal="true"
       aria-labelledby="memorial-dialog-title"
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-[#050811]/85 backdrop-blur-2xl animate-fade-in overflow-y-auto"
+      className={`fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-[#050811]/85 backdrop-blur-2xl overflow-y-auto emil-modal-backdrop ${
+        isModalVisible ? "opacity-100" : "emil-modal-backdrop-hidden"
+      }`}
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
@@ -162,7 +166,11 @@ export default function MemorialDialogModal({
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[550px] h-[550px] bg-amber-500/[0.08] rounded-full blur-[130px] pointer-events-none" />
       <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] h-[350px] bg-emerald-500/[0.06] rounded-full blur-[90px] pointer-events-none" />
 
-      <div className="relative w-full max-w-lg rounded-3xl bg-gradient-to-b from-[#0e1628]/95 via-[#0a101d]/95 to-[#060a12]/98 border border-amber-500/30 p-5 sm:p-7 shadow-[0_16px_60px_rgba(0,0,0,0.8),0_0_35px_rgba(245,158,11,0.15)] text-center my-auto overflow-hidden animate-gentle-fade">
+      <div
+        className={`relative w-full max-w-lg rounded-3xl bg-gradient-to-b from-[#0e1628]/95 via-[#0a101d]/95 to-[#060a12]/98 border border-amber-500/30 p-5 sm:p-7 shadow-[0_16px_60px_rgba(0,0,0,0.8),0_0_35px_rgba(245,158,11,0.15)] text-center my-auto overflow-hidden emil-modal-content ${
+          isModalVisible ? "opacity-100 scale-100" : "emil-modal-content-hidden"
+        }`}
+      >
         {/* Decorative corner Islamic floral accents */}
         <div className="absolute top-0 right-0 w-32 h-32 bg-radial from-amber-500/15 via-transparent to-transparent pointer-events-none" />
         <div className="absolute bottom-0 left-0 w-32 h-32 bg-radial from-teal-500/10 via-transparent to-transparent pointer-events-none" />
@@ -170,7 +178,7 @@ export default function MemorialDialogModal({
         {/* Close button */}
         <button
           onClick={onClose}
-          className="absolute top-4 left-4 p-2 rounded-full bg-slate-800/60 hover:bg-slate-700/80 text-slate-400 hover:text-white transition-colors cursor-pointer z-20"
+          className="absolute top-4 left-4 p-2 rounded-full bg-slate-800/60 hover:bg-slate-700/80 text-slate-400 hover:text-white cursor-pointer z-20 emil-btn"
           aria-label="بستن پنجره"
         >
           <X className="w-5 h-5" />
@@ -216,7 +224,7 @@ export default function MemorialDialogModal({
           ) : (
             <div className="grid grid-cols-4 gap-2 sm:gap-3 max-w-md mx-auto" dir="rtl">
               {/* روز */}
-              <div className="flex flex-col items-center justify-center py-2.5 sm:py-3.5 px-2 rounded-2xl bg-slate-900/80 border border-amber-500/30 shadow-[0_4px_16px_rgba(0,0,0,0.5)]">
+              <div className="flex flex-col items-center justify-center py-2.5 sm:py-3.5 px-2 rounded-2xl bg-slate-900/80 border border-amber-500/30 shadow-[0_4px_16px_rgba(0,0,0,0.5)] emil-stagger-1">
                 <span className="text-2xl sm:text-3xl font-black text-amber-300 tabular-nums">
                   {mounted ? toPersianDigits(timeParts.days) : toPersianDigits(daysRemaining)}
                 </span>
@@ -224,7 +232,7 @@ export default function MemorialDialogModal({
               </div>
 
               {/* ساعت */}
-              <div className="flex flex-col items-center justify-center py-2.5 sm:py-3.5 px-2 rounded-2xl bg-slate-900/80 border border-amber-500/30 shadow-[0_4px_16px_rgba(0,0,0,0.5)]">
+              <div className="flex flex-col items-center justify-center py-2.5 sm:py-3.5 px-2 rounded-2xl bg-slate-900/80 border border-amber-500/30 shadow-[0_4px_16px_rgba(0,0,0,0.5)] emil-stagger-2">
                 <span className="text-2xl sm:text-3xl font-black text-amber-300 tabular-nums">
                   {mounted ? toPersianDigits(String(timeParts.hours).padStart(2, "0")) : "۰۰"}
                 </span>
@@ -232,7 +240,7 @@ export default function MemorialDialogModal({
               </div>
 
               {/* دقیقه */}
-              <div className="flex flex-col items-center justify-center py-2.5 sm:py-3.5 px-2 rounded-2xl bg-slate-900/80 border border-amber-500/30 shadow-[0_4px_16px_rgba(0,0,0,0.5)]">
+              <div className="flex flex-col items-center justify-center py-2.5 sm:py-3.5 px-2 rounded-2xl bg-slate-900/80 border border-amber-500/30 shadow-[0_4px_16px_rgba(0,0,0,0.5)] emil-stagger-3">
                 <span className="text-2xl sm:text-3xl font-black text-amber-300 tabular-nums">
                   {mounted ? toPersianDigits(String(timeParts.minutes).padStart(2, "0")) : "۰۰"}
                 </span>
@@ -240,7 +248,7 @@ export default function MemorialDialogModal({
               </div>
 
               {/* ثانیه */}
-              <div className="flex flex-col items-center justify-center py-2.5 sm:py-3.5 px-2 rounded-2xl bg-slate-900/80 border border-rose-500/40 shadow-[0_4px_16px_rgba(244,63,94,0.15)]">
+              <div className="flex flex-col items-center justify-center py-2.5 sm:py-3.5 px-2 rounded-2xl bg-slate-900/80 border border-rose-500/40 shadow-[0_4px_16px_rgba(244,63,94,0.15)] emil-stagger-4">
                 <span className="text-2xl sm:text-3xl font-black text-rose-400 tabular-nums animate-pulse">
                   {mounted ? toPersianDigits(String(timeParts.seconds).padStart(2, "0")) : "۰۰"}
                 </span>
@@ -253,7 +261,7 @@ export default function MemorialDialogModal({
         {/* ── Event Details Cards ── */}
         <div className="flex flex-col gap-3 text-right">
           {/* Time & Date */}
-          <div className="flex items-start gap-3.5 p-3.5 sm:p-4 rounded-2xl bg-slate-900/60 border border-slate-800/90 hover:border-amber-500/30 transition-colors">
+          <div className="flex items-start gap-3.5 p-3.5 sm:p-4 rounded-2xl bg-slate-900/60 border border-slate-800/90 hover:border-amber-500/30 transition-[border-color,background-color] duration-180">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-b from-amber-500/20 to-amber-500/5 border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0 mt-0.5">
               <Calendar className="w-5 h-5" />
             </div>
@@ -274,7 +282,7 @@ export default function MemorialDialogModal({
           </div>
 
           {/* Location */}
-          <div className="flex items-start gap-3.5 p-3.5 sm:p-4 rounded-2xl bg-slate-900/60 border border-slate-800/90 hover:border-amber-500/30 transition-colors">
+          <div className="flex items-start gap-3.5 p-3.5 sm:p-4 rounded-2xl bg-slate-900/60 border border-slate-800/90 hover:border-amber-500/30 transition-[border-color,background-color] duration-180">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-b from-amber-500/20 to-amber-500/5 border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0 mt-0.5">
               <MapPin className="w-5 h-5" />
             </div>
@@ -285,10 +293,6 @@ export default function MemorialDialogModal({
               <p className="text-sm font-bold text-slate-100 leading-snug">
                 {memorialLocation || "میبد، شهیدیه، مسجد امام (ره)"}
               </p>
-              <div className="flex items-center gap-1.5 text-[11px] text-emerald-400 mt-1 font-medium">
-                <Radio className="w-3.5 h-3.5 animate-pulse" />
-                <span>همراه با پوشش و پخش زنده اینترنتی</span>
-              </div>
             </div>
           </div>
         </div>
@@ -300,7 +304,7 @@ export default function MemorialDialogModal({
             href={googleCalendarUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex-1 min-w-[140px] inline-flex items-center justify-center gap-1.5 py-2.5 px-3.5 rounded-xl bg-slate-800/80 border border-slate-700 text-xs font-semibold text-slate-200 hover:bg-slate-700 hover:text-white transition-all cursor-pointer shadow-sm active:scale-95"
+            className="flex-1 min-w-[140px] inline-flex items-center justify-center gap-1.5 py-2.5 px-3.5 rounded-xl bg-slate-800/80 border border-slate-700 text-xs font-semibold text-slate-200 hover:bg-slate-700 hover:text-white cursor-pointer shadow-sm emil-btn"
             title="افزودن این مراسم به تقویم گوگل"
           >
             <CalendarPlus className="w-4 h-4 text-amber-400" />
@@ -312,7 +316,7 @@ export default function MemorialDialogModal({
             href={mapUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex-1 min-w-[140px] inline-flex items-center justify-center gap-1.5 py-2.5 px-3.5 rounded-xl bg-slate-800/80 border border-slate-700 text-xs font-semibold text-slate-200 hover:bg-slate-700 hover:text-white transition-all cursor-pointer shadow-sm active:scale-95"
+            className="flex-1 min-w-[140px] inline-flex items-center justify-center gap-1.5 py-2.5 px-3.5 rounded-xl bg-slate-800/80 border border-slate-700 text-xs font-semibold text-slate-200 hover:bg-slate-700 hover:text-white cursor-pointer shadow-sm emil-btn"
             title="مسیریابی محل مراسم روی نقشه"
           >
             <Navigation className="w-4 h-4 text-cyan-400" />
@@ -323,23 +327,26 @@ export default function MemorialDialogModal({
           <button
             type="button"
             onClick={handleCopyInvite}
-            className="w-full inline-flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-slate-950 font-bold text-xs hover:brightness-110 active:scale-95 transition-all shadow-[0_4px_18px_rgba(245,158,11,0.3)] cursor-pointer"
+            className="w-full inline-flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-slate-950 font-bold text-xs hover:brightness-110 shadow-[0_4px_18px_rgba(245,158,11,0.3)] cursor-pointer emil-btn"
             title="کپی متن دعوت‌نامه برای ارسال به دوستان و بستگان"
           >
-            {copied ? (
-              <>
-                <Check className="w-4 h-4" />
-                <span>متن دعوت‌نامه کپی شد!</span>
-              </>
-            ) : (
-              <>
-                <Copy className="w-4 h-4" />
-                <span>کپی متن دعوت‌نامه برای ارسال در ایتا و پیام‌رسان‌ها</span>
-              </>
-            )}
+            <span className="inline-flex items-center gap-1.5 transition-opacity duration-150">
+              {copied ? (
+                <>
+                  <Check className="w-4 h-4" />
+                  <span>متن دعوت‌نامه کپی شد!</span>
+                </>
+              ) : (
+                <>
+                  <Copy className="w-4 h-4" />
+                  <span>کپی متن دعوت‌نامه برای ارسال در ایتا و پیام‌رسان‌ها</span>
+                </>
+              )}
+            </span>
           </button>
         </div>
       </div>
     </div>
   );
 }
+

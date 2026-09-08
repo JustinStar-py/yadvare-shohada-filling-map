@@ -330,9 +330,9 @@ export default function SalawatButton({
               : "bg-gradient-to-b from-amber-400 via-amber-500 to-amber-600 text-slate-950 border border-amber-300/80 shadow-[inset_0_1px_0_rgba(255,255,255,0.45),inset_0_-2px_4px_rgba(180,83,9,0.3)]"
           }`}
           style={{
-            transitionProperty: "transform, filter, background-color, border-color",
-            transitionDuration: "180ms",
-            transitionTimingFunction: "cubic-bezier(0.22, 1, 0.36, 1)",
+            transitionProperty: "transform, filter, background-color, border-color, box-shadow",
+            transitionDuration: "160ms",
+            transitionTimingFunction: "cubic-bezier(0.23, 1, 0.32, 1)",
           }}
           aria-label="فرستادن صلوات و مشارکت در پویش معنوی یادواره ۷۶ شهید شهیدیه میبد"
         >

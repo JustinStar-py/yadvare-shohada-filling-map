@@ -108,7 +108,7 @@ export default function LaunchOverlay({
       {onClose && (
         <button
           onClick={onClose}
-          className="absolute top-[max(1rem,calc(env(safe-area-inset-top)+0.5rem))] left-[max(1rem,calc(env(safe-area-inset-left)+0.5rem))] z-50 p-2 rounded-full bg-slate-900/80 border border-slate-700/70 text-slate-400 hover:text-white pointer-events-auto transition-colors"
+          className="absolute top-[max(1rem,calc(env(safe-area-inset-top)+0.5rem))] left-[max(1rem,calc(env(safe-area-inset-left)+0.5rem))] z-50 p-2 rounded-full bg-slate-900/80 border border-slate-700/70 text-slate-400 hover:text-white pointer-events-auto cursor-pointer emil-btn"
           aria-label="بستن پنجره پرواز"
         >
           <X className="w-5 h-5" />
@@ -135,8 +135,8 @@ export default function LaunchOverlay({
       )}
 
       <div
-        className={`relative max-w-md w-full text-center flex flex-col items-center gap-6 px-6 transition-all duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] ${
-          contentVisible ? "opacity-100 translate-y-0 scale-100" : "opacity-0 -translate-y-8 scale-90"
+        className={`relative max-w-md w-full text-center flex flex-col items-center gap-6 px-6 transition-[transform,opacity] duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] ${
+          contentVisible ? "opacity-100 translate-y-0 scale-100" : "opacity-0 -translate-y-4 scale-95"
         }`}
       >
         {phase === "countdown" && (
@@ -183,7 +183,7 @@ export default function LaunchOverlay({
 
         {(phase === "completed" || phase === "fading") && (
           <div
-            className={`flex flex-col items-center gap-5 bg-slate-950/80 border border-amber-400/30 p-8 rounded-3xl shadow-[0_16px_50px_rgba(0,0,0,0.7)] backdrop-blur-md transition-all duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+            className={`flex flex-col items-center gap-5 bg-slate-950/80 border border-amber-400/30 p-8 rounded-3xl shadow-[0_16px_50px_rgba(0,0,0,0.7)] backdrop-blur-md transition-[transform,opacity] duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] ${
               contentVisible ? "opacity-100 translate-y-0 scale-100" : "opacity-0 translate-y-4 scale-95"
             }`}
           >

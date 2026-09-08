@@ -72,7 +72,7 @@ export default function Header({ tehranDate }: HeaderProps) {
       <div className="flex items-center gap-2">
         <button
           onClick={handleToggleAudio}
-          className="flex items-center gap-1.5 h-10 px-3.5 rounded-full bg-slate-800/70 border border-slate-700/60 text-xs text-slate-300 hover:text-white hover:border-slate-600 hover:bg-slate-800 transition-colors"
+          className="flex items-center gap-1.5 h-10 px-3.5 rounded-full bg-slate-800/70 border border-slate-700/60 text-xs text-slate-300 hover:text-white hover:border-slate-600 hover:bg-slate-800 cursor-pointer emil-btn"
           title={isMuted ? "روشن کردن صدای محیطی" : "قطع صدای محیطی"}
           aria-label={isMuted ? "روشن کردن صدای محیطی" : "قطع صدای محیطی"}
         >

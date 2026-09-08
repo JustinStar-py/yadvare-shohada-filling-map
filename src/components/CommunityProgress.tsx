@@ -76,7 +76,7 @@ export default function CommunityProgress({
                   type="button"
                   disabled={disabled}
                   onClick={onReplayLaunch}
-                  className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-300 hover:text-amber-200 bg-amber-500/15 border border-amber-500/30 px-2 py-0.5 rounded-full transition-colors cursor-pointer"
+                  className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-300 hover:text-amber-200 bg-amber-500/15 border border-amber-500/30 px-2 py-0.5 rounded-full cursor-pointer emil-btn"
                   title="مشاهده دوباره مراحل پرواز"
                 >
                   <Sparkles className="w-2.5 h-2.5" />
@@ -95,7 +95,7 @@ export default function CommunityProgress({
                   type="button"
                   disabled={disabled}
                   onClick={onReplayLaunch}
-                  className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-300 hover:text-amber-200 bg-amber-500/20 border border-amber-400/40 px-2 py-0.5 rounded-full transition-colors cursor-pointer animate-pulse"
+                  className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-300 hover:text-amber-200 bg-amber-500/20 border border-amber-400/40 px-2 py-0.5 rounded-full cursor-pointer animate-pulse emil-btn"
                   title="آغاز یا مشاهده پرواز معنوی"
                 >
                   <span>مشاهده پرواز</span>

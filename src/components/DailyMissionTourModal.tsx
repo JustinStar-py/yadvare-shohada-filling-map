@@ -8,6 +8,7 @@ import { soundEngine } from "@/lib/client/procedural-audio";
 import MartyrTulipIcon from "@/components/ui/MartyrTulipIcon";
 import YadvareLogo from "@/components/ui/YadvareLogo";
 import { Mail, Check, X } from "lucide-react";
+import { useModalTransition } from "@/lib/client/use-modal-transition";
 
 // WebGL budget optimization: Load 3D Envelope dynamically on client only when modal is mounted
 const Envelope3DCanvas = dynamic(() => import("./engine/Envelope3DCanvas"), {
@@ -52,6 +53,7 @@ export default function DailyMissionTourModal({
   const [letterStage, setLetterStage] = useState<"closed" | "emerging" | "revealed">(
     startRevealed ? "revealed" : "closed"
   );
+  const { mounted, visible } = useModalTransition(isOpen, 180);
 
   useEffect(() => {
     if (isOpen) {
@@ -76,7 +78,7 @@ export default function DailyMissionTourModal({
     return () => clearTimeout(timer);
   }, [isOpen, is3DReady, startRevealed]);
 
-  if (!isOpen || !mission) return null;
+  if (!mounted || !mission) return null;
 
   const handleOpenEnvelope = () => {
     if (!is3DReady || isOpeningEnvelope) return;
@@ -134,7 +136,13 @@ export default function DailyMissionTourModal({
   const isLetterActive = letterStage === "emerging" || letterStage === "revealed";
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-[#050811]/85 backdrop-blur-2xl animate-fade-in overflow-y-auto">
+    <div
+      role="dialog"
+      aria-modal="true"
+      className={`fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-[#050811]/85 backdrop-blur-2xl overflow-y-auto emil-modal-backdrop ${
+        visible ? "opacity-100" : "emil-modal-backdrop-hidden"
+      }`}
+    >
       {/* Ambient background glow */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-rose-600/[0.08] rounded-full blur-[120px] pointer-events-none" />
       <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] h-[350px] bg-amber-500/[0.07] rounded-full blur-[90px] pointer-events-none" />
@@ -143,7 +151,7 @@ export default function DailyMissionTourModal({
         <button
           type="button"
           onClick={onClose}
-          className="fixed top-4 left-4 sm:top-6 sm:left-6 w-9 h-9 rounded-full bg-slate-900/80 hover:bg-slate-800 border border-slate-700/80 text-slate-400 hover:text-slate-100 flex items-center justify-center transition-colors cursor-pointer z-50 shadow-lg backdrop-blur-md"
+          className="fixed top-4 left-4 sm:top-6 sm:left-6 w-9 h-9 rounded-full bg-slate-900/80 hover:bg-slate-800 border border-slate-700/80 text-slate-400 hover:text-slate-100 flex items-center justify-center cursor-pointer z-50 shadow-lg backdrop-blur-md emil-btn"
           title="بستن"
         >
           <X className="w-4 h-4" />
@@ -215,12 +223,12 @@ export default function DailyMissionTourModal({
               if (!is3DReady) return;
               handleOpenEnvelope();
             }}
-            className={`w-full max-w-xs py-3.5 px-6 rounded-2xl font-bold text-sm sm:text-base flex items-center justify-center gap-2.5 transition-all duration-300 relative z-30 select-none ${
+            className={`w-full max-w-xs py-3.5 px-6 rounded-2xl font-bold text-sm sm:text-base flex items-center justify-center gap-2.5 relative z-30 select-none emil-btn ${
               !is3DReady
                 ? "bg-slate-800/80 border border-slate-700 text-slate-400 cursor-not-allowed shadow-none"
                 : isOpeningEnvelope
                 ? "bg-slate-800 text-slate-400 cursor-not-allowed scale-95 shadow-none"
-                : "bg-gradient-to-l from-rose-600 via-rose-500 to-rose-600 text-white hover:brightness-110 active:scale-[0.98] shadow-[0_0_25px_rgba(225,29,72,0.4)] hover:shadow-[0_0_35px_rgba(225,29,72,0.6)] cursor-pointer"
+                : "bg-gradient-to-l from-rose-600 via-rose-500 to-rose-600 text-white hover:brightness-110 shadow-[0_0_25px_rgba(225,29,72,0.4)] hover:shadow-[0_0_35px_rgba(225,29,72,0.6)] cursor-pointer"
             }`}
           >
             {!is3DReady ? (
@@ -310,7 +318,7 @@ export default function DailyMissionTourModal({
           <button
             type="button"
             onClick={startRevealed && onClose ? onClose : handleConfirmMission}
-            className="mt-4 w-full py-3.5 px-6 rounded-2xl bg-gradient-to-l from-emerald-600 via-emerald-500 to-emerald-600 text-white font-bold text-sm sm:text-base shadow-[0_0_25px_rgba(16,185,129,0.35)] hover:shadow-[0_0_35px_rgba(16,185,129,0.5)] active:scale-[0.98] transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer relative z-50"
+            className="mt-4 w-full py-3.5 px-6 rounded-2xl bg-gradient-to-l from-emerald-600 via-emerald-500 to-emerald-600 text-white font-bold text-sm sm:text-base shadow-[0_0_25px_rgba(16,185,129,0.35)] hover:shadow-[0_0_35px_rgba(16,185,129,0.5)] flex items-center justify-center gap-2 cursor-pointer relative z-50 emil-btn"
           >
             <Check className="w-5 h-5" />
             <span>{startRevealed ? "بستن نامه" : "پذیرش عهد"}</span>

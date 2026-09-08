@@ -77,10 +77,10 @@ export default function HeroSection({
         <button
           type="button"
           onClick={() => setShowMemorialModal(true)}
-          className="group inline-flex items-center gap-2.5 px-4 sm:px-6 py-2 sm:py-2.5 rounded-full bg-slate-900/85 border border-amber-500/35 hover:border-amber-400/70 shadow-[0_4px_20px_rgba(0,0,0,0.5),0_0_12px_rgba(245,158,11,0.15)] hover:shadow-[0_4px_25px_rgba(245,158,11,0.25)] backdrop-blur-md transition-all duration-300 active:scale-95 cursor-pointer"
+          className="group inline-flex items-center gap-2.5 px-4 sm:px-6 py-2 sm:py-2.5 rounded-full bg-slate-900/85 border border-amber-500/35 hover:border-amber-400/70 shadow-[0_4px_20px_rgba(0,0,0,0.5),0_0_12px_rgba(245,158,11,0.15)] hover:shadow-[0_4px_25px_rgba(245,158,11,0.25)] backdrop-blur-md cursor-pointer emil-btn"
           title="مشاهده اطلاعات و شمارشگر معکوس یادواره شهدا"
         >
-          <Calendar className="w-4.5 h-4.5 sm:w-5 sm:h-5 text-amber-400 group-hover:scale-110 transition-transform shrink-0" />
+          <Calendar className="w-4.5 h-4.5 sm:w-5 sm:h-5 text-amber-400 group-hover:scale-110 transition-transform duration-160 shrink-0" />
           <span className="text-sm sm:text-base font-bold text-slate-100">
             {campaignPhase === "memorial_day" ? (
               <strong className="text-amber-300 font-black">امروز، روز برگزاری یادواره شهدا</strong>
@@ -96,19 +96,19 @@ export default function HeroSection({
           <span className="text-xs sm:text-sm text-slate-300 font-semibold">
             روز {toPersianDigits(mission.dayNumber)} پویش
           </span>
-          <span className="text-[10px] text-amber-400/80 bg-amber-500/15 border border-amber-500/30 px-2 py-0.5 rounded-full font-medium hidden sm:inline-flex items-center gap-1 group-hover:bg-amber-500/25 transition-colors">
+          <span className="text-[10px] text-amber-400/80 bg-amber-500/15 border border-amber-500/30 px-2 py-0.5 rounded-full font-medium hidden sm:inline-flex items-center gap-1 group-hover:bg-amber-500/25 transition-colors duration-160">
             اطلاعات مراسم ↗
           </span>
         </button>
 
         {userMission && (
           userMission.userContributed >= userMission.suggestedCount ? (
-            <div className="mt-1.5 inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold backdrop-blur-md transition-all duration-300 bg-emerald-950/85 border border-emerald-500/45 text-emerald-200 shadow-[0_0_15px_rgba(16,185,129,0.25)] animate-fade-in">
+            <div className="mt-1.5 inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold backdrop-blur-md bg-emerald-950/85 border border-emerald-500/45 text-emerald-200 shadow-[0_0_15px_rgba(16,185,129,0.25)] animate-fade-in">
               {/* Tap to view completed martyr letter */}
               <button
                 type="button"
                 onClick={onOpenMissionCard}
-                className="inline-flex items-center gap-1.5 text-emerald-100 hover:text-emerald-300 transition-colors cursor-pointer"
+                className="inline-flex items-center gap-1.5 text-emerald-100 hover:text-emerald-300 cursor-pointer emil-btn"
                 title="مشاهده نامه شهید"
               >
                 <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
@@ -121,7 +121,7 @@ export default function HeroSection({
                   <button
                     type="button"
                     onClick={onRenewMission}
-                    className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-slate-950 hover:brightness-110 active:scale-95 transition-all shadow-[0_0_10px_rgba(245,158,11,0.3)] cursor-pointer"
+                    className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-slate-950 hover:brightness-110 shadow-[0_0_10px_rgba(245,158,11,0.3)] cursor-pointer emil-btn"
                     title="شروع یک عهد معنوی جدید با شهیدی دیگر"
                   >
                     <Sparkles className="w-3 h-3 text-slate-950" />
@@ -134,7 +134,7 @@ export default function HeroSection({
             <button
               type="button"
               onClick={onOpenMissionCard}
-              className="mt-1.5 inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-medium backdrop-blur-md transition-all duration-300 shadow-sm active:scale-95 bg-slate-900/85 border border-rose-500/30 text-slate-200 hover:border-amber-500/45 hover:bg-slate-900 cursor-pointer"
+              className="mt-1.5 inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-medium backdrop-blur-md shadow-sm bg-slate-900/85 border border-rose-500/30 text-slate-200 hover:border-amber-500/45 hover:bg-slate-900 cursor-pointer emil-btn"
               title="مشاهده نامه و عهد معنوی امروز"
             >
               <MartyrTulipIcon className="w-3.5 h-3.5 shrink-0" />

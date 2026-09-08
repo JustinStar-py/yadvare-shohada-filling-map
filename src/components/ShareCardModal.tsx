@@ -4,6 +4,7 @@ import React, { useEffect, useState, useCallback } from "react";
 import { formatPersianNumber, toPersianDigits, formatShortJalaliDate } from "@/lib/utils";
 import { Share2, X, Check, Copy, Send } from "lucide-react";
 import YadvareLogo from "@/components/ui/YadvareLogo";
+import { useModalTransition } from "@/lib/client/use-modal-transition";
 
 interface ShareCardModalProps {
   isOpen: boolean;
@@ -21,6 +22,7 @@ export default function ShareCardModal({
   tehranDate,
 }: ShareCardModalProps) {
   const [copied, setCopied] = useState(false);
+  const { mounted, visible } = useModalTransition(isOpen, 180);
 
   const shareText = `«هر صلوات، یک قدم تا پرواز»\nامروز مردم در پویش یادواره شهدا با هم ${formatPersianNumber(
     salawatCount
@@ -61,22 +63,26 @@ export default function ShareCardModal({
     };
   }, [isOpen, onClose]);
 
-  if (!isOpen) return null;
+  if (!mounted) return null;
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-[#02040a]/85 backdrop-blur-md p-4 animate-in fade-in duration-300"
+      className={`fixed inset-0 z-50 flex items-center justify-center bg-[#02040a]/85 backdrop-blur-md p-4 emil-modal-backdrop ${
+        visible ? "opacity-100" : "emil-modal-backdrop-hidden"
+      }`}
       onClick={onClose}
       role="dialog"
       aria-label="اشتراک‌گذاری سهم امروز پویش"
     >
       <div
-        className="glass-panel rounded-3xl p-6 sm:p-7 max-w-sm w-full relative flex flex-col items-center gap-5 animate-in zoom-in-95 duration-300"
+        className={`glass-panel rounded-3xl p-6 sm:p-7 max-w-sm w-full relative flex flex-col items-center gap-5 emil-modal-content ${
+          visible ? "opacity-100 scale-100" : "emil-modal-content-hidden"
+        }`}
         onClick={(e) => e.stopPropagation()}
       >
         <button
           onClick={onClose}
-          className="absolute top-4 left-4 text-slate-500 hover:text-slate-200 transition-colors p-1.5"
+          className="absolute top-4 left-4 text-slate-500 hover:text-slate-200 p-1.5 cursor-pointer emil-btn rounded-full"
           aria-label="بستن"
         >
           <X className="w-5 h-5" />
@@ -122,24 +128,26 @@ export default function ShareCardModal({
         <div className="flex items-center gap-3 w-full">
           <button
             onClick={handleNativeShare}
-            className="flex-1 min-h-[46px] py-2.5 px-4 rounded-xl bg-gradient-to-b from-amber-400 to-amber-600 text-xs font-bold text-slate-950 hover:brightness-110 transition-all flex items-center justify-center gap-1.5 shadow-[0_6px_18px_rgba(245,158,11,0.3)]"
+            className="flex-1 min-h-[46px] py-2.5 px-4 rounded-xl bg-gradient-to-b from-amber-400 to-amber-600 text-xs font-bold text-slate-950 hover:brightness-110 flex items-center justify-center gap-1.5 shadow-[0_6px_18px_rgba(245,158,11,0.3)] cursor-pointer emil-btn"
           >
             <Send className="w-4 h-4" />
             <span>اشتراک‌گذاری</span>
           </button>
           <button
             onClick={handleCopy}
-            className="min-h-[46px] py-2.5 px-4 rounded-xl bg-slate-800/80 border border-slate-700 text-xs font-semibold text-slate-200 hover:bg-slate-700 transition-colors flex items-center justify-center gap-1.5"
+            className="min-h-[46px] py-2.5 px-4 rounded-xl bg-slate-800/80 border border-slate-700 text-xs font-semibold text-slate-200 hover:bg-slate-700 flex items-center justify-center gap-1.5 cursor-pointer emil-btn"
             aria-label="کپی متن پیام"
           >
-            {copied ? (
-              <>
-                <Check className="w-4 h-4 text-emerald-400" />
-                <span className="text-emerald-400">کپی شد!</span>
-              </>
-            ) : (
-              <Copy className="w-4 h-4" />
-            )}
+            <span className="inline-flex items-center gap-1.5 transition-opacity duration-150">
+              {copied ? (
+                <>
+                  <Check className="w-4 h-4 text-emerald-400" />
+                  <span className="text-emerald-400 font-bold">کپی شد!</span>
+                </>
+              ) : (
+                <Copy className="w-4 h-4" />
+              )}
+            </span>
           </button>
         </div>
       </div>
