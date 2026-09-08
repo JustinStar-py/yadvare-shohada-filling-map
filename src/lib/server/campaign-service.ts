@@ -43,13 +43,57 @@ export class CampaignService {
   }
 
   /**
-   * Resolves martyr for a given date
+   * Partitions martyrs across the 8 days leading up to and including memorial date.
+   * Total 76 martyrs of Shahidieh:
+   * Days 1-4: 10 martyrs each (40 martyrs)
+   * Days 5-8: 9 martyrs each (36 martyrs)
+   * Total = 76 martyrs
+   */
+  static resolveMartyrsForDate(
+    dateStr: string,
+    martyrs: MartyrProfile[],
+    memorialDateStr = "2026-09-17"
+  ): MartyrProfile[] {
+    if (!martyrs || martyrs.length === 0) return [];
+
+    // First check if any martyrs are explicitly assigned to this date
+    const explicit = martyrs.filter((m) => m.assignedDate === dateStr);
+    if (explicit.length > 0) return explicit;
+
+    const totalDays = 8;
+    const totalMartyrs = martyrs.length;
+    const baseSize = Math.floor(totalMartyrs / totalDays); // 76 / 8 = 9
+    const remainder = totalMartyrs % totalDays; // 76 % 8 = 4
+
+    // Start date of the 8-day period leading to memorialDate:
+    // e.g. "2026-09-09" when memorialDate is "2026-09-17"
+    const [my, mm, md] = memorialDateStr.split("-").map(Number);
+    const memorialUtc = Date.UTC(my, mm - 1, md);
+    const startDateUtc = memorialUtc - (totalDays * 24 * 60 * 60 * 1000);
+    const startDateStr = new Date(startDateUtc).toISOString().slice(0, 10);
+
+    const dayDiff = getDaysDifference(startDateStr, dateStr);
+    const dayIndex = Math.min(totalDays - 1, Math.max(0, dayDiff));
+
+    let startIndex = 0;
+    for (let d = 0; d < dayIndex; d++) {
+      const size = d < remainder ? baseSize + 1 : baseSize;
+      startIndex += size;
+    }
+    const currentSize = dayIndex < remainder ? baseSize + 1 : baseSize;
+    return martyrs.slice(startIndex, startIndex + currentSize);
+  }
+
+  /**
+   * Resolves primary martyr for a given date
    */
   static resolveMartyrForDate(
     dateStr: string,
     martyrs: MartyrProfile[],
     dayNumber: number
   ): MartyrProfile | null {
+    const list = this.resolveMartyrsForDate(dateStr, martyrs);
+    if (list.length > 0) return list[0];
     if (martyrs.length === 0) return null;
 
     // First check explicit assignment
@@ -118,8 +162,9 @@ export class CampaignService {
       campaignPhase = "distant";
     }
 
-    // Resolve today's martyr
-    const todayMartyr = this.resolveMartyrForDate(today, db.martyrs, mission.dayNumber);
+    // Resolve today's martyrs (the 9-10 martyrs of today)
+    const todayMartyrs = this.resolveMartyrsForDate(today, db.martyrs, db.settings.memorialDate);
+    const todayMartyr = todayMartyrs[0] ?? this.resolveMartyrForDate(today, db.martyrs, mission.dayNumber);
 
     // Calculate total campaign statistics using cached running counter
     let totalCampaignSalawat = typeof db.totalCampaignSalawat === "number" ? db.totalCampaignSalawat : 0;
@@ -141,6 +186,7 @@ export class CampaignService {
       campaignPhase,
       mission,
       todayMartyr,
+      todayMartyrs,
       totalCampaignSalawat,
       totalLaunchesCount,
       constellation: db.constellation,

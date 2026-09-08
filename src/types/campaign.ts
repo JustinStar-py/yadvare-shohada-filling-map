@@ -81,6 +81,7 @@ export interface PublicCampaignState {
   campaignPhase: "distant" | "momentum" | "approaching" | "culmination" | "memorial_day" | "archived";
   mission: DailyMission;
   todayMartyr: MartyrProfile | null;
+  todayMartyrs?: MartyrProfile[];
   totalCampaignSalawat: number;
   totalLaunchesCount: number;
   constellation: ConstellationStar[];

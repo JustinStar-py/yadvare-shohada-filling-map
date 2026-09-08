@@ -14,7 +14,7 @@ import ShareCardModal from "@/components/ShareCardModal";
 import { PublicCampaignState, SalawatSubmissionResponse, MartyrProfile } from "@/types/campaign";
 import { soundEngine } from "@/lib/client/procedural-audio";
 import YadvareLogo from "@/components/ui/YadvareLogo";
-import { generateUUID } from "@/lib/utils";
+import { generateUUID, toPersianDigits } from "@/lib/utils";
 import DailyMissionTourModal, { UserDailyMission } from "@/components/DailyMissionTourModal";
 import { getOrCreateVisitorId } from "@/lib/client/visitor-id";
 
@@ -683,8 +683,8 @@ export default function HomePage() {
 
         {/* Below-the-fold Secondary Remembrance & Info Sections */}
         <div className="w-full bg-gradient-to-b from-transparent via-[#080c14]/95 to-[#05080e] pt-14 pb-16 border-t border-white/[0.03]">
-          {/* Today's Dedication to Martyr */}
-          <DedicationCard martyr={state.todayMartyr} />
+          {/* Today's Dedication to Martyrs */}
+          <DedicationCard martyr={state.todayMartyr} martyrs={state.todayMartyrs} />
 
           {/* Campaign Narrative & Metaphor Story */}
           <CampaignStory />
@@ -724,7 +724,11 @@ export default function HomePage() {
       {/* Launch Countdown & Ascension Sequence Overlay */}
       <LaunchOverlay
         isOpen={showLaunchOverlay}
-        martyrName={state.todayMartyr?.name || "شهدای والامقام"}
+        martyrName={
+          state.todayMartyrs && state.todayMartyrs.length > 1
+            ? `${toPersianDigits(state.todayMartyrs.length)} شهید والامقام دیار شهیدیه`
+            : state.todayMartyr?.name || "شهدای والامقام"
+        }
         onComplete={handleLaunchOverlayComplete}
         onLiftOff={handleLiftOff}
         onClose={handleLaunchOverlayClose}

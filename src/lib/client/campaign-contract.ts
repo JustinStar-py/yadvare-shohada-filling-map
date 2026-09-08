@@ -16,6 +16,7 @@ export const PublicStateSchema = z.object({
     epoch: finiteCount.int().optional(), launchTimestamp: z.number().finite().optional(),
     martyrId: z.string().optional(), isOverrideTarget: z.boolean() }),
   todayMartyr: MartyrProfileSchema.extend({ id: z.string() }).nullable(),
+  todayMartyrs: z.array(MartyrProfileSchema.extend({ id: z.string() })).optional(),
   totalCampaignSalawat: finiteCount, totalLaunchesCount: finiteCount,
   constellation: z.array(z.object({ date: z.string(), dayNumber: finiteCount, salawatCount: finiteCount,
     target: finiteCount, martyrName: z.string(), x: z.number().finite(), y: z.number().finite(),
