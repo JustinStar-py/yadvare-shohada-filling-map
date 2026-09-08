@@ -15,7 +15,7 @@
     "visualPreset": "balanced",
     "finalMessage": "در این مسیر نورانی، با هم هزاران صلوات تقدیم روح پرفتوح شهدا کردیم. یادشان تا ابد در دل‌ها جاودان باد.",
     "isCompleted": false,
-    "activeMissileModel": "kheibar",
+    "activeMissileModel": "fattah",
     "adminPinHash": "scrypt$916426ebc2ae319ade07e1ade525eb6e$80ccb1fff0f01f4d34d5e0d1053a259a391d9b8d85e3338256b523224f1258c9"
   },
   "missions": {
@@ -764,22 +764,6 @@
     }
   ],
   "idempotencyKeys": {
-    "675d0b2a-b9b6-4806-80c1-ba6ec4fa501c": {
-      "timestamp": 1788732082298,
-      "count": 1
-    },
-    "b5f6f15c-dfdc-4cf7-b401-0372de370767": {
-      "timestamp": 1788732082537,
-      "count": 1
-    },
-    "6eacb9c2-c8ee-4b50-adeb-eb289423cc8e": {
-      "timestamp": 1788732083990,
-      "count": 1
-    },
-    "fbe27dd9-7dcd-47bf-a328-4fe1a9fb7c0c": {
-      "timestamp": 1788732084902,
-      "count": 1
-    },
     "55dab36c-449b-42f5-b710-33e56d679d93": {
       "timestamp": 1788732920424,
       "count": 1
@@ -998,6 +982,13 @@
     }
   },
   "auditLogs": [
+    {
+      "id": "ab86cc07-3f73-4c12-8ecb-bc14aaa3c42a",
+      "timestamp": 1788905336541,
+      "action": "SETTINGS_UPDATED",
+      "details": "تنظیمات کلی پویش بروزرسانی شد.",
+      "ip": "::1"
+    },
     {
       "id": "1a47519d-01cd-48aa-bbd0-2b794e56d6c5",
       "timestamp": 1788904176810,

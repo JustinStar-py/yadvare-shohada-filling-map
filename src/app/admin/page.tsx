@@ -36,6 +36,12 @@ import {
 } from "@/types/campaign";
 import { MISSILE_MODELS, MissileModel } from "@/components/engine/missile-catalog";
 import { formatPersianNumber, toPersianDigits, formatTehranTime, formatJalaliDate } from "@/lib/utils";
+import dynamic from "next/dynamic";
+
+const Missile3DThumbnail = dynamic(
+  () => import("@/components/engine/Missile3DThumbnail"),
+  { ssr: false }
+);
 
 export default function AdminPage() {
   const [pin, setPin] = useState("");
@@ -739,8 +745,63 @@ export default function AdminPage() {
               </div>
             </div>
 
-            {/* Audio & Background Music Control Widget */}
-            <div className="p-6 rounded-3xl bg-slate-900/80 border border-slate-800 flex flex-col gap-4">
+            {/* Active Missile Model Selector Card (Placed BEFORE Audio Panel) */}
+            <div className="md:col-span-3 p-6 rounded-3xl bg-slate-900/80 border border-slate-800 flex flex-col gap-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <h3 className="text-base font-bold text-slate-100 flex items-center gap-2">
+                  <Rocket className="w-4 h-4 text-amber-400" />
+                  <span>مدل موشک فعال در پویش (نمایش سه‌بعدی و انتخاب آنلاین)</span>
+                </h3>
+                <span className="text-xs text-amber-300 font-bold bg-amber-500/15 border border-amber-500/40 px-3 py-1 rounded-full self-start sm:self-auto">
+                  مدل فعال فعلی: {MISSILE_MODELS.find((m) => m.id === (settings?.activeMissileModel || "kheibar"))?.label}
+                </span>
+              </div>
+              <p className="text-xs text-slate-400">
+                مدیر گرامی، مدل‌های سه‌بعدی موشک‌ها با مشخصات ظاهری، رنگ یکپارچه کلاهک و بوستر و مخزن متالیک شفاف در باکس زیر نمایش داده شده‌اند. برای تغییر مدل موشک صفحه اصلی، روی کارت موردنظر کلیک کنید:
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                {MISSILE_MODELS.map((item) => {
+                  const isSelected = (settings?.activeMissileModel || "kheibar") === item.id;
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => handleSelectMissileModel(item.id)}
+                      className={`p-4 rounded-2xl border text-right transition-all flex flex-col justify-between gap-3 cursor-pointer group ${
+                        isSelected
+                          ? "bg-slate-950 border-amber-500/80 shadow-[0_0_24px_rgba(245,158,11,0.25)] ring-1 ring-amber-500/50"
+                          : "bg-slate-950/60 border-slate-800 hover:border-slate-700 hover:bg-slate-900/70"
+                      }`}
+                    >
+                      <div className="w-full flex items-center justify-between">
+                        <span className={`text-sm font-black ${isSelected ? "text-amber-300" : "text-slate-200"}`}>
+                          {item.label}
+                        </span>
+                        {isSelected ? (
+                          <span className="text-[10px] bg-amber-500 text-slate-950 font-bold px-2 py-0.5 rounded-full shadow-sm">
+                            فعال در پویش ✓
+                          </span>
+                        ) : (
+                          <span className="text-[10px] text-slate-400 bg-slate-800/80 group-hover:text-slate-200 px-2 py-0.5 rounded-full">
+                            انتخاب این مدل
+                          </span>
+                        )}
+                      </div>
+
+                      {/* 3D Model Interactive Preview Box */}
+                      <div className="w-full h-44 rounded-xl bg-slate-900/60 border border-slate-800/60 flex items-center justify-center overflow-hidden relative group-hover:border-amber-500/30 transition-colors">
+                        <Missile3DThumbnail model={item.id} isSelected={isSelected} className="w-full h-full" />
+                      </div>
+
+                      <p className="text-[11px] text-slate-400 leading-relaxed">{item.caption}</p>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Audio & Background Music Control Widget (Placed AFTER Missile Panel) */}
+            <div className="md:col-span-3 lg:col-span-1 p-6 rounded-3xl bg-slate-900/80 border border-slate-800 flex flex-col gap-4">
               <h3 className="text-base font-bold text-slate-100 flex items-center gap-2">
                 <Volume2 className="w-4 h-4 text-amber-400" />
                 <span>مدیریت صوت و موزیک زمینه</span>
@@ -785,51 +846,6 @@ export default function AdminPage() {
                     </>
                   )}
                 </button>
-              </div>
-            </div>
-
-            {/* Active Missile Model Selector Card */}
-            <div className="md:col-span-3 p-6 rounded-3xl bg-slate-900/80 border border-slate-800 flex flex-col gap-4">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                <h3 className="text-base font-bold text-slate-100 flex items-center gap-2">
-                  <Rocket className="w-4 h-4 text-amber-400" />
-                  <span>مدل موشک فعال در پویش (نمایش در صفحه اصلی)</span>
-                </h3>
-                <span className="text-xs text-amber-300 font-bold bg-amber-500/15 border border-amber-500/40 px-3 py-1 rounded-full self-start sm:self-auto">
-                  مدل انتخابی: {MISSILE_MODELS.find((m) => m.id === (settings?.activeMissileModel || "kheibar"))?.label}
-                </span>
-              </div>
-              <p className="text-xs text-slate-400">
-                مدیر گرامی، مدل موشک انتخابی شما بلافاصله در صفحه اصلی برای تمامی مخاطبان تغییر خواهد کرد. مدل مدنظرتان را انتخاب کنید:
-              </p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                {MISSILE_MODELS.map((item) => {
-                  const isSelected = (settings?.activeMissileModel || "kheibar") === item.id;
-                  return (
-                    <button
-                      key={item.id}
-                      type="button"
-                      onClick={() => handleSelectMissileModel(item.id)}
-                      className={`p-4 rounded-2xl border text-right transition-all flex flex-col justify-between gap-3 cursor-pointer ${
-                        isSelected
-                          ? "bg-amber-500/15 border-amber-500/80 shadow-[0_0_20px_rgba(245,158,11,0.22)] ring-1 ring-amber-500/50"
-                          : "bg-slate-950/60 border-slate-800 hover:border-slate-700 hover:bg-slate-900/70"
-                      }`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className={`text-sm font-black ${isSelected ? "text-amber-300" : "text-slate-200"}`}>
-                          {item.label}
-                        </span>
-                        {isSelected && (
-                          <span className="text-[10px] bg-amber-500 text-slate-950 font-bold px-2 py-0.5 rounded-full">
-                            فعال در پویش
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-[11px] text-slate-400 leading-relaxed">{item.caption}</p>
-                    </button>
-                  );
-                })}
               </div>
             </div>
           </div>
