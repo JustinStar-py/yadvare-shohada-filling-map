@@ -657,7 +657,7 @@ export default function HomePage() {
       {/* Header Bar: Fixed overlay at top, floats seamlessly over the celestial sky without displacing layout */}
       <div
         className={`fixed top-0 inset-x-0 z-30 pointer-events-none transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] pt-[env(safe-area-inset-top)] ${
-          hasLiftedOff ? "-translate-y-full opacity-0" : "translate-y-0 opacity-100"
+          hasLiftedOff || showLaunchOverlay ? "-translate-y-full opacity-0" : "translate-y-0 opacity-100"
         }`}
       >
         <Header tehranDate={state.tehranDate} />

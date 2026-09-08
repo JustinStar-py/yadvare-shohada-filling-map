@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useMemo, useCallback } from "react";
+import { createPortal } from "react-dom";
 import {
   Calendar,
   Clock,
@@ -150,12 +151,12 @@ export default function MemorialDialogModal({
 
   if (!isModalMounted) return null;
 
-  return (
+  return createPortal(
     <div
       role="dialog"
       aria-modal="true"
       aria-labelledby="memorial-dialog-title"
-      className={`fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-[#050811]/85 backdrop-blur-2xl overflow-y-auto emil-modal-backdrop ${
+      className={`fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 bg-[#050811]/90 backdrop-blur-2xl overflow-y-auto emil-modal-backdrop ${
         isModalVisible ? "opacity-100" : "emil-modal-backdrop-hidden"
       }`}
       onClick={(e) => {
@@ -175,10 +176,11 @@ export default function MemorialDialogModal({
         <div className="absolute top-0 right-0 w-32 h-32 bg-radial from-amber-500/15 via-transparent to-transparent pointer-events-none" />
         <div className="absolute bottom-0 left-0 w-32 h-32 bg-radial from-teal-500/10 via-transparent to-transparent pointer-events-none" />
 
-        {/* Close button */}
+        {/* Prominent, touch-friendly close button */}
         <button
+          type="button"
           onClick={onClose}
-          className="absolute top-4 left-4 p-2 rounded-full bg-slate-800/60 hover:bg-slate-700/80 text-slate-400 hover:text-white cursor-pointer z-20 emil-btn"
+          className="absolute top-4 left-4 sm:top-5 sm:left-5 w-9 h-9 rounded-full bg-slate-800/90 hover:bg-slate-700 border border-slate-700/70 hover:border-amber-500/50 text-slate-300 hover:text-white flex items-center justify-center transition-all cursor-pointer z-30 shadow-lg emil-btn"
           aria-label="بستن پنجره"
         >
           <X className="w-5 h-5" />
@@ -344,9 +346,19 @@ export default function MemorialDialogModal({
               )}
             </span>
           </button>
+
+          {/* Dismiss button for quick thumb access on mobile */}
+          <button
+            type="button"
+            onClick={onClose}
+            className="w-full py-2.5 px-4 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-700/60 hover:border-slate-600 text-slate-400 hover:text-slate-200 font-bold text-xs transition-colors cursor-pointer emil-btn"
+          >
+            بستن پنجره
+          </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 

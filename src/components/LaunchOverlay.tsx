@@ -4,7 +4,6 @@ import React, { useEffect, useState, useRef } from "react";
 import { toPersianDigits } from "@/lib/utils";
 import { soundEngine } from "@/lib/client/procedural-audio";
 import { X } from "lucide-react";
-import YadvareLogo from "@/components/ui/YadvareLogo";
 
 interface LaunchOverlayProps {
   isOpen: boolean;
@@ -91,12 +90,14 @@ export default function LaunchOverlay({
     <div
       className={`fixed inset-0 z-50 flex items-center justify-center transition-all duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] pointer-events-none ${
         phase === "fading" ? "opacity-0" : "opacity-100"
+      } ${
+        phase === "countdown" ? "backdrop-blur-md bg-slate-950/45" : ""
       }`}
       style={{
         // Completely transparent during flight so the rocket is 100% visible without any blue screen or blur
         background:
           phase === "countdown"
-            ? "radial-gradient(ellipse at 50% 25%, rgba(2,4,9,0.35) 0%, rgba(2,4,9,0.65) 100%)"
+            ? "radial-gradient(ellipse at 50% 50%, rgba(2,4,9,0.3) 0%, rgba(2,4,9,0.6) 100%)"
             : phase === "completed"
             ? "radial-gradient(ellipse at 50% 50%, rgba(2,4,9,0.4) 0%, rgba(2,4,9,0.7) 100%)"
             : "transparent",
@@ -104,11 +105,11 @@ export default function LaunchOverlay({
       role="dialog"
       aria-label="مراحل پرواز معنوی"
     >
-      {/* Optional dismiss button with safe-area support */}
+      {/* Optional dismiss button placed on top-right (away from top-left sound button) */}
       {onClose && (
         <button
           onClick={onClose}
-          className="absolute top-[max(1rem,calc(env(safe-area-inset-top)+0.5rem))] left-[max(1rem,calc(env(safe-area-inset-left)+0.5rem))] z-50 p-2 rounded-full bg-slate-900/80 border border-slate-700/70 text-slate-400 hover:text-white pointer-events-auto cursor-pointer emil-btn"
+          className="absolute top-[max(1rem,calc(env(safe-area-inset-top)+0.5rem))] right-[max(1rem,calc(env(safe-area-inset-right)+0.5rem))] z-50 p-2 rounded-full bg-slate-900/80 border border-slate-700/70 text-slate-400 hover:text-white pointer-events-auto cursor-pointer emil-btn"
           aria-label="بستن پنجره پرواز"
         >
           <X className="w-5 h-5" />
@@ -139,22 +140,23 @@ export default function LaunchOverlay({
           contentVisible ? "opacity-100 translate-y-0 scale-100" : "opacity-0 -translate-y-4 scale-95"
         }`}
       >
+        {/* Countdown phase: Floating minimal circular counter with progress ring on blurred screen (NO box, NO logo) */}
         {phase === "countdown" && (
-          <div className="flex flex-col items-center gap-4 bg-slate-950/70 border border-amber-500/25 p-7 rounded-3xl shadow-[0_12px_40px_rgba(0,0,0,0.6)] backdrop-blur-md">
-            <div className="w-16 h-16 rounded-full bg-amber-500/10 border border-amber-500/30 flex items-center justify-center shadow-[0_0_20px_rgba(245,158,11,0.35)]">
-              <YadvareLogo className="w-11 h-11 drop-shadow-md" />
-            </div>
+          <div className="relative flex items-center justify-center">
+            {/* Ambient golden aura behind the counter */}
+            <div className="absolute w-56 h-56 sm:w-64 sm:h-64 rounded-full bg-amber-500/20 blur-3xl pointer-events-none animate-pulse" />
+
             {/* Countdown numeral with progress ring */}
-            <div className="relative w-40 h-40 my-1">
-              <svg viewBox="0 0 100 100" className="absolute inset-0 -rotate-90">
-                <circle cx="50" cy="50" r="45" fill="none" stroke="rgba(30,41,59,0.8)" strokeWidth="2.5" />
+            <div className="relative w-44 h-44 sm:w-52 sm:h-52 flex items-center justify-center">
+              <svg viewBox="0 0 100 100" className="absolute inset-0 w-full h-full -rotate-90 drop-shadow-[0_0_24px_rgba(245,158,11,0.6)]">
+                <circle cx="50" cy="50" r="45" fill="none" stroke="rgba(255,255,255,0.12)" strokeWidth="2.5" />
                 <circle
                   cx="50"
                   cy="50"
                   r="45"
                   fill="none"
                   stroke="url(#lo-ring)"
-                  strokeWidth="2.5"
+                  strokeWidth="3.2"
                   strokeLinecap="round"
                   strokeDasharray={2 * Math.PI * 45}
                   strokeDashoffset={2 * Math.PI * 45 * (1 - count / COUNT_START)}
@@ -163,14 +165,14 @@ export default function LaunchOverlay({
                 <defs>
                   <linearGradient id="lo-ring" x1="0%" y1="0%" x2="100%" y2="100%">
                     <stop offset="0%" stopColor="#f59e0b" />
-                    <stop offset="100%" stopColor="#fde68a" />
+                    <stop offset="100%" stopColor="#fef08a" />
                   </linearGradient>
                 </defs>
               </svg>
-              <div className="absolute inset-0 flex items-center justify-center">
+              <div className="relative z-10 flex items-center justify-center">
                 <span
                   key={count}
-                  className="text-7xl font-black text-amber-300 tracking-wider animate-count-pop drop-shadow-[0_0_35px_rgba(245,158,11,0.55)] tabular-nums"
+                  className="text-8xl sm:text-9xl font-black text-amber-300 tracking-wider animate-count-pop drop-shadow-[0_0_40px_rgba(245,158,11,0.85)] drop-shadow-[0_4px_16px_rgba(0,0,0,0.9)] tabular-nums select-none"
                 >
                   {toPersianDigits(count)}
                 </span>
