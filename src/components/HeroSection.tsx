@@ -8,7 +8,7 @@ import OdometerNumber from "./ui/OdometerNumber";
 import { PublicCampaignState, SalawatSubmissionResponse } from "@/types/campaign";
 import { toPersianDigits } from "@/lib/utils";
 import { useCountUp } from "@/lib/client/use-count-up";
-import { Calendar, Target, Sparkles } from "lucide-react";
+import { Calendar, Target, Sparkles, Check } from "lucide-react";
 import MartyrTulipIcon from "@/components/ui/MartyrTulipIcon";
 import { UserDailyMission } from "@/components/DailyMissionTourModal";
 
@@ -25,6 +25,7 @@ interface HeroSectionProps {
   energyBurstTrigger: number;
   userMission?: UserDailyMission | null;
   onOpenMissionCard?: () => void;
+  onRenewMission?: () => void;
 }
 
 export default function HeroSection({
@@ -39,6 +40,7 @@ export default function HeroSection({
   energyBurstTrigger,
   userMission,
   onOpenMissionCard,
+  onRenewMission,
 }: HeroSectionProps) {
   const { mission, daysRemaining, campaignPhase } = campaignState;
   const [isRocketReady, setIsRocketReady] = useState(false);
@@ -90,34 +92,55 @@ export default function HeroSection({
         </div>
 
         {userMission && (
-          <button
-            type="button"
-            onClick={onOpenMissionCard}
-            className={`mt-1.5 inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-medium backdrop-blur-md transition-all duration-300 shadow-sm active:scale-95 ${
-              userMission.userContributed >= userMission.suggestedCount
-                ? "bg-emerald-950/80 border border-emerald-500/40 text-emerald-200 shadow-[0_0_15px_rgba(16,185,129,0.25)]"
-                : "bg-slate-900/85 border border-rose-500/30 text-slate-200 hover:border-amber-500/45 hover:bg-slate-900"
-            }`}
-            title="مشاهده نامه و عهد معنوی امروز"
-          >
-            <MartyrTulipIcon className="w-3.5 h-3.5 shrink-0" />
-            <span className="text-slate-300">عهد امروز:</span>
-            <span className="font-bold text-amber-300">{userMission.martyr.name}</span>
-            <span className="text-slate-500">•</span>
-            <span className="tabular-nums font-bold text-slate-100 inline-flex items-center gap-1">
-              <span className="text-amber-300 font-black transition-all duration-200">
-                {toPersianDigits(userMission.userContributed)}
+          userMission.userContributed >= userMission.suggestedCount ? (
+            <div className="mt-1.5 inline-flex items-center gap-2 max-w-full flex-wrap justify-center animate-fade-in">
+              {/* Badge: عهد شما تمام شد */}
+              <button
+                type="button"
+                onClick={onOpenMissionCard}
+                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold backdrop-blur-md transition-all duration-300 shadow-sm active:scale-95 bg-emerald-950/85 border border-emerald-500/45 text-emerald-200 shadow-[0_0_15px_rgba(16,185,129,0.25)] hover:bg-emerald-900/80 cursor-pointer"
+                title="مشاهده نامه شهید"
+              >
+                <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                <span>عهد شما تمام شد</span>
+                <span className="text-emerald-400/60">•</span>
+                <span className="text-emerald-300/90 text-[11px] font-normal">{userMission.martyr.name}</span>
+              </button>
+
+              {/* Action Button: عهد مجدد */}
+              {onRenewMission && (
+                <button
+                  type="button"
+                  onClick={onRenewMission}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold backdrop-blur-md transition-all duration-300 active:scale-95 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-slate-950 hover:brightness-110 shadow-[0_0_16px_rgba(245,158,11,0.35)] cursor-pointer"
+                  title="شروع یک عهد معنوی جدید با شهیدی دیگر"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-slate-950" />
+                  <span>عهد مجدد</span>
+                </button>
+              )}
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={onOpenMissionCard}
+              className="mt-1.5 inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-medium backdrop-blur-md transition-all duration-300 shadow-sm active:scale-95 bg-slate-900/85 border border-rose-500/30 text-slate-200 hover:border-amber-500/45 hover:bg-slate-900 cursor-pointer"
+              title="مشاهده نامه و عهد معنوی امروز"
+            >
+              <MartyrTulipIcon className="w-3.5 h-3.5 shrink-0" />
+              <span className="text-slate-300">عهد امروز:</span>
+              <span className="font-bold text-amber-300">{userMission.martyr.name}</span>
+              <span className="text-slate-500">•</span>
+              <span className="tabular-nums font-bold text-slate-100 inline-flex items-center gap-1">
+                <span className="text-amber-300 font-black transition-all duration-200">
+                  {toPersianDigits(userMission.userContributed)}
+                </span>
+                <span className="text-slate-400 font-medium text-[11px]">از</span>
+                <span>{toPersianDigits(userMission.suggestedCount)}</span>
+                <span className="text-slate-300">صلوات</span>
               </span>
-              <span className="text-slate-400 font-medium text-[11px]">از</span>
-              <span>{toPersianDigits(userMission.suggestedCount)}</span>
-              <span className="text-slate-300">صلوات</span>
-            </span>
-            {userMission.userContributed >= userMission.suggestedCount && (
-              <span className="text-[10px] text-emerald-300 font-extrabold bg-emerald-500/25 px-1.5 py-0.5 rounded-full">
-                تکمیل شد
-              </span>
-            )}
-          </button>
+            </button>
+          )
         )}
       </div>
 

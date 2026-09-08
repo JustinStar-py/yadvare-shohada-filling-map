@@ -25,12 +25,13 @@ export interface UserDailyMission {
   suggestedCount: number;
   userContributed: number;
   completedTour: boolean;
+  cycle?: number;
 }
 
 interface DailyMissionTourModalProps {
   isOpen: boolean;
   date: string;
-  mission: { martyr: MartyrProfile; suggestedCount: number } | null;
+  mission: { martyr: MartyrProfile; suggestedCount: number; cycle?: number } | null;
   onComplete: (mission: UserDailyMission) => void;
   onClose?: () => void;
   startRevealed?: boolean;
@@ -111,6 +112,7 @@ export default function DailyMissionTourModal({
       suggestedCount: mission.suggestedCount,
       userContributed: 0,
       completedTour: true,
+      cycle: mission.cycle ?? 0,
     };
 
     onComplete(completed);
@@ -304,14 +306,14 @@ export default function DailyMissionTourModal({
             </div>
           </div>
 
-          {/* Accept Button */}
+          {/* Accept or Close Button */}
           <button
             type="button"
-            onClick={handleConfirmMission}
+            onClick={startRevealed && onClose ? onClose : handleConfirmMission}
             className="mt-4 w-full py-3.5 px-6 rounded-2xl bg-gradient-to-l from-emerald-600 via-emerald-500 to-emerald-600 text-white font-bold text-sm sm:text-base shadow-[0_0_25px_rgba(16,185,129,0.35)] hover:shadow-[0_0_35px_rgba(16,185,129,0.5)] active:scale-[0.98] transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer relative z-50"
           >
             <Check className="w-5 h-5" />
-            <span>پذیرش عهد</span>
+            <span>{startRevealed ? "بستن نامه" : "پذیرش عهد"}</span>
           </button>
         </div>
       </div>

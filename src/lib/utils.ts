@@ -168,12 +168,14 @@ export function mulberry32(seed: number): () => number {
 export function getDeterministicDailyMission(
   visitorId: string,
   dateStr: string,
-  martyrCount: number
+  martyrCount: number,
+  cycle: number = 0
 ): { martyrIndex: number; suggestedCount: number } {
   if (martyrCount <= 0) {
     return { martyrIndex: 0, suggestedCount: 14 };
   }
-  const seed = fnv1a(`${visitorId}:${dateStr}`);
+  const seedString = cycle > 0 ? `${visitorId}:${dateStr}:cycle-${cycle}` : `${visitorId}:${dateStr}`;
+  const seed = fnv1a(seedString);
   const prng = mulberry32(seed);
   const martyrIndex = Math.floor(prng() * martyrCount);
   // suggested count between 10 and 30 (inclusive)

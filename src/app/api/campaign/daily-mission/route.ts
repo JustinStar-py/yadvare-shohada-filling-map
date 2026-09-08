@@ -15,6 +15,9 @@ export async function GET(req: NextRequest) {
     const rawVisitorId = searchParams.get("visitorId");
     const ip = getClientIp(req);
     const visitorId = rawVisitorId && rawVisitorId.trim().length > 0 ? rawVisitorId.trim() : `ip:${ip}`;
+    const rawCycle = searchParams.get("cycle");
+    const cycle = rawCycle ? parseInt(rawCycle, 10) || 0 : 0;
+    const excludeId = searchParams.get("excludeId");
 
     if (!db.martyrs || db.martyrs.length === 0) {
       return NextResponse.json({ error: "لیست شهدا یافت نشد" }, { status: 404 });
@@ -23,10 +26,16 @@ export async function GET(req: NextRequest) {
     const { martyrIndex, suggestedCount } = getDeterministicDailyMission(
       visitorId,
       clientDate,
-      db.martyrs.length
+      db.martyrs.length,
+      cycle
     );
 
-    const selectedMartyr = db.martyrs[martyrIndex] || db.martyrs[0];
+    let selectedIndex = martyrIndex;
+    if (excludeId && db.martyrs.length > 1 && db.martyrs[selectedIndex]?.id === excludeId) {
+      selectedIndex = (selectedIndex + 1) % db.martyrs.length;
+    }
+
+    const selectedMartyr = db.martyrs[selectedIndex] || db.martyrs[0];
 
     return NextResponse.json({
       success: true,
@@ -34,6 +43,7 @@ export async function GET(req: NextRequest) {
       martyr: selectedMartyr,
       suggestedCount,
       visitorId,
+      cycle,
     });
   } catch (error) {
     return NextResponse.json(

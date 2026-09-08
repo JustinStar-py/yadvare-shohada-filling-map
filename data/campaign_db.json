@@ -75,7 +75,7 @@
       "date": "2026-09-08",
       "dayNumber": 10,
       "target": 5000,
-      "currentCount": 28,
+      "currentCount": 31,
       "participantsCount": 1,
       "state": "ACTIVE",
       "epoch": 4,
@@ -740,10 +740,6 @@
     }
   ],
   "idempotencyKeys": {
-    "f503fed7-f8ca-4b97-95a4-6f6a36508956": {
-      "timestamp": 1788684227441,
-      "count": 1
-    },
     "ce1a14dc-011f-4a14-8170-aef36cee880d": {
       "timestamp": 1788690941910,
       "count": 1
@@ -1367,6 +1363,10 @@
     "5c25ce56-731f-45e2-a739-a762d09ad89f": {
       "timestamp": 1788854202534,
       "count": 1
+    },
+    "a0d61042-3466-48c1-9b8f-21c97e446e20": {
+      "timestamp": 1788863092775,
+      "count": 3
     }
   },
   "auditLogs": [
@@ -1608,5 +1608,5 @@
       "details": "پایگاه داده اولیه با موفقیت راه‌اندازی شد."
     }
   ],
-  "totalCampaignSalawat": 12447
+  "totalCampaignSalawat": 12450
 }

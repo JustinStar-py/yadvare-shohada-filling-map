@@ -37,10 +37,15 @@ export default function HomePage() {
   const [pendingMissionData, setPendingMissionData] = useState<{
     martyr: MartyrProfile;
     suggestedCount: number;
+    cycle?: number;
   } | null>(null);
 
   const userMissionRef = useRef<UserDailyMission | null>(null);
-  const pendingMissionDataRef = useRef<{ martyr: MartyrProfile; suggestedCount: number } | null>(null);
+  const pendingMissionDataRef = useRef<{
+    martyr: MartyrProfile;
+    suggestedCount: number;
+    cycle?: number;
+  } | null>(null);
   const missionStateRef = useRef<string | null>(null);
   const stateRef = useRef<PublicCampaignState | null>(null);
 
@@ -540,12 +545,45 @@ export default function HomePage() {
       setPendingMissionData({
         martyr: userMissionRef.current.martyr,
         suggestedCount: userMissionRef.current.suggestedCount,
+        cycle: userMissionRef.current.cycle,
       });
       setIsTourReviewMode(true);
       setShowTourModal(true);
     } else if (pendingMissionDataRef.current) {
       setIsTourReviewMode(false);
       setShowTourModal(true);
+    }
+  }, []);
+
+  const handleRenewMission = useCallback(async () => {
+    try {
+      const visitorId = getOrCreateVisitorId();
+      const todayStr = stateRef.current?.tehranDate || new Date().toISOString().slice(0, 10);
+      const nextCycle = (userMissionRef.current?.cycle || 0) + 1;
+      const currentMartyrId = userMissionRef.current?.martyr.id;
+
+      // Temporarily hide modal while loading new mission
+      setShowTourModal(false);
+
+      const res = await fetch(
+        `/api/campaign/daily-mission?visitorId=${encodeURIComponent(visitorId)}&date=${todayStr}&cycle=${nextCycle}&excludeId=${encodeURIComponent(currentMartyrId || "")}`
+      );
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.success && data.martyr) {
+          const newMissionData = {
+            martyr: data.martyr,
+            suggestedCount: data.suggestedCount,
+            cycle: nextCycle,
+          };
+          setPendingMissionData(newMissionData);
+          pendingMissionDataRef.current = newMissionData;
+          setIsTourReviewMode(false); // Make sure it starts with unopened envelope
+          setShowTourModal(true);
+        }
+      }
+    } catch (err) {
+      console.error("Error renewing daily mission:", err);
     }
   }, []);
 
@@ -616,6 +654,7 @@ export default function HomePage() {
           energyBurstTrigger={energyBurstTrigger}
           userMission={userMission}
           onOpenMissionCard={handleOpenMissionCard}
+          onRenewMission={handleRenewMission}
         />
 
         {/* Below-the-fold Secondary Remembrance & Info Sections */}
@@ -679,6 +718,7 @@ export default function HomePage() {
       {/* Daily Memorial Mission 3D Cinematic Tour Modal */}
       {pendingMissionData && (
         <DailyMissionTourModal
+          key={`tour-modal-${pendingMissionData.martyr.id}-${pendingMissionData.cycle || 0}-${isTourReviewMode ? "review" : "envelope"}`}
           isOpen={showTourModal}
           date={state.tehranDate}
           mission={pendingMissionData}
