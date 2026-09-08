@@ -66,10 +66,10 @@ export default function CommunityProgress({
       {(isLaunched || isReady) && (
         <div className="flex flex-wrap items-center justify-center gap-2 text-[11px] text-slate-400 min-h-[18px]">
           {isLaunched ? (
-            <div className="flex items-center gap-1.5">
-              <span className="text-emerald-300 font-medium flex items-center gap-1">
-                <CheckCircle className="w-3.5 h-3.5" />
-                پرواز امروز به آسمان پیوست
+            <div className="flex items-center justify-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/25">
+              <CheckCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-400 shrink-0" />
+              <span className="text-emerald-300 font-bold text-[11px] sm:text-xs leading-relaxed text-center">
+                با همراهی شما عزیزان، سوخت پرواز امروز با صلوات‌های پرمهرتان تأمین شد؛ سپاسگزاریم ✨
               </span>
             </div>
           ) : (

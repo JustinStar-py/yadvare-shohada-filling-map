@@ -219,7 +219,7 @@ export default function HeroSection({
       {/* ── Southeast Tactical Square HUD Button: "مشاهده پرواز" ── */}
       {canWatchFlight && (
         <div
-          className={`absolute left-[calc(50%+54px)] sm:left-[calc(50%+86px)] md:left-[calc(50%+120px)] top-[53%] sm:top-[50%] -translate-y-1/2 z-20 pointer-events-auto transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+          className={`absolute left-[calc(50%+52px)] sm:left-[calc(50%+84px)] md:left-[calc(50%+120px)] top-[62%] sm:top-[59%] md:top-[57%] -translate-y-1/2 z-20 pointer-events-auto transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${
             hasLiftedOff
               ? "opacity-0 pointer-events-none scale-90 translate-y-4"
               : "opacity-100 scale-100 translate-y-0"
@@ -227,13 +227,13 @@ export default function HeroSection({
           style={{ direction: "ltr" }}
         >
           {/* Subtle golden atmospheric pulse aura */}
-          <div className="absolute -inset-1 rounded-2xl bg-amber-500/20 blur-md animate-pulse pointer-events-none" />
+          <div className="absolute -inset-1.5 rounded-2xl bg-amber-500/25 blur-md animate-pulse pointer-events-none" />
 
           <button
             type="button"
             disabled={isLaunching}
             onClick={onReplayLaunch}
-            className="group relative w-15 h-15 sm:w-18 sm:h-18 md:w-20 md:h-20 rounded-2xl bg-slate-950/85 hover:bg-slate-900/95 border border-amber-500/40 hover:border-amber-400 shadow-[0_8px_30px_rgba(0,0,0,0.7),0_0_20px_rgba(245,158,11,0.25)] hover:shadow-[0_8px_36px_rgba(245,158,11,0.45)] backdrop-blur-xl flex flex-col items-center justify-between p-1.5 sm:p-2 transition-all duration-200 cursor-pointer active:scale-95 emil-btn overflow-hidden select-none"
+            className="group relative w-[76px] h-[76px] sm:w-[88px] sm:h-[88px] md:w-[96px] md:h-[96px] rounded-2xl sm:rounded-3xl bg-slate-950/90 hover:bg-slate-900 border border-amber-500/45 hover:border-amber-400 shadow-[0_8px_32px_rgba(0,0,0,0.8),0_0_24px_rgba(245,158,11,0.3)] hover:shadow-[0_8px_40px_rgba(245,158,11,0.5)] backdrop-blur-xl flex flex-col items-center justify-between p-2 sm:p-2.5 transition-all duration-200 cursor-pointer active:scale-95 emil-btn overflow-hidden select-none"
             title="مشاهده پرواز معنوی موشک به آسمان شهدا"
             aria-label="مشاهده پرواز"
           >
@@ -241,31 +241,31 @@ export default function HeroSection({
             <div className="absolute inset-0 bg-gradient-to-b from-transparent via-amber-300/15 to-transparent -translate-y-full group-hover:translate-y-full transition-transform duration-700 ease-out pointer-events-none" />
 
             {/* Tactical 4-Corner HUD Brackets */}
-            <span className="absolute top-1 right-1 w-2 h-2 border-t-2 border-r-2 border-amber-400/80 rounded-tr-xs group-hover:border-amber-300 pointer-events-none" />
-            <span className="absolute top-1 left-1 w-2 h-2 border-t-2 border-l-2 border-amber-400/80 rounded-tl-xs group-hover:border-amber-300 pointer-events-none" />
-            <span className="absolute bottom-1 right-1 w-2 h-2 border-b-2 border-r-2 border-amber-400/80 rounded-br-xs group-hover:border-amber-300 pointer-events-none" />
-            <span className="absolute bottom-1 left-1 w-2 h-2 border-b-2 border-l-2 border-amber-400/80 rounded-bl-xs group-hover:border-amber-300 pointer-events-none" />
+            <span className="absolute top-1 right-1 w-2.5 h-2.5 sm:w-3 sm:h-3 border-t-2 border-r-2 border-amber-400/80 rounded-tr-xs group-hover:border-amber-300 pointer-events-none" />
+            <span className="absolute top-1 left-1 w-2.5 h-2.5 sm:w-3 sm:h-3 border-t-2 border-l-2 border-amber-400/80 rounded-tl-xs group-hover:border-amber-300 pointer-events-none" />
+            <span className="absolute bottom-1 right-1 w-2.5 h-2.5 sm:w-3 sm:h-3 border-b-2 border-r-2 border-amber-400/80 rounded-br-xs group-hover:border-amber-300 pointer-events-none" />
+            <span className="absolute bottom-1 left-1 w-2.5 h-2.5 sm:w-3 sm:h-3 border-b-2 border-l-2 border-amber-400/80 rounded-bl-xs group-hover:border-amber-300 pointer-events-none" />
 
             {/* Top Micro-HUD Telemetry Header */}
-            <div className="w-full flex items-center justify-between px-0.5 text-[7px] sm:text-[8px] font-mono text-amber-400/70 pointer-events-none">
+            <div className="w-full flex items-center justify-between px-0.5 text-[8px] sm:text-[9px] font-mono text-amber-400/80 pointer-events-none">
               <span className="flex items-center gap-1">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
-                <span className="text-[6.5px] sm:text-[7.5px] font-mono text-slate-400 tracking-tighter">LIVE</span>
+                <span className="text-[7px] sm:text-[8px] font-mono text-slate-400 tracking-tighter">LIVE</span>
               </span>
-              <span className="text-[7.5px] sm:text-[8.5px] font-bold text-amber-400/90 tracking-wider">۳D</span>
+              <span className="text-[8px] sm:text-[9px] font-bold text-amber-400/90 tracking-wider">۳D</span>
             </div>
 
             {/* Center Angled Rocket Launch Icon with Flame Glow */}
             <div className="relative flex items-center justify-center my-0.5">
-              <div className="relative transition-transform duration-300 ease-out group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:scale-110">
-                <Rocket className="w-5 h-5 sm:w-6 sm:h-6 text-amber-400 group-hover:text-amber-300 drop-shadow-[0_0_12px_rgba(245,158,11,0.65)]" />
-                <div className="absolute -bottom-0.5 -left-0.5 w-1.5 h-1.5 bg-amber-400 rounded-full blur-2xs opacity-0 group-hover:opacity-100 transition-opacity animate-pulse" />
+              <div className="relative transition-transform duration-300 ease-out group-hover:-translate-y-1 group-hover:translate-x-0.5 group-hover:scale-110">
+                <Rocket className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 text-amber-400 group-hover:text-amber-300 drop-shadow-[0_0_14px_rgba(245,158,11,0.7)]" />
+                <div className="absolute -bottom-0.5 -left-0.5 w-2 h-2 bg-amber-400 rounded-full blur-2xs opacity-0 group-hover:opacity-100 transition-opacity animate-pulse" />
               </div>
             </div>
 
             {/* Bottom Persian Label: "مشاهده پرواز" */}
             <div className="w-full text-center" style={{ direction: "rtl" }}>
-              <span className="block text-[8.5px] sm:text-[10px] md:text-[10.5px] font-black text-amber-300 group-hover:text-amber-200 tracking-tight leading-none drop-shadow-[0_1px_4px_rgba(0,0,0,0.9)] whitespace-nowrap">
+              <span className="block text-[9.5px] sm:text-[11px] md:text-xs font-black text-amber-300 group-hover:text-amber-200 tracking-tight leading-none drop-shadow-[0_1px_4px_rgba(0,0,0,0.9)] whitespace-nowrap">
                 مشاهده پرواز
               </span>
             </div>
