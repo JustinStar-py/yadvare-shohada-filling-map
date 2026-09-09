@@ -46,7 +46,7 @@ const TOUR_STEPS: TourStep[] = [
     selector: '[data-tour="dedication"]',
     title: "شهدای والامقام پرواز امروز",
     description: "پرواز هر روز به یاد و نام پاک گروهی از شهدای دیار شهیدیه تقدیم می‌شود؛ مشخصات و تصویر آن‌ها را در این بخش مشاهده فرمایید.",
-    preferredPosition: "bottom",
+    preferredPosition: "top",
   },
 ];
 
@@ -315,12 +315,9 @@ export default function OnboardingTour({ isOpen, onClose, onComplete }: Onboardi
       if (els.length > 0) {
         if (targetStep.id === "dedication") {
           const rect = els[0].getBoundingClientRect();
-          const vh = window.innerHeight;
-          const neededSpaceBelow = 150;
-          // If the element + compact tooltip fits with a comfortable header offset, use 52px.
-          // Otherwise, scroll tighter to top (16px) to maximize space below for the tooltip.
-          const topOffset = vh - rect.height >= neededSpaceBelow + 52 ? 52 : 16;
-          const targetY = window.scrollY + rect.top - topOffset;
+          // Position dedication card so there is ample room above (~150px) for the tour tooltip
+          const neededSpaceAbove = 150;
+          const targetY = window.scrollY + rect.top - neededSpaceAbove;
           window.scrollTo({ top: Math.max(0, targetY), behavior: "smooth" });
         } else {
           const outOfView = els.find((el) => {
