@@ -331,10 +331,19 @@ export default function OnboardingTour({ isOpen, onClose, onComplete }: Onboardi
     [findElements, updateGeometry]
   );
 
+  // When tour opens, ALWAYS restart from the very first step (Step 1) and scroll to top
+  useEffect(() => {
+    if (isOpen) {
+      setCurrentStepIndex(0);
+      goToStep(0);
+      if (typeof window !== "undefined") {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+    }
+  }, [isOpen, goToStep]);
+
   useEffect(() => {
     if (!isOpen) return;
-
-    goToStep(currentStepIndex);
 
     const onScroll = () => updateGeometry();
     const onResize = () => updateGeometry();
@@ -359,7 +368,7 @@ export default function OnboardingTour({ isOpen, onClose, onComplete }: Onboardi
       window.removeEventListener("keydown", onKeyDown);
       if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
     };
-  }, [isOpen, currentStepIndex, goToStep, updateGeometry]);
+  }, [isOpen, currentStepIndex, updateGeometry]);
 
   const handleNext = () => {
     if (currentStepIndex < TOUR_STEPS.length - 1) {
@@ -400,7 +409,7 @@ export default function OnboardingTour({ isOpen, onClose, onComplete }: Onboardi
       {backdropRects.map((br) => (
         <div
           key={br.key}
-          className="fixed bg-[#05080e]/78 backdrop-blur-[5px] pointer-events-auto cursor-pointer transition-all duration-300 ease-out"
+          className="fixed bg-[#05080e]/78 backdrop-blur-[6px] pointer-events-auto cursor-pointer transition-all duration-300 ease-out"
           style={{
             top: br.top,
             left: br.left,
@@ -411,11 +420,11 @@ export default function OnboardingTour({ isOpen, onClose, onComplete }: Onboardi
         />
       ))}
 
-      {/* ── Active Yellow Focus Boxes: Vibrant golden neon border around each active element ── */}
+      {/* ── Active Focus Spotlight: Refined luminous amber rim with corner accents ── */}
       {spotlightRects.map((rect, idx) => (
         <div
           key={idx}
-          className="fixed pointer-events-none border-2 border-amber-400 shadow-[0_0_24px_rgba(245,158,11,0.65),inset_0_0_12px_rgba(245,158,11,0.25)] transition-all duration-300 ease-out z-[102]"
+          className="fixed pointer-events-none border-2 border-amber-400 shadow-[0_0_28px_rgba(245,158,11,0.7),inset_0_0_14px_rgba(245,158,11,0.3)] transition-all duration-300 ease-out z-[102]"
           style={{
             top: rect.y,
             left: rect.x,
@@ -424,28 +433,28 @@ export default function OnboardingTour({ isOpen, onClose, onComplete }: Onboardi
             borderRadius: rect.radius,
           }}
         >
-          {/* Subtle 4-corner holographic brackets */}
-          <span className="absolute -top-1 -right-1 w-3.5 h-3.5 border-t-2 border-r-2 border-amber-300" />
-          <span className="absolute -top-1 -left-1 w-3.5 h-3.5 border-t-2 border-l-2 border-amber-300" />
-          <span className="absolute -bottom-1 -right-1 w-3.5 h-3.5 border-b-2 border-r-2 border-amber-300" />
-          <span className="absolute -bottom-1 -left-1 w-3.5 h-3.5 border-b-2 border-l-2 border-amber-300" />
+          {/* 4-corner holographic brackets */}
+          <span className="absolute -top-1 -right-1 w-3.5 h-3.5 border-t-2 border-r-2 border-amber-300 rounded-tr-xs" />
+          <span className="absolute -top-1 -left-1 w-3.5 h-3.5 border-t-2 border-l-2 border-amber-300 rounded-tl-xs" />
+          <span className="absolute -bottom-1 -right-1 w-3.5 h-3.5 border-b-2 border-r-2 border-amber-300 rounded-br-xs" />
+          <span className="absolute -bottom-1 -left-1 w-3.5 h-3.5 border-b-2 border-l-2 border-amber-300 rounded-bl-xs" />
         </div>
       ))}
 
-      {/* ── Guided Tooltip Card ── */}
+      {/* ── Guided Tooltip Card — Apple iOS 18 Liquid Glass Sheet ── */}
       {tooltipPos && (
         <div
-          className="fixed pointer-events-auto z-[105] w-[calc(100vw-32px)] max-w-[360px] p-4 sm:p-5 rounded-2xl bg-slate-900/95 border border-amber-500/40 backdrop-blur-xl shadow-[0_16px_50px_rgba(0,0,0,0.85),0_0_30px_rgba(245,158,11,0.2)] transition-all duration-300 ease-out text-right animate-in fade-in zoom-in-95"
+          className="fixed pointer-events-auto z-[105] w-[calc(100vw-32px)] max-w-[360px] p-4 sm:p-5 rounded-[28px] liquid-glass border border-amber-400/40 shadow-[0_24px_70px_rgba(0,0,0,0.85),0_0_35px_rgba(245,158,11,0.25)] transition-all duration-300 ease-out text-right animate-in fade-in zoom-in-95"
           style={{
             top: tooltipPos.top,
             left: tooltipPos.left,
           }}
         >
           {/* Header */}
-          <div className="flex items-center justify-between pb-2 mb-2.5 border-b border-amber-500/20">
+          <div className="flex items-center justify-between pb-2 mb-2.5 border-b border-amber-400/25">
             <div className="flex items-center gap-1.5">
               <Sparkles className="w-4 h-4 text-amber-400 shrink-0" />
-              <span className="text-[11px] font-bold text-amber-300 bg-amber-500/15 border border-amber-500/30 px-2.5 py-0.5 rounded-full">
+              <span className="text-[11px] font-black text-amber-300 liquid-glass-pill-gold px-3 py-0.5 rounded-full">
                 گام {toPersianDigits(currentStepIndex + 1)} از {toPersianDigits(TOUR_STEPS.length)}
               </span>
             </div>
@@ -453,24 +462,24 @@ export default function OnboardingTour({ isOpen, onClose, onComplete }: Onboardi
             <button
               type="button"
               onClick={handleSkip}
-              className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
+              className="w-7 h-7 rounded-full liquid-glass-pill text-slate-300 hover:text-white flex items-center justify-center cursor-pointer ios-press"
               title="بستن تور راهنما"
             >
-              <X className="w-4 h-4" />
+              <X className="w-3.5 h-3.5" />
             </button>
           </div>
 
           {/* Title & Body */}
           <div className="mb-4">
-            <h3 className="text-sm sm:text-base font-black text-slate-100 mb-1.5">
+            <h3 className="text-sm sm:text-base font-black text-slate-100 mb-1.5 tracking-tight">
               {step.title}
             </h3>
-            <p className="text-xs sm:text-[13px] text-slate-300/95 leading-relaxed">
+            <p className="text-xs sm:text-[13px] text-slate-300 leading-relaxed font-medium">
               {step.description}
             </p>
           </div>
 
-          {/* Progress Indicator Dots */}
+          {/* Progress Indicator Dots — Apple capsule pill pagination */}
           <div className="flex items-center justify-center gap-1.5 mb-4">
             {TOUR_STEPS.map((_, idx) => (
               <button
@@ -479,20 +488,20 @@ export default function OnboardingTour({ isOpen, onClose, onComplete }: Onboardi
                 onClick={() => goToStep(idx)}
                 className={`transition-all duration-300 cursor-pointer ${
                   idx === currentStepIndex
-                    ? "w-5 h-1.5 rounded-full bg-amber-400 shadow-[0_0_8px_rgba(245,158,11,0.8)]"
-                    : "w-1.5 h-1.5 rounded-full bg-slate-700 hover:bg-slate-500"
+                    ? "w-6 h-2 rounded-full bg-gradient-to-r from-amber-400 to-amber-500 shadow-[0_0_12px_rgba(245,158,11,0.8),inset_0_1px_1px_rgba(255,255,255,0.7)]"
+                    : "w-2 h-2 rounded-full bg-white/20 hover:bg-white/40"
                 }`}
                 title={`رفتن به گام ${toPersianDigits(idx + 1)}`}
               />
             ))}
           </div>
 
-          {/* Controls Footer */}
+          {/* Controls Footer — iOS Spring Tactile Actions */}
           <div className="flex items-center justify-between pt-1">
             <button
               type="button"
               onClick={handleSkip}
-              className="text-[11px] sm:text-xs text-slate-400 hover:text-amber-300 transition-colors cursor-pointer"
+              className="text-[11px] sm:text-xs text-slate-400 hover:text-amber-300 transition-colors cursor-pointer font-bold"
             >
               رد کردن تور
             </button>
@@ -502,7 +511,7 @@ export default function OnboardingTour({ isOpen, onClose, onComplete }: Onboardi
                 <button
                   type="button"
                   onClick={handlePrev}
-                  className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700/70 text-xs font-bold transition-all cursor-pointer"
+                  className="flex items-center gap-1 px-3.5 py-1.5 rounded-xl liquid-glass text-slate-200 hover:text-white text-xs font-bold cursor-pointer ios-press"
                 >
                   <ChevronRight className="w-3.5 h-3.5" />
                   <span>قبلی</span>
@@ -512,7 +521,7 @@ export default function OnboardingTour({ isOpen, onClose, onComplete }: Onboardi
               <button
                 type="button"
                 onClick={handleNext}
-                className="flex items-center gap-1 px-4 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-xs shadow-[0_0_12px_rgba(245,158,11,0.4)] hover:shadow-[0_0_16px_rgba(245,158,11,0.6)] transition-all cursor-pointer"
+                className="flex items-center gap-1.5 px-4.5 py-2 rounded-2xl bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-slate-950 font-black text-xs shadow-[0_4px_16px_rgba(245,158,11,0.4),inset_0_1.5px_1px_rgba(255,255,255,0.6)] cursor-pointer ios-press"
               >
                 <span>{currentStepIndex === TOUR_STEPS.length - 1 ? "پایان تور" : "بعدی"}</span>
                 {currentStepIndex === TOUR_STEPS.length - 1 ? (
