@@ -149,6 +149,24 @@ export default function Missile3DThumbnail({
       }
       noseGeo = new THREE.LatheGeometry(pts, 32);
       beaconY = noseStart + 1.15;
+    } else if (model === "emad") {
+      const pts: THREE.Vector2[] = [];
+      for (let i = 0; i <= 12; i++) {
+        const t = i / 12;
+        const r = baseR * Math.pow(1 - t, 0.88);
+        pts.push(new THREE.Vector2(Math.max(r, 0.002), noseStart + t * 1.38));
+      }
+      noseGeo = new THREE.LatheGeometry(pts, 32);
+      beaconY = noseStart + 1.38;
+    } else if (model === "reyhaneh") {
+      const pts: THREE.Vector2[] = [];
+      for (let i = 0; i <= 12; i++) {
+        const t = i / 12;
+        const r = baseR * Math.sqrt(Math.max(0, 1 - Math.pow(t, 1.8)));
+        pts.push(new THREE.Vector2(Math.max(r, 0.002), noseStart + t * 1.32));
+      }
+      noseGeo = new THREE.LatheGeometry(pts, 32);
+      beaconY = noseStart + 1.32;
     } else {
       // Kheibar
       const pts: THREE.Vector2[] = [];
@@ -222,6 +240,121 @@ export default function Missile3DThumbnail({
       const collar = new THREE.Mesh(new THREE.CylinderGeometry(baseR * 1.08, baseR * 1.04, 0.09, 32), goldMaterial);
       collar.position.y = noseStart + 0.05;
       rocketGroup.add(collar);
+    } else if (model === "emad") {
+      // 4 terminal steerable warhead guidance canards
+      const canardShape = new THREE.Shape();
+      canardShape.moveTo(0, 0);
+      canardShape.lineTo(0.20, -0.12);
+      canardShape.lineTo(0.14, -0.22);
+      canardShape.lineTo(0, -0.22);
+      canardShape.closePath();
+      const canardGeo = new THREE.ExtrudeGeometry(canardShape, { depth: 0.012, bevelEnabled: false });
+      for (let i = 0; i < 4; i++) {
+        const arm = new THREE.Group();
+        arm.rotation.y = (i * Math.PI) / 2;
+        const c = new THREE.Mesh(canardGeo, hullMaterial);
+        c.position.set(baseR * 0.95, noseStart + 0.14, -0.006);
+        arm.add(c);
+        rocketGroup.add(arm);
+      }
+    } else if (model === "reyhaneh") {
+      // Cute golden decorative waist ring with charm
+      const ring = new THREE.Mesh(new THREE.TorusGeometry(baseR + 0.012, 0.016, 10, 36), goldMaterial);
+      ring.rotation.x = Math.PI / 2;
+      ring.position.y = noseStart + 0.05;
+      rocketGroup.add(ring);
+      const charm = new THREE.Mesh(new THREE.SphereGeometry(0.04, 10, 10), goldMaterial);
+      charm.position.set(baseR + 0.02, noseStart + 0.05, 0);
+      rocketGroup.add(charm);
+    }
+
+    // Decal Canvas for thumbnail text & stickers
+    const decalCanvas = document.createElement("canvas");
+    decalCanvas.width = 256;
+    decalCanvas.height = 1024;
+    const decalCtx = decalCanvas.getContext("2d");
+    if (decalCtx) {
+      decalCtx.save();
+      decalCtx.translate(128, 512);
+      decalCtx.rotate(Math.PI / 2);
+      if (model === "reyhaneh") {
+        decalCtx.font = 'bold 70px "Comic Sans MS", "Arial Rounded MT Bold", "Vazirmatn", cursive, sans-serif';
+        decalCtx.textAlign = "center";
+        decalCtx.textBaseline = "middle";
+        decalCtx.strokeStyle = "#ffffff";
+        decalCtx.lineWidth = 14;
+        decalCtx.strokeText("ریحانه 🌸", 0, -10);
+        decalCtx.fillStyle = "#be185d";
+        decalCtx.fillText("ریحانه 🌸", 0, -10);
+
+        // Cute heart sticker
+        decalCtx.fillStyle = "#ffffff";
+        decalCtx.beginPath();
+        decalCtx.arc(-220, 20, 24, 0, Math.PI * 2);
+        decalCtx.arc(-200, 20, 24, 0, Math.PI * 2);
+        decalCtx.fill();
+        decalCtx.fillStyle = "#ff4081";
+        decalCtx.beginPath();
+        decalCtx.arc(-220, 20, 20, 0, Math.PI * 2);
+        decalCtx.arc(-200, 20, 20, 0, Math.PI * 2);
+        decalCtx.fill();
+
+        // Cute flower sticker
+        decalCtx.fillStyle = "#ffffff";
+        decalCtx.beginPath();
+        decalCtx.arc(180, 0, 26, 0, Math.PI * 2);
+        decalCtx.fill();
+        decalCtx.fillStyle = "#facc15";
+        decalCtx.beginPath();
+        decalCtx.arc(180, 0, 16, 0, Math.PI * 2);
+        decalCtx.fill();
+
+        // Cute star
+        decalCtx.fillStyle = "#fde047";
+        decalCtx.beginPath();
+        decalCtx.arc(-320, -10, 18, 0, Math.PI * 2);
+        decalCtx.fill();
+      } else {
+        decalCtx.fillStyle = cfg.textColor;
+        decalCtx.font = '900 70px "Arial Black", "Impact", sans-serif';
+        decalCtx.textAlign = "center";
+        decalCtx.textBaseline = "middle";
+        const label =
+          model === "fattah"
+            ? "FATTAH"
+            : model === "sejjil"
+            ? "SEJJIL"
+            : model === "khorramshahr"
+            ? "KHORRAM"
+            : model === "emad"
+            ? "EMAD"
+            : "KHEIBAR";
+        decalCtx.fillText(label, 0, 0);
+      }
+      decalCtx.restore();
+    }
+    const decalTex = new THREE.CanvasTexture(decalCanvas);
+    decalTex.colorSpace = THREE.SRGBColorSpace;
+    const decalMat = new THREE.MeshBasicMaterial({
+      map: decalTex,
+      transparent: true,
+      depthWrite: false,
+      polygonOffset: true,
+      polygonOffsetFactor: -4,
+      polygonOffsetUnits: -4,
+      side: THREE.DoubleSide,
+    });
+    const dPts: THREE.Vector2[] = [];
+    for (let y = 0.62; y <= 1.45; y += 0.05) {
+      const t = (y - noseStart) / 1.35;
+      const r = baseR * Math.sqrt(Math.max(0, 1 - t * t)) * (1 - 0.06 * t) + 0.009;
+      dPts.push(new THREE.Vector2(r, y));
+    }
+    const dGeo = new THREE.LatheGeometry(dPts, 16, -Math.PI * 0.22, Math.PI * 0.44);
+    for (let i = 0; i < 4; i++) {
+      const dMesh = new THREE.Mesh(dGeo, decalMat);
+      dMesh.rotation.y = (i * Math.PI) / 2;
+      rocketGroup.add(dMesh);
     }
 
     // C) Translucent Metallic Fuel Tank
@@ -354,6 +487,7 @@ export default function Missile3DThumbnail({
         if (Array.isArray(mat)) mat.forEach((m) => m.dispose());
         else if (mat) mat.dispose();
       });
+      decalTex.dispose();
       renderer.dispose();
       scene.clear();
     };

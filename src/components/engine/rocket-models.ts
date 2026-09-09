@@ -18,7 +18,12 @@ export function buildRocket(id: MissileModel, low: boolean): RocketModel {
   const materials = new Set<THREE.Material>();
   const textures = new Set<THREE.Texture>();
   const material = <T extends THREE.Material>(value: T): T => { materials.add(value); return value; };
-  const hull = material(new THREE.MeshStandardMaterial({ color: "#d2ccc1", roughness: 0.4, metalness: 0.62 }));
+  const hullColor = id === "reyhaneh" ? "#f472b6" : id === "emad" ? "#e2e8f0" : "#d2ccc1";
+  const hull = material(new THREE.MeshStandardMaterial({
+    color: hullColor,
+    roughness: id === "reyhaneh" ? 0.28 : 0.4,
+    metalness: id === "reyhaneh" ? 0.38 : 0.62,
+  }));
   const carbon = material(new THREE.MeshStandardMaterial({ color: "#27282c", roughness: 0.65, metalness: 0.3 }));
   const brass = material(new THREE.MeshStandardMaterial({ color: "#b88137", roughness: 0.3, metalness: 0.78 }));
   const glass = material(new THREE.MeshStandardMaterial({ color: "#e9d9b6", transparent: true,
@@ -50,6 +55,10 @@ export function buildRocket(id: MissileModel, low: boolean): RocketModel {
     ? [[radius, 0.52], [radius * 1.05, 0.95], [0.012, 1.75]]
     : id === "sejjil"
     ? [[radius, 0.52], [radius * 0.82, 0.76], [radius * 0.72, 1.2], [0.012, 1.87]]
+    : id === "emad"
+    ? [[radius, 0.52], [radius * 0.88, 0.82], [radius * 0.68, 1.32], [0.012, 1.98]]
+    : id === "reyhaneh"
+    ? [[radius, 0.52], [radius * 0.92, 0.85], [radius * 0.78, 1.25], [0.012, 1.90]]
     : [[radius, 0.52], [radius * 0.9, 0.9], [0.012, 1.95]];
   mesh(new THREE.LatheGeometry(points.map(([x, y]) => new THREE.Vector2(x, y)), segments),
     id === "fattah" ? carbon : hull, 0, capsule);

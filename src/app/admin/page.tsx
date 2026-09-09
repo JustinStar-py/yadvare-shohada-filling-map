@@ -767,9 +767,9 @@ export default function AdminPage() {
                 </span>
               </div>
               <p className="text-xs text-slate-400">
-                مدیر گرامی، هر یک از موشک‌ها دارای رنگ‌آمیزی و هویت بصری متمایز (فیلی، قهوه‌ای دارک، قهوه‌ای خاکی و قهوه‌ای برنزه دودی)، رنگ یکپارچه کلاهک و بوستر، و استوانه متالیک شفاف نمایش سوخت صلوات است. برای تغییر موشک صفحه اصلی، روی کارت موردنظر کلیک کنید:
+                مدیر گرامی، هر یک از ۶ مدل موشک دارای رنگ‌آمیزی و هویت بصری متمایز (فیلی، قهوه‌ای دارک، قهوه‌ای خاکی، قهوه‌ای برنزه دودی، سفید بالستیک، و طرح اختصاصی صورتی دخترانه با برچسب‌های شاد کارتونی)، کلاهک و بالک‌های اختصاصی و استوانه متالیک شفاف نمایش سوخت صلوات است. برای تغییر موشک صفحه اصلی، روی کارت موردنظر کلیک کنید:
               </p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
                 {MISSILE_MODELS.map((item) => {
                   const isSelected = (settings?.activeMissileModel || "kheibar") === item.id;
                   return (

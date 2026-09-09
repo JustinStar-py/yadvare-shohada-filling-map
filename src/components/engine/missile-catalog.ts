@@ -40,6 +40,26 @@ export const MISSILE_MODELS = [
     textColor: "#ffffff",
     caption: "سرجنگی سنگین · دماغه مخروطی پهن · رنگ قهوه‌ای برنزه دودی",
   },
+  {
+    id: "emad",
+    label: "عماد",
+    colorName: "سفید بالستیک نقطه‌زن",
+    colorHex: "#e2e8f0",
+    metalness: 0.52,
+    roughness: 0.34,
+    textColor: "#0f172a",
+    caption: "نقطه‌زن دوربرد · بالک‌های هدایت سرجنگی کلاهک · رنگ سفید متالیک",
+  },
+  {
+    id: "reyhaneh",
+    label: "ریحانه (دخترانه)",
+    colorName: "صورتی پاستلی کارتونی",
+    colorHex: "#f472b6",
+    metalness: 0.38,
+    roughness: 0.28,
+    textColor: "#ffffff",
+    caption: "طرح اختصاصی ریحانه · رنگ صورتی شاد با برچسب‌های قلبی، پروانه و گل‌های کارتونی",
+  },
 ] as const;
 
 export type MissileModel = (typeof MISSILE_MODELS)[number]["id"];

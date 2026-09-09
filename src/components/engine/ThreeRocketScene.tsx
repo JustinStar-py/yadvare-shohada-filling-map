@@ -46,6 +46,221 @@ const BOOSTER_MID_Y = -0.49;
 const CAM_SMOOTH_TAU = 0.14;
 const POINTER_SMOOTH_TAU = 0.32;
 
+// ── Vector Sticker Drawing Helpers for Reyhaneh Girly Decal ──
+function drawStickerHeart(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  size: number,
+  fillColor = "#ff4081",
+  angle = 0
+) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(angle);
+  const s = size / 30;
+
+  ctx.lineWidth = 14;
+  ctx.strokeStyle = "#ffffff";
+  ctx.lineJoin = "round";
+  ctx.beginPath();
+  ctx.moveTo(0, 10 * s);
+  ctx.bezierCurveTo(-20 * s, -10 * s, -30 * s, 15 * s, 0, 32 * s);
+  ctx.bezierCurveTo(30 * s, 15 * s, 20 * s, -10 * s, 0, 10 * s);
+  ctx.stroke();
+
+  ctx.fillStyle = fillColor;
+  ctx.beginPath();
+  ctx.moveTo(0, 10 * s);
+  ctx.bezierCurveTo(-20 * s, -10 * s, -30 * s, 15 * s, 0, 32 * s);
+  ctx.bezierCurveTo(30 * s, 15 * s, 20 * s, -10 * s, 0, 10 * s);
+  ctx.fill();
+
+  ctx.fillStyle = "rgba(255, 255, 255, 0.75)";
+  ctx.beginPath();
+  ctx.ellipse(-8 * s, 6 * s, 4 * s, 8 * s, -0.4, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.restore();
+}
+
+function drawStickerFlower(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  size: number,
+  petalColor = "#ffffff",
+  centerColor = "#facc15"
+) {
+  ctx.save();
+  ctx.translate(x, y);
+  const petalR = size * 0.45;
+  const dist = size * 0.55;
+
+  ctx.fillStyle = "#ffffff";
+  for (let i = 0; i < 5; i++) {
+    const a = (i * Math.PI * 2) / 5;
+    ctx.beginPath();
+    ctx.arc(Math.cos(a) * dist, Math.sin(a) * dist, petalR + 8, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.beginPath();
+  ctx.arc(0, 0, petalR + 10, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.fillStyle = petalColor;
+  for (let i = 0; i < 5; i++) {
+    const a = (i * Math.PI * 2) / 5;
+    ctx.beginPath();
+    ctx.arc(Math.cos(a) * dist, Math.sin(a) * dist, petalR, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  ctx.fillStyle = centerColor;
+  ctx.beginPath();
+  ctx.arc(0, 0, size * 0.38, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.fillStyle = "rgba(255, 255, 255, 0.85)";
+  ctx.beginPath();
+  ctx.arc(-size * 0.1, -size * 0.1, size * 0.1, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.restore();
+}
+
+function drawStickerButterfly(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  size: number,
+  wingColor = "#a78bfa"
+) {
+  ctx.save();
+  ctx.translate(x, y);
+  const s = size / 40;
+
+  ctx.lineWidth = 12;
+  ctx.strokeStyle = "#ffffff";
+  ctx.fillStyle = wingColor;
+
+  ctx.beginPath();
+  ctx.ellipse(-16 * s, -14 * s, 18 * s, 13 * s, -0.4, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.fill();
+
+  ctx.beginPath();
+  ctx.ellipse(16 * s, -14 * s, 18 * s, 13 * s, 0.4, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.fill();
+
+  ctx.fillStyle = "#f472b6";
+  ctx.beginPath();
+  ctx.ellipse(-12 * s, 12 * s, 12 * s, 9 * s, 0.3, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.fill();
+
+  ctx.beginPath();
+  ctx.ellipse(12 * s, 12 * s, 12 * s, 9 * s, -0.3, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.fill();
+
+  ctx.fillStyle = "#4c1d95";
+  ctx.beginPath();
+  ctx.ellipse(0, 0, 4 * s, 18 * s, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.strokeStyle = "#4c1d95";
+  ctx.lineWidth = 3.5;
+  ctx.beginPath();
+  ctx.moveTo(-2 * s, -16 * s);
+  ctx.quadraticCurveTo(-10 * s, -26 * s, -14 * s, -23 * s);
+  ctx.moveTo(2 * s, -16 * s);
+  ctx.quadraticCurveTo(10 * s, -26 * s, 14 * s, -23 * s);
+  ctx.stroke();
+
+  ctx.restore();
+}
+
+function drawStickerBow(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  size: number,
+  color = "#ec4899"
+) {
+  ctx.save();
+  ctx.translate(x, y);
+  const s = size / 30;
+
+  ctx.lineWidth = 12;
+  ctx.strokeStyle = "#ffffff";
+  ctx.lineJoin = "round";
+
+  ctx.beginPath();
+  ctx.moveTo(0, 0);
+  ctx.bezierCurveTo(-25 * s, -20 * s, -30 * s, 20 * s, 0, 5 * s);
+  ctx.stroke();
+  ctx.fillStyle = color;
+  ctx.fill();
+
+  ctx.beginPath();
+  ctx.moveTo(0, 0);
+  ctx.bezierCurveTo(25 * s, -20 * s, 30 * s, 20 * s, 0, 5 * s);
+  ctx.stroke();
+  ctx.fill();
+
+  ctx.beginPath();
+  ctx.arc(0, 2 * s, 8 * s, 0, Math.PI * 2);
+  ctx.fillStyle = "#f43f5e";
+  ctx.fill();
+  ctx.strokeStyle = "#ffffff";
+  ctx.lineWidth = 5;
+  ctx.stroke();
+
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 7 * s;
+  ctx.lineCap = "round";
+  ctx.beginPath();
+  ctx.moveTo(-4 * s, 8 * s);
+  ctx.lineTo(-18 * s, 28 * s);
+  ctx.moveTo(4 * s, 8 * s);
+  ctx.lineTo(18 * s, 28 * s);
+  ctx.stroke();
+
+  ctx.restore();
+}
+
+function drawStickerStar(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  outerR: number,
+  innerR: number,
+  color = "#fde047"
+) {
+  ctx.save();
+  ctx.translate(x, y);
+
+  ctx.lineWidth = 10;
+  ctx.strokeStyle = "#ffffff";
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  for (let i = 0; i < 8; i++) {
+    const r = i % 2 === 0 ? outerR : innerR;
+    const a = (i * Math.PI) / 4;
+    const px = Math.cos(a) * r;
+    const py = Math.sin(a) * r;
+    if (i === 0) ctx.moveTo(px, py);
+    else ctx.lineTo(px, py);
+  }
+  ctx.closePath();
+  ctx.stroke();
+  ctx.fill();
+
+  ctx.restore();
+}
+
 export default function ThreeRocketScene({
   fillPercentage,
   missionState,
@@ -185,6 +400,24 @@ export default function ThreeRocketScene({
     }
     const khorramshahrNoseGeo = new THREE.LatheGeometry(khorramshahrNosePts, 40);
 
+    // 5) Emad Nose: Guided maneuverable warhead with conical taper and sharp tip
+    const emadNosePts: THREE.Vector2[] = [];
+    for (let i = 0; i <= 14; i++) {
+      const t = i / 14;
+      const r = baseR * Math.pow(1 - t, 0.88);
+      emadNosePts.push(new THREE.Vector2(Math.max(r, 0.002), noseStart + t * 1.38));
+    }
+    const emadNoseGeo = new THREE.LatheGeometry(emadNosePts, 40);
+
+    // 6) Reyhaneh Nose: Cute rounded aerodynamic ogive bullet curve
+    const reyhanehNosePts: THREE.Vector2[] = [];
+    for (let i = 0; i <= 14; i++) {
+      const t = i / 14;
+      const r = baseR * Math.sqrt(Math.max(0, 1 - Math.pow(t, 1.8)));
+      reyhanehNosePts.push(new THREE.Vector2(Math.max(r, 0.002), noseStart + t * 1.32));
+    }
+    const reyhanehNoseGeo = new THREE.LatheGeometry(reyhanehNosePts, 40);
+
     const noseMesh = new THREE.Mesh(kheibarNoseGeo, hullMaterial);
     capsuleGroup.add(noseMesh);
 
@@ -259,6 +492,36 @@ export default function ThreeRocketScene({
     khorramshahrCollarGroup.add(collarMesh);
     capsuleGroup.add(khorramshahrCollarGroup);
 
+    // E) Emad: 4 terminal steerable warhead guidance canards on capsuleGroup
+    const emadCanardsGroup = new THREE.Group();
+    const emadCanardShape = new THREE.Shape();
+    emadCanardShape.moveTo(0, 0);
+    emadCanardShape.lineTo(0.20, -0.12);
+    emadCanardShape.lineTo(0.14, -0.22);
+    emadCanardShape.lineTo(0, -0.22);
+    emadCanardShape.closePath();
+    const emadCanardGeo = new THREE.ExtrudeGeometry(emadCanardShape, { depth: 0.014, bevelEnabled: false });
+    for (let i = 0; i < 4; i++) {
+      const arm = new THREE.Group();
+      arm.rotation.y = (i * Math.PI) / 2;
+      const m = new THREE.Mesh(emadCanardGeo, hullMaterial);
+      m.position.set(baseR * 0.95, noseStart + 0.14, -0.007);
+      arm.add(m);
+      emadCanardsGroup.add(arm);
+    }
+    capsuleGroup.add(emadCanardsGroup);
+
+    // F) Reyhaneh: Cute golden decorative waist ring with sweet charm on capsuleGroup
+    const reyhanehAccessoriesGroup = new THREE.Group();
+    const reyhanehRing = new THREE.Mesh(new THREE.TorusGeometry(baseR + 0.012, 0.016, 14, 48), goldMaterial);
+    reyhanehRing.rotation.x = Math.PI / 2;
+    reyhanehRing.position.y = noseStart + 0.05;
+    reyhanehAccessoriesGroup.add(reyhanehRing);
+    const charmMesh = new THREE.Mesh(new THREE.SphereGeometry(0.04, 12, 12), goldMaterial);
+    charmMesh.position.set(baseR + 0.02, noseStart + 0.05, 0);
+    reyhanehAccessoriesGroup.add(charmMesh);
+    capsuleGroup.add(reyhanehAccessoriesGroup);
+
     // ── Dynamic Missile Stencil Decal Canvas & Texture ──
     const decalCanvas = document.createElement("canvas");
     decalCanvas.width = 512;
@@ -276,24 +539,89 @@ export default function ThreeRocketScene({
       decalCtx.translate(256, 1024);
       decalCtx.rotate(Math.PI / 2);
 
-      decalCtx.fillStyle = textColor;
-      decalCtx.font = '900 145px "Arial Black", "Impact", "Trebuchet MS", sans-serif';
-      decalCtx.textAlign = "center";
-      decalCtx.textBaseline = "middle";
+      if (model === "reyhaneh") {
+        // Cute playful girly stickers layout
+        // 1. Center text with sticker die-cut white outline
+        decalCtx.font = 'bold 125px "Comic Sans MS", "Arial Rounded MT Bold", "Vazirmatn", cursive, sans-serif';
+        decalCtx.textAlign = "center";
+        decalCtx.textBaseline = "middle";
+        decalCtx.strokeStyle = "#ffffff";
+        decalCtx.lineWidth = 22;
+        decalCtx.strokeText("ریحانه 🌸 Reyhaneh", 0, -20);
+        decalCtx.fillStyle = "#be185d";
+        decalCtx.fillText("ریحانه 🌸 Reyhaneh", 0, -20);
 
-      let text = "Kheibar Shecan";
-      if (model === "fattah") text = "Fattah 1";
-      else if (model === "sejjil") text = "Sejjil";
-      else if (model === "khorramshahr") text = "Khorramshahr 4";
+        // 2. Subtext "دختران آسمانی ✨"
+        decalCtx.font = 'bold 75px "Vazirmatn", "Tahoma", sans-serif';
+        decalCtx.strokeStyle = "#ffffff";
+        decalCtx.lineWidth = 14;
+        decalCtx.strokeText("دختران آسمانی ✨", 0, 85);
+        decalCtx.fillStyle = "#db2777";
+        decalCtx.fillText("دختران آسمانی ✨", 0, 85);
 
-      decalCtx.fillText(text, 0, 0);
+        // 3. Cute Stickers along the rocket body (rotated X: -800 to +800)
+        // Top stickers near nose cone:
+        drawStickerStar(decalCtx, -720, -50, 38, 14, "#fde047");
+        drawStickerHeart(decalCtx, -580, 45, 42, "#ff4081", -0.2);
+        drawStickerButterfly(decalCtx, -420, -60, 48, "#c084fc");
+        drawStickerStar(decalCtx, -320, 70, 28, 10, "#fed7aa");
 
-      decalCtx.strokeStyle = textColor === "#ffffff" ? "rgba(255, 255, 255, 0.7)" : "rgba(0, 0, 0, 0.75)";
-      decalCtx.lineWidth = 10;
-      decalCtx.beginPath();
-      decalCtx.moveTo(-820, 0); decalCtx.lineTo(-720, 0);
-      decalCtx.moveTo(720, 0); decalCtx.lineTo(820, 0);
-      decalCtx.stroke();
+        // Flank stickers around center label:
+        drawStickerBow(decalCtx, 0, -135, 42, "#f43f5e");
+        drawStickerFlower(decalCtx, -200, 80, 34, "#ffffff", "#fbbf24");
+        drawStickerFlower(decalCtx, 200, -75, 36, "#fed7aa", "#f59e0b");
+
+        // Bottom stickers near base:
+        drawStickerHeart(decalCtx, 360, 50, 40, "#fb7185", 0.3);
+        drawStickerButterfly(decalCtx, 510, -50, 46, "#818cf8");
+        drawStickerFlower(decalCtx, 640, 45, 38, "#fbcfe8", "#fbbf24");
+        drawStickerStar(decalCtx, 750, -40, 32, 12, "#fde047");
+      } else if (model === "emad") {
+        // High-precision ballistic markings
+        decalCtx.fillStyle = textColor;
+        decalCtx.font = '900 135px "Arial Black", "Impact", "Trebuchet MS", sans-serif';
+        decalCtx.textAlign = "center";
+        decalCtx.textBaseline = "middle";
+        decalCtx.fillText("Emad Precision", 0, -15);
+
+        decalCtx.font = 'bold 70px "Arial", sans-serif';
+        decalCtx.fillStyle = "rgba(15, 23, 42, 0.75)";
+        decalCtx.fillText("GUIDED WARHEAD · عماد", 0, 75);
+
+        decalCtx.strokeStyle = "rgba(15, 23, 42, 0.75)";
+        decalCtx.lineWidth = 10;
+        decalCtx.beginPath();
+        decalCtx.moveTo(-820, 0); decalCtx.lineTo(-720, 0);
+        decalCtx.moveTo(720, 0); decalCtx.lineTo(820, 0);
+        decalCtx.stroke();
+
+        // Tactical target checkered quadrant marker
+        decalCtx.strokeStyle = "#0f172a";
+        decalCtx.fillStyle = "#0f172a";
+        decalCtx.lineWidth = 4;
+        decalCtx.strokeRect(-550, -35, 70, 70);
+        decalCtx.fillRect(-550, -35, 35, 35);
+        decalCtx.fillRect(-515, 0, 35, 35);
+      } else {
+        decalCtx.fillStyle = textColor;
+        decalCtx.font = '900 145px "Arial Black", "Impact", "Trebuchet MS", sans-serif';
+        decalCtx.textAlign = "center";
+        decalCtx.textBaseline = "middle";
+
+        let text = "Kheibar Shecan";
+        if (model === "fattah") text = "Fattah 1";
+        else if (model === "sejjil") text = "Sejjil";
+        else if (model === "khorramshahr") text = "Khorramshahr 4";
+
+        decalCtx.fillText(text, 0, 0);
+
+        decalCtx.strokeStyle = textColor === "#ffffff" ? "rgba(255, 255, 255, 0.7)" : "rgba(0, 0, 0, 0.75)";
+        decalCtx.lineWidth = 10;
+        decalCtx.beginPath();
+        decalCtx.moveTo(-820, 0); decalCtx.lineTo(-720, 0);
+        decalCtx.moveTo(720, 0); decalCtx.lineTo(820, 0);
+        decalCtx.stroke();
+      }
 
       decalCtx.restore();
       modelTexture.needsUpdate = true;
@@ -341,6 +669,12 @@ export default function ThreeRocketScene({
       } else if (model === "khorramshahr") {
         noseMesh.geometry = khorramshahrNoseGeo;
         beaconMesh.position.set(0, noseStart + 1.15, 0);
+      } else if (model === "emad") {
+        noseMesh.geometry = emadNoseGeo;
+        beaconMesh.position.set(0, noseStart + 1.38, 0);
+      } else if (model === "reyhaneh") {
+        noseMesh.geometry = reyhanehNoseGeo;
+        beaconMesh.position.set(0, noseStart + 1.32, 0);
       } else {
         noseMesh.geometry = kheibarNoseGeo;
         beaconMesh.position.set(0, noseStart + noseH, 0);
@@ -352,6 +686,8 @@ export default function ThreeRocketScene({
       fattahGliderGroup.visible = model === "fattah";
       sejjilRingsGroup.visible = model === "sejjil";
       khorramshahrCollarGroup.visible = model === "khorramshahr";
+      emadCanardsGroup.visible = model === "emad";
+      reyhanehAccessoriesGroup.visible = model === "reyhaneh";
     };
 
     onModelChangeRef.current = applyMissileModel;
@@ -1447,8 +1783,11 @@ export default function ThreeRocketScene({
       fattahNoseGeo.dispose();
       sejjilNoseGeo.dispose();
       khorramshahrNoseGeo.dispose();
+      emadNoseGeo.dispose();
+      reyhanehNoseGeo.dispose();
       kheibarCanardGeo.dispose();
       fattahGliderGeo.dispose();
+      emadCanardGeo.dispose();
       carbonMaterial.dispose();
       modelTexture.dispose();
       renderer.dispose();

@@ -40,7 +40,7 @@ export interface ConstellationStar {
   launchedAt: number;
 }
 
-export type MissileModel = "kheibar" | "fattah" | "sejjil" | "khorramshahr";
+export type MissileModel = "kheibar" | "fattah" | "sejjil" | "khorramshahr" | "emad" | "reyhaneh";
 
 export const DEFAULT_SHARE_MESSAGE = `«پویش معنوی یادواره ۷۶ شهید شهیدیه میبد»
 🕊️ هر صلوات، یک قدم تا پرواز
@@ -169,7 +169,7 @@ export const UpdateSettingsSchema = z.object({
   visualPreset: z.enum(["calm", "balanced", "intense"]).optional(),
   finalMessage: z.string().max(500).optional(),
   adminPin: z.string().min(4).max(32).optional(),
-  activeMissileModel: z.enum(["kheibar", "fattah", "sejjil", "khorramshahr"]).optional(),
+  activeMissileModel: z.enum(["kheibar", "fattah", "sejjil", "khorramshahr", "emad", "reyhaneh"]).optional(),
   shareMessage: z.string().max(2500).optional(),
 });
 
