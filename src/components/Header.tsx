@@ -1,16 +1,17 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Volume2, VolumeX } from "lucide-react";
+import { Volume2, VolumeX, HelpCircle } from "lucide-react";
 import YadvareLogo from "@/components/ui/YadvareLogo";
 import { soundEngine } from "@/lib/client/procedural-audio";
 import { formatShortJalaliDate } from "@/lib/utils";
 
 interface HeaderProps {
   tehranDate: string;
+  onStartTour?: () => void;
 }
 
-export default function Header({ tehranDate }: HeaderProps) {
+export default function Header({ tehranDate, onStartTour }: HeaderProps) {
   const [isMuted, setIsMuted] = useState(true);
   const [mounted, setMounted] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -83,6 +84,19 @@ export default function Header({ tehranDate }: HeaderProps) {
           )}
           <span className="hidden md:inline">{isMuted ? "صدا: خاموش" : "صدا: روشن"}</span>
         </button>
+
+        {onStartTour && (
+          <button
+            type="button"
+            onClick={onStartTour}
+            className="flex items-center gap-1.5 h-10 px-3.5 rounded-full bg-slate-800/70 border border-slate-700/60 text-xs text-slate-300 hover:text-white hover:border-amber-500/50 hover:bg-slate-800 cursor-pointer transition-all emil-btn"
+            title="مشاهده راهنمای تصویری پویش"
+            aria-label="مشاهده راهنما"
+          >
+            <HelpCircle className="w-4 h-4 text-amber-400" />
+            <span className="hidden sm:inline font-bold">راهنما</span>
+          </button>
+        )}
 
 
       </div>

@@ -17,10 +17,12 @@ import YadvareLogo from "@/components/ui/YadvareLogo";
 import { generateUUID, toPersianDigits } from "@/lib/utils";
 import DailyMissionTourModal, { UserDailyMission } from "@/components/DailyMissionTourModal";
 import { getOrCreateVisitorId } from "@/lib/client/visitor-id";
+import OnboardingTour from "@/components/OnboardingTour";
 
 export default function HomePage() {
   const [state, setState] = useState<PublicCampaignState | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isTourOpen, setIsTourOpen] = useState(false);
   const [isLaunching, setIsLaunching] = useState(false);
   // Physical liftoff (T-0), kept separate from isLaunching (the whole
   // ceremony) so the rocket stays on its pad while the countdown runs.
@@ -105,17 +107,6 @@ export default function HomePage() {
                 };
                 setPendingMissionData(missionData);
                 pendingMissionDataRef.current = missionData;
-
-                // Modal precedence check: if launch overlay is currently active or ready, delay tour
-                const isLaunchingNow =
-                  data.mission.currentCount >= data.mission.target ||
-                  data.mission.state === "READY_TO_LAUNCH" ||
-                  data.mission.state === "LAUNCHING";
-
-                if (!isLaunchingNow) {
-                  setShowTourModal(true);
-                  setIsTourReviewMode(false);
-                }
               }
             })
             .catch(() => {});
@@ -147,9 +138,20 @@ export default function HomePage() {
     ceremonyCompletedDateRef.current = ceremonyCompletedDate;
   }, [ceremonyCompletedDate]);
 
+  // ── First-time Onboarding Guided Spotlight Tour Trigger ──
   useEffect(() => {
-    stateRef.current = state;
-  }, [state]);
+    if (loading || !state) return;
+    try {
+      const tourCompleted = localStorage.getItem("yadvare_tour_completed_v1");
+      if (!tourCompleted) {
+        // Allow the canvas atmosphere, 3D rocket, and odometer to settle
+        const timer = setTimeout(() => {
+          setIsTourOpen(true);
+        }, 1200);
+        return () => clearTimeout(timer);
+      }
+    } catch {}
+  }, [loading, state]);
 
   // Sacred golden bloom when the day's target is reached (once per transition)
   useEffect(() => {
@@ -535,23 +537,12 @@ export default function HomePage() {
     setShowLaunchOverlay(false);
     setIsLaunching(false);
     setHasLiftedOff(false);
-
-    // Modal precedence: if daily tour was deferred due to launch ceremony, open it now
-    if (pendingMissionDataRef.current && (!userMissionRef.current || !userMissionRef.current.completedTour)) {
-      setShowTourModal(true);
-      setIsTourReviewMode(false);
-    }
   }, [state]);
 
   const handleLaunchOverlayClose = useCallback(() => {
     setShowLaunchOverlay(false);
     setIsLaunching(false);
     setHasLiftedOff(false);
-
-    if (pendingMissionDataRef.current && (!userMissionRef.current || !userMissionRef.current.completedTour)) {
-      setShowTourModal(true);
-      setIsTourReviewMode(false);
-    }
   }, []);
 
   const handleTourComplete = useCallback((completed: UserDailyMission) => {
@@ -660,7 +651,7 @@ export default function HomePage() {
           hasLiftedOff || showLaunchOverlay ? "-translate-y-full opacity-0" : "translate-y-0 opacity-100"
         }`}
       >
-        <Header tehranDate={state.tehranDate} />
+        <Header tehranDate={state.tehranDate} onStartTour={() => setIsTourOpen(true)} />
       </div>
 
       {/* Primary Cinematic Hero Interaction */}
@@ -755,6 +746,12 @@ export default function HomePage() {
           startRevealed={isTourReviewMode}
         />
       )}
+
+      {/* First-Time Visitor Guided Spotlight Onboarding Tour */}
+      <OnboardingTour
+        isOpen={isTourOpen}
+        onClose={() => setIsTourOpen(false)}
+      />
     </div>
   );
 }

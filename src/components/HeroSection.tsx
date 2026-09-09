@@ -104,6 +104,11 @@ export default function HeroSection({
 
       {/* ── Full-Viewport 3D Rocket Stage Canvas ── */}
       <div className="absolute inset-0 w-full h-full pointer-events-none z-0">
+        {/* Invisible tour anchor positioned right over the central rocket */}
+        <div
+          data-tour="rocket"
+          className="absolute left-1/2 top-[46%] -translate-x-1/2 -translate-y-1/2 w-48 sm:w-56 md:w-64 h-[280px] sm:h-[340px] md:h-[400px] pointer-events-none"
+        />
         <ParallaxRocket
           fillPercentage={fillPercentage}
           missionState={mission.state}
@@ -137,7 +142,10 @@ export default function HeroSection({
         </div>
 
         {/* Right Side: Live Salawat Counter (Vertical Column Box) */}
-        <div className="flex flex-col items-center justify-between px-2.5 py-2.5 rounded-2xl bg-slate-900/70 border border-amber-500/35 backdrop-blur-md shadow-[0_8px_28px_rgba(245,158,11,0.22),0_4px_16px_rgba(0,0,0,0.5)] w-[62px] min-h-[190px] pointer-events-auto select-none">
+        <div
+          data-tour="counter"
+          className="flex flex-col items-center justify-between px-2.5 py-2.5 rounded-2xl bg-slate-900/70 border border-amber-500/35 backdrop-blur-md shadow-[0_8px_28px_rgba(245,158,11,0.22),0_4px_16px_rgba(0,0,0,0.5)] w-[62px] min-h-[190px] pointer-events-auto select-none"
+        >
           <div className="w-full flex flex-col items-center pb-1.5 border-b border-amber-500/20 text-center">
             <span className="text-xs font-black text-amber-300 drop-shadow-[0_1px_6px_rgba(245,158,11,0.6)]">
               صلوات
@@ -159,7 +167,10 @@ export default function HeroSection({
         style={{ direction: "rtl" }}
       >
         {/* Right Side on Screen in RTL (Right Flank: Live Salawat Counter) */}
-        <div className="flex flex-col gap-1.5 p-3.5 lg:p-4 rounded-2xl bg-slate-900/80 border border-amber-500/35 backdrop-blur-md shadow-[0_8px_32px_rgba(245,158,11,0.18),0_4px_16px_rgba(0,0,0,0.5)] w-48 lg:w-56 pointer-events-auto select-none">
+        <div
+          data-tour="counter"
+          className="flex flex-col gap-1.5 p-3.5 lg:p-4 rounded-2xl bg-slate-900/80 border border-amber-500/35 backdrop-blur-md shadow-[0_8px_32px_rgba(245,158,11,0.18),0_4px_16px_rgba(0,0,0,0.5)] w-48 lg:w-56 pointer-events-auto select-none"
+        >
           <div className="flex items-center justify-between pb-1.5 border-b border-amber-500/20">
             <div className="flex items-center gap-2">
               <Sparkles className="w-4 h-4 text-amber-400 shrink-0" />
@@ -281,19 +292,23 @@ export default function HeroSection({
             : "translate-y-0 opacity-100 scale-100"
         }`}
       >
-        <CommunityProgress
-          mission={mission}
-          animatedCount={animatedCount}
-          fillPercentage={fillPercentage}
-          onReplayLaunch={onReplayLaunch}
-        />
+        <div data-tour="progress" className="w-full flex justify-center">
+          <CommunityProgress
+            mission={mission}
+            animatedCount={animatedCount}
+            fillPercentage={fillPercentage}
+            onReplayLaunch={onReplayLaunch}
+          />
+        </div>
 
-        <SalawatButton
-          onOptimisticIncrement={onSalawatPress}
-          onSubmissionSuccess={onSalawatSuccess}
-          onSubmissionRejected={onSalawatRejected}
-          disabled={isLaunching || campaignPhase === "archived"}
-        />
+        <div data-tour="salawat-button" className="flex justify-center">
+          <SalawatButton
+            onOptimisticIncrement={onSalawatPress}
+            onSubmissionSuccess={onSalawatSuccess}
+            onSubmissionRejected={onSalawatRejected}
+            disabled={isLaunching || campaignPhase === "archived"}
+          />
+        </div>
       </div>
 
       {/* Memorial Event Information & Countdown Dialog Modal */}

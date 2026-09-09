@@ -27,7 +27,7 @@ export default function DedicationCard({ martyr, martyrs }: DedicationCardProps)
   const count = martyrsList.length;
 
   return (
-    <section className="w-full max-w-2xl mx-auto px-4 py-8 relative z-10" style={{ direction: "rtl" }}>
+    <section data-tour="dedication" className="w-full max-w-2xl mx-auto px-4 py-8 relative z-10" style={{ direction: "rtl" }}>
       <div className="relative overflow-hidden glass-panel rounded-3xl p-5 sm:p-7 md:p-8 border border-amber-500/20 shadow-[0_12px_40px_rgba(0,0,0,0.55)]">
         {/* Ambient celestial glows */}
         <div className="absolute -top-24 -right-24 w-72 h-72 bg-amber-500/[0.08] rounded-full blur-3xl pointer-events-none" />
