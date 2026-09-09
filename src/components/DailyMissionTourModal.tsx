@@ -27,6 +27,8 @@ export interface UserDailyMission {
   userContributed: number;
   completedTour: boolean;
   cycle?: number;
+  /** True once the pledged share was submitted to the day total (exactly once). */
+  pledgeSubmitted?: boolean;
 }
 
 interface DailyMissionTourModalProps {
@@ -115,6 +117,7 @@ export default function DailyMissionTourModal({
       userContributed: 0,
       completedTour: true,
       cycle: mission.cycle ?? 0,
+      pledgeSubmitted: false,
     };
 
     onComplete(completed);

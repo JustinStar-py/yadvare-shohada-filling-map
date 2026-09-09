@@ -754,15 +754,58 @@ export default function HomePage() {
       window.scrollTo(0, 0);
     }
   }, []);
+  // Accepting the pledge contributes its suggested share to the day total,
+  // exactly once per pledge (deterministic idempotency key per visitor/date/cycle).
+  const handlePledgeContribution = useCallback(
+    async (mission: UserDailyMission) => {
+      const count = Math.floor(mission.suggestedCount) || 0;
+      if (count < 1) return;
+      handleSalawatPress(count);
+      setEnergyBurstTrigger((t) => t + 1);
+      try {
+        const visitorId = getOrCreateVisitorId();
+        const res = await fetch("/api/salawat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            idempotencyKey: `pledge-${visitorId}-${mission.date}-c${mission.cycle ?? 0}`.slice(0, 64),
+            count,
+            visitorId,
+            clientEpoch: lastEpochRef.current,
+          }),
+        });
+        const data = await res.json().catch(() => null);
+        if (res.ok && data) {
+          handleSalawatSuccess(data, count);
+        } else {
+          handleSalawatRejected(count);
+        }
+      } catch {
+        handleSalawatRejected(count);
+      }
+    },
+    [handleSalawatPress, handleSalawatSuccess, handleSalawatRejected]
+  );
 
-  const handleTourComplete = useCallback((completed: UserDailyMission) => {    setUserMission(completed);
-    userMissionRef.current = completed;
-    setShowTourModal(false);
-    setIsTourReviewMode(false);
-    try {
-      localStorage.setItem(`salawat_daily_mission_${completed.date}`, JSON.stringify(completed));
-    } catch {}
-  }, []);
+  const handleTourComplete = useCallback(
+    (completed: UserDailyMission) => {
+      const alreadySubmitted = !!completed.pledgeSubmitted;
+      const stamped: UserDailyMission = alreadySubmitted
+        ? completed
+        : { ...completed, pledgeSubmitted: true };
+      setUserMission(stamped);
+      userMissionRef.current = stamped;
+      setShowTourModal(false);
+      setIsTourReviewMode(false);
+      try {
+        localStorage.setItem(`salawat_daily_mission_${stamped.date}`, JSON.stringify(stamped));
+      } catch {}
+      if (!alreadySubmitted) {
+        void handlePledgeContribution(stamped);
+      }
+    },
+    [handlePledgeContribution]
+  );
 
   const handleOpenMissionCard = useCallback(() => {
     if (userMissionRef.current) {
