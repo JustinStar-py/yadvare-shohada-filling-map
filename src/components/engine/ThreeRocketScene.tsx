@@ -5,6 +5,7 @@ import * as THREE from "three";
 import { MissionState } from "@/types/campaign";
 import { MissileModel, getMissileConfig } from "./missile-catalog";
 import { soundEngine } from "@/lib/client/procedural-audio";
+import { SHOHADA_SHAHIDIEH_PROFILES } from "@/lib/data/shohada-shahidieh";
 
 interface ThreeRocketSceneProps {
   fillPercentage: number;
@@ -25,21 +26,21 @@ const NOZZLE_COLOR = new THREE.Color("#1e2430");
 // ── Flight Timeline Constants ──
 // Cinematic Aerial Memorial Tour: slow, majestic ascent through sky inscriptions
 const IGNITION_DUR = 1.2;          // 0.0s - 1.2s: Pad tremor & ignition build-up
-const ASCENT_DUR = 15.0;           // 1.2s - 16.2s: Extended cinematic ascent through memorial inscriptions
-const ASCENT_END = IGNITION_DUR + ASCENT_DUR; // 16.2s
-const SEP_DUR = 2.4;               // 16.2s - 18.6s: Stage separation with 100% centered booster & capsule exit
-const SEP_END = ASCENT_END + SEP_DUR; // 18.6s
-const BOOSTER_DESCENT_DUR = 6.0;   // 18.6s - 24.6s: Camera-tracked retro landing burn descent
-const BOOSTER_LAND_TIME = SEP_END + BOOSTER_DESCENT_DUR; // 24.6s
-const TOUCHDOWN_DUR = 1.0;         // 24.6s - 25.6s: Gentle spring suspension dampening on pad ring
-const REDOCK_START = BOOSTER_LAND_TIME + TOUCHDOWN_DUR; // 25.6s
-const REDOCK_DUR = 3.2;            // 25.6s - 28.8s: Capsule returns from space orbit & docks
-const SETTLE_DUR = 1.2;            // 28.8s - 30.0s: Golden celebration aura & pad settlement
-const FLIGHT_DURATION = REDOCK_START + REDOCK_DUR + SETTLE_DUR; // 30.0s
+const ASCENT_DUR = 22.0;           // 1.2s - 23.2s: Extended cinematic ascent through memorial inscriptions
+const ASCENT_END = IGNITION_DUR + ASCENT_DUR; // 23.2s
+const SEP_DUR = 2.4;               // 23.2s - 25.6s: Stage separation with 100% centered booster & capsule exit
+const SEP_END = ASCENT_END + SEP_DUR; // 25.6s
+const BOOSTER_DESCENT_DUR = 7.0;   // 25.6s - 32.6s: Camera-tracked retro landing burn descent
+const BOOSTER_LAND_TIME = SEP_END + BOOSTER_DESCENT_DUR; // 32.6s
+const TOUCHDOWN_DUR = 1.0;         // 32.6s - 33.6s: Gentle spring suspension dampening on pad ring
+const REDOCK_START = BOOSTER_LAND_TIME + TOUCHDOWN_DUR; // 33.6s
+const REDOCK_DUR = 3.2;            // 33.6s - 36.8s: Capsule returns from space orbit & docks
+const SETTLE_DUR = 1.2;            // 36.8s - 38.0s: Golden celebration aura & pad settlement
+const FLIGHT_DURATION = REDOCK_START + REDOCK_DUR + SETTLE_DUR; // 38.0s
 
 // Altitude & Framing Constants
-// At apogee (Y=13.0), camera at (13.0 - 0.49 = 12.51) places the booster DEAD CENTER
-const PEAK_ALTITUDE = 13.0;
+// At apogee (Y=22.0), camera at (22.0 - 0.49 = 21.51) places the booster DEAD CENTER
+const PEAK_ALTITUDE = 22.0;
 const BOOSTER_MID_Y = -0.49;
 
 // Camera smoothing time constant
@@ -1004,11 +1005,11 @@ export default function ThreeRocketScene({
     // ── 3D Memorial Tunnel in the Sky (Luminous Gold-Red Calligraphy with 3D Depth Fly-Past) ──
     // Evenly distributed along the ascent corridor up to apogee (Y=13.0m)
     const MEMORIAL_TEXTS = [
-      { lines: ["شهدا زنده‌اند"], y: 2, side: 1 },
-      { lines: ["به یاد شهدای والامقام", "قهرمان شهیدیه"], y: 6.2, side: -1 },
-      { lines: ["راه سرخ شهادت", "جاودانه و نورانی است"], y: 10.4, side: 1 },
-      { lines: ["ستارگان درخشان آسمان", "ایثار و معرفت"], y: 14.6, side: -1 },
-      { lines: ["صلوات بر محمد", "و آل محمد (ص)"], y: 18.8, side: 1 },
+      { lines: ["شهدا زنده‌اند"], y: 3, side: 1 },
+      { lines: ["به یاد شهدای والامقام", "قهرمان شهیدیه"], y: 7.5, side: -1 },
+      { lines: ["راه سرخ شهادت", "جاودانه و نورانی است"], y: 12.5, side: 1 },
+      { lines: ["ستارگان درخشان آسمان", "ایثار و معرفت"], y: 17.5, side: -1 },
+      { lines: ["صلوات بر محمد", "و آل محمد (ص)"], y: 21.5, side: 1 },
     ];
 
     interface MemorialBannerItem {
@@ -1130,6 +1131,148 @@ export default function ThreeRocketScene({
       mesh.rotation.y = -item.side * 0.08;
       scene.add(mesh);
       memorialBanners.push({ mesh, mat, targetY: item.y, baseZ: initialZ, side: item.side, planeWidth: planeW });
+    });
+
+    // ── Cinematic Martyr Portrait Panels Along Flight Path ──
+    // Randomly select 7 martyrs from the full list and place their portraits
+    // as semi-transparent floating panels along the ascent corridor
+    interface MartyrPortraitItem {
+      mesh: THREE.Mesh;
+      mat: THREE.MeshBasicMaterial;
+      targetY: number;
+      side: number;
+      baseZ: number;
+    }
+
+    const martyrPortraits: MartyrPortraitItem[] = [];
+
+    // Seeded random-ish shuffle using Array sort (client-side, fresh each flight)
+    const shuffled = [...SHOHADA_SHAHIDIEH_PROFILES]
+      .map((p) => ({ p, r: Math.random() }))
+      .sort((a, b) => a.r - b.r)
+      .map((x) => x.p)
+      .slice(0, 7);
+
+    // Portrait Y positions interleaved between text banners
+    // Text banners: 3, 7.5, 12.5, 17.5, 21.5
+    // Portraits:    5.2, 10, 15, 19.5, 4, 9, 14  (7 portraits spread across corridor)
+    const portraitYPositions = [5.2, 10.0, 15.0, 19.5, 4.0, 9.0, 14.0];
+    // Sides alternate to create a flanking corridor feel
+    const portraitSides = [-1, 1, -1, 1, 1, -1, 1];
+
+    // Create a portrait panel for each selected martyr
+    shuffled.forEach((martyr, i) => {
+      const targetY = portraitYPositions[i];
+      const side = portraitSides[i];
+
+      // Create canvas overlay with name label — the photo loads async via TextureLoader
+      const overlayCanvas = document.createElement("canvas");
+      overlayCanvas.width = 256;
+      overlayCanvas.height = 320;
+      const overlayCtx = overlayCanvas.getContext("2d");
+
+      const overlayTexture = new THREE.CanvasTexture(overlayCanvas);
+      overlayTexture.colorSpace = THREE.SRGBColorSpace;
+
+      const mat = new THREE.MeshBasicMaterial({
+        map: overlayTexture,
+        transparent: true,
+        opacity: 0,
+        depthWrite: false,
+        side: THREE.DoubleSide,
+      });
+
+      const W = 0.60, H = 0.75; // portrait ratio
+      const geo = new THREE.PlaneGeometry(W, H);
+      const mesh = new THREE.Mesh(geo, mat);
+      const baseZ = -0.6;
+      mesh.position.set(side * 0.38, targetY, baseZ);
+      mesh.rotation.y = -side * 0.10;
+      scene.add(mesh);
+
+      martyrPortraits.push({ mesh, mat, targetY, side, baseZ });
+
+      // Load the actual photo texture asynchronously
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      img.onload = () => {
+        if (!overlayCtx) return;
+        overlayCtx.clearRect(0, 0, 256, 320);
+
+        // Subtle dark vignette frame behind photo
+        overlayCtx.fillStyle = "rgba(0,0,0,0.45)";
+        const r = 12;
+        overlayCtx.beginPath();
+        overlayCtx.moveTo(r, 0);
+        overlayCtx.lineTo(256 - r, 0);
+        overlayCtx.quadraticCurveTo(256, 0, 256, r);
+        overlayCtx.lineTo(256, 280 - r);
+        overlayCtx.quadraticCurveTo(256, 280, 256 - r, 280);
+        overlayCtx.lineTo(r, 280);
+        overlayCtx.quadraticCurveTo(0, 280, 0, 280 - r);
+        overlayCtx.lineTo(0, r);
+        overlayCtx.quadraticCurveTo(0, 0, r, 0);
+        overlayCtx.closePath();
+        overlayCtx.fill();
+
+        // Draw photo clipped into rounded rect
+        overlayCtx.save();
+        overlayCtx.beginPath();
+        overlayCtx.moveTo(r + 4, 4);
+        overlayCtx.lineTo(252 - r, 4);
+        overlayCtx.quadraticCurveTo(252, 4, 252, r + 4);
+        overlayCtx.lineTo(252, 276 - r);
+        overlayCtx.quadraticCurveTo(252, 276, 252 - r, 276);
+        overlayCtx.lineTo(r + 4, 276);
+        overlayCtx.quadraticCurveTo(4, 276, 4, 276 - r);
+        overlayCtx.lineTo(4, r + 4);
+        overlayCtx.quadraticCurveTo(4, 4, r + 4, 4);
+        overlayCtx.closePath();
+        overlayCtx.clip();
+        overlayCtx.drawImage(img, 4, 4, 248, 272);
+        overlayCtx.restore();
+
+        // Golden border frame
+        overlayCtx.strokeStyle = "rgba(245,158,11,0.85)";
+        overlayCtx.lineWidth = 2.5;
+        overlayCtx.beginPath();
+        overlayCtx.moveTo(r + 4, 4);
+        overlayCtx.lineTo(252 - r, 4);
+        overlayCtx.quadraticCurveTo(252, 4, 252, r + 4);
+        overlayCtx.lineTo(252, 276 - r);
+        overlayCtx.quadraticCurveTo(252, 276, 252 - r, 276);
+        overlayCtx.lineTo(r + 4, 276);
+        overlayCtx.quadraticCurveTo(4, 276, 4, 276 - r);
+        overlayCtx.lineTo(4, r + 4);
+        overlayCtx.quadraticCurveTo(4, 4, r + 4, 4);
+        overlayCtx.closePath();
+        overlayCtx.stroke();
+
+        // Name label background
+        overlayCtx.fillStyle = "rgba(0,0,0,0.72)";
+        overlayCtx.fillRect(0, 276, 256, 44);
+
+        // Name text in Persian
+        overlayCtx.direction = "rtl";
+        overlayCtx.textAlign = "center";
+        overlayCtx.textBaseline = "middle";
+        overlayCtx.font = "bold 22px Vazirmatn, Tahoma, sans-serif";
+
+        // Name glow
+        overlayCtx.shadowColor = "rgba(245,158,11,0.9)";
+        overlayCtx.shadowBlur = 8;
+        overlayCtx.fillStyle = "#fef08a";
+        overlayCtx.fillText(martyr.name.replace("شهید ", ""), 128, 298);
+
+        // "شهید" label in smaller text above
+        overlayCtx.font = "bold 15px Vazirmatn, Tahoma, sans-serif";
+        overlayCtx.shadowBlur = 5;
+        overlayCtx.fillStyle = "rgba(251,191,36,0.82)";
+        overlayCtx.fillText("شهید", 128, 316);
+
+        overlayTexture.needsUpdate = true;
+      };
+      img.src = martyr.photoUrl;
     });
 
     // ── Pointer Parallax ──
@@ -1754,6 +1897,47 @@ export default function ThreeRocketScene({
             b.mat.opacity += (0 - b.mat.opacity) * (1 - Math.exp(-dt / 0.2));
           }
         });
+
+        // ── Cinematic Martyr Portraits: Fade In as Rocket Approaches, Fade Out as it Passes ──
+        const PORTRAIT_APPROACH = 2.8;  // show window: 2.8 units below
+        const PORTRAIT_RECEDE   = 1.8;  // hide window: 1.8 units above
+        martyrPortraits.forEach((p) => {
+          const deltaY = camera.position.y - p.targetY;
+          let targetOpacity: number;
+          let targetZ: number;
+          let targetScale: number;
+
+          if (isFlightActive && deltaY >= -PORTRAIT_APPROACH && deltaY <= PORTRAIT_RECEDE) {
+            if (deltaY <= 0) {
+              // Approaching
+              const u = 1 + deltaY / PORTRAIT_APPROACH;
+              const ease = u * u * (3 - 2 * u);
+              targetOpacity = Math.pow(ease, 1.2) * 0.48; // max opacity ~0.48 (cinematic semi-transparent)
+              targetZ = p.baseZ + (2.0 - p.baseZ) * Math.pow(ease, 1.3);
+              targetScale = 0.55 + 0.55 * Math.pow(ease, 1.1);
+            } else {
+              // Receding
+              const v = deltaY / PORTRAIT_RECEDE;
+              const ease = v * v * (3 - 2 * v);
+              targetOpacity = (1 - Math.pow(ease, 1.2)) * 0.48;
+              targetZ = 2.0 + (p.baseZ - 2.0) * Math.pow(ease, 1.2);
+              targetScale = 1.10 - 0.55 * Math.pow(ease, 1.0);
+            }
+            const floatOffY = Math.sin(elapsed * 1.3 + p.targetY * 0.7) * 0.018;
+            p.mesh.position.set(p.side * 0.38, p.targetY + floatOffY, targetZ);
+            p.mesh.scale.setScalar(targetScale);
+            p.mesh.rotation.y = -p.side * (0.10 - 0.05 * (targetScale - 0.55));
+          } else {
+            // Outside window: invisible, resting at base
+            targetOpacity = 0;
+            p.mesh.position.set(p.side * 0.38, p.targetY, p.baseZ);
+            p.mesh.scale.setScalar(0.55);
+            p.mesh.rotation.y = -p.side * 0.10;
+          }
+
+          p.mat.opacity += (targetOpacity - p.mat.opacity) * (1 - Math.exp(-dt / 0.15));
+        });
+
         // ✅ Frame-rate independent camera lerp
         const camAlpha = 1 - Math.exp(-dt / CAM_SMOOTH_TAU);
         camera.position.y += (targetCameraY - camera.position.y) * camAlpha;
@@ -1879,6 +2063,11 @@ export default function ThreeRocketScene({
         b.mesh.geometry.dispose();
         b.mat.map?.dispose();
         b.mat.dispose();
+      });
+      martyrPortraits.forEach((p) => {
+        p.mesh.geometry.dispose();
+        p.mat.map?.dispose();
+        p.mat.dispose();
       });
       scene.traverse((obj) => {
         const mesh = obj as THREE.Mesh;
