@@ -607,3 +607,151 @@ body {
 .animate-salawat-cooldown {
   animation: salawatCooldown 2s linear forwards;
 }
+
+/* ─────────────────────────────────────────────
+   Memorial Intro — quiet space-crystal scene
+   Slow portrait drift, star twinkle, poetic text morph.
+   Pure CSS (no rAF) so it costs almost nothing on mobile.
+────────────────────────────────────────────── */
+@keyframes memorial-drift-down {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-50%);
+  }
+}
+
+@keyframes memorial-drift-up {
+  from {
+    transform: translateY(-50%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes memorial-twinkle {
+  0%,
+  100% {
+    opacity: 0.15;
+  }
+  50% {
+    opacity: 0.85;
+  }
+}
+
+@keyframes memorial-float {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) rotate(var(--memorial-rot, 12deg));
+  }
+  50% {
+    transform: translate3d(0, -26px, 0) rotate(var(--memorial-rot, 12deg));
+  }
+}
+
+@keyframes memorial-word-rise {
+  from {
+    opacity: 0;
+    transform: translateY(26px);
+    filter: blur(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+@keyframes memorial-line-dissolve {
+  to {
+    opacity: 0;
+    transform: translateY(-18px) scale(0.985);
+    filter: blur(16px);
+  }
+}
+
+@keyframes memorial-enter-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.45), 0 8px 30px rgba(245, 158, 11, 0.25);
+  }
+  50% {
+    box-shadow: 0 0 0 10px rgba(245, 158, 11, 0), 0 8px 40px rgba(245, 158, 11, 0.4);
+  }
+}
+
+/* Slow golden sheen drifting across the headline words. */
+@keyframes memorial-sheen {
+  0% {
+    background-position: 0% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
+}
+
+.memorial-word {
+  display: inline-block;
+  opacity: 0;
+  animation: memorial-word-rise 1.1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/*
+ * Gradient text lives ONLY on this leaf span — never combined with animated
+ * opacity/filter on the same element, and never with a bg-clip ancestor
+ * running its own animation. That combination silently hides text in Chromium.
+ */
+.memorial-sheen-text {
+  background-image: linear-gradient(110deg, #fcd34d 15%, #fffbeb 38%, #f59e0b 55%, #fcd34d 78%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: memorial-sheen 7s linear infinite;
+}
+
+/* Crimson twin of the golden headline sheen (line 2). */
+.memorial-sheen-text-red {
+  background-image: linear-gradient(110deg, #f87171 15%, #fff1f2 38%, #dc2626 55%, #f87171 78%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: memorial-sheen 7s linear infinite;
+}
+
+.memorial-line-leaving {
+  animation: memorial-line-dissolve 0.9s cubic-bezier(0.4, 0, 0.6, 1) forwards;
+}
+
+/* Whole-line dissolve: swaps each settled word to the dissolve animation. */
+.memorial-dissolve-words .memorial-word {
+  animation: memorial-line-dissolve 0.9s cubic-bezier(0.4, 0, 0.6, 1) forwards;
+}
+
+.memorial-enter-btn {
+  animation: memorial-enter-pulse 2.4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .memorial-drift,
+  .memorial-twinkle-star,
+  .memorial-float-el,
+  .memorial-enter-btn,
+  .memorial-sheen-text,
+  .memorial-sheen-text-red,
+  .memorial-dissolve-words .memorial-word {
+    animation: none !important;
+  }
+
+  .memorial-word {
+    opacity: 1 !important;
+    animation: none !important;
+  }
+
+  .memorial-line-leaving {
+    animation-duration: 0.2s !important;
+  }
+}
