@@ -1,6 +1,6 @@
 import * as THREE from "three";
 /** Artistic silhouettes only: no real dimensions, engineering or performance claims. */
-import type { MissileModel } from "./missile-catalog";
+import { type MissileModel, getMissileConfig } from "./missile-catalog";
 export interface RocketModel {
   root: THREE.Group; capsule: THREE.Group; fuel: THREE.Mesh;
   surface: THREE.Mesh; fuelMaterial: THREE.MeshStandardMaterial;
@@ -18,6 +18,7 @@ export function buildRocket(id: MissileModel, low: boolean): RocketModel {
   const materials = new Set<THREE.Material>();
   const textures = new Set<THREE.Texture>();
   const material = <T extends THREE.Material>(value: T): T => { materials.add(value); return value; };
+  const cfg = getMissileConfig(id);
   const hullColor = id === "reyhaneh" ? "#f472b6" : id === "emad" ? "#e2e8f0" : "#d2ccc1";
   const hull = material(new THREE.MeshStandardMaterial({
     color: hullColor,
@@ -28,8 +29,8 @@ export function buildRocket(id: MissileModel, low: boolean): RocketModel {
   const brass = material(new THREE.MeshStandardMaterial({ color: "#b88137", roughness: 0.3, metalness: 0.78 }));
   const glass = material(new THREE.MeshStandardMaterial({ color: "#e9d9b6", transparent: true,
     opacity: 0.16, roughness: 0.18, metalness: 0.15, depthWrite: false, side: THREE.DoubleSide }));
-  const fuelMaterial = material(new THREE.MeshStandardMaterial({ color: "#d69b2c", emissive: "#d69b2c",
-    emissiveIntensity: 0.7, roughness: 0.3, metalness: 0.3 }));
+  const fuelMaterial = material(new THREE.MeshStandardMaterial({ color: cfg.fuelColor, emissive: cfg.fuelEmissive,
+    emissiveIntensity: 0.75, roughness: 0.3, metalness: 0.3 }));
   function mesh<G extends THREE.BufferGeometry, M extends THREE.Material>(geometry: G, mat: M, y: number, parent = root) {
     geometries.add(geometry);
     const object = new THREE.Mesh(geometry, mat); object.position.y = y; parent.add(object); return object;

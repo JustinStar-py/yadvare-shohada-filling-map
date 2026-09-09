@@ -400,13 +400,17 @@ export default function ThreeRocketScene({
     }
     const khorramshahrNoseGeo = new THREE.LatheGeometry(khorramshahrNosePts, 40);
 
-    // 5) Emad Nose: Guided maneuverable warhead with conical taper and sharp tip
+    // 5) Emad Nose: Distinctive MARV stepped bi-conic guided warhead with aerodynamic flare & needle tip
     const emadNosePts: THREE.Vector2[] = [];
-    for (let i = 0; i <= 14; i++) {
-      const t = i / 14;
-      const r = baseR * Math.pow(1 - t, 0.88);
-      emadNosePts.push(new THREE.Vector2(Math.max(r, 0.002), noseStart + t * 1.38));
-    }
+    emadNosePts.push(new THREE.Vector2(baseR * 1.05, noseStart));
+    emadNosePts.push(new THREE.Vector2(baseR * 0.98, noseStart + 0.10));
+    emadNosePts.push(new THREE.Vector2(baseR * 0.88, noseStart + 0.24)); // stepped choke waist
+    emadNosePts.push(new THREE.Vector2(baseR * 0.86, noseStart + 0.34)); // waist collar
+    emadNosePts.push(new THREE.Vector2(baseR * 0.72, noseStart + 0.60));
+    emadNosePts.push(new THREE.Vector2(baseR * 0.54, noseStart + 0.95));
+    emadNosePts.push(new THREE.Vector2(baseR * 0.35, noseStart + 1.30));
+    emadNosePts.push(new THREE.Vector2(baseR * 0.15, noseStart + 1.65));
+    emadNosePts.push(new THREE.Vector2(0.012, noseStart + 1.82));
     const emadNoseGeo = new THREE.LatheGeometry(emadNosePts, 40);
 
     // 6) Reyhaneh Nose: Cute rounded aerodynamic ogive bullet curve
@@ -492,23 +496,29 @@ export default function ThreeRocketScene({
     khorramshahrCollarGroup.add(collarMesh);
     capsuleGroup.add(khorramshahrCollarGroup);
 
-    // E) Emad: 4 terminal steerable warhead guidance canards on capsuleGroup
+    // E) Emad: 4 terminal steerable warhead guidance canards on stepped waist of capsuleGroup
     const emadCanardsGroup = new THREE.Group();
     const emadCanardShape = new THREE.Shape();
-    emadCanardShape.moveTo(0, 0);
-    emadCanardShape.lineTo(0.20, -0.12);
-    emadCanardShape.lineTo(0.14, -0.22);
-    emadCanardShape.lineTo(0, -0.22);
+    emadCanardShape.moveTo(0, 0.04);
+    emadCanardShape.lineTo(0.26, -0.06); // swept delta wingtip
+    emadCanardShape.lineTo(0.24, -0.20); // vertical outer edge
+    emadCanardShape.lineTo(0.12, -0.22); // inner cut
+    emadCanardShape.lineTo(0, -0.20);
     emadCanardShape.closePath();
-    const emadCanardGeo = new THREE.ExtrudeGeometry(emadCanardShape, { depth: 0.014, bevelEnabled: false });
+    const emadCanardGeo = new THREE.ExtrudeGeometry(emadCanardShape, { depth: 0.016, bevelEnabled: false });
     for (let i = 0; i < 4; i++) {
       const arm = new THREE.Group();
       arm.rotation.y = (i * Math.PI) / 2;
       const m = new THREE.Mesh(emadCanardGeo, hullMaterial);
-      m.position.set(baseR * 0.95, noseStart + 0.14, -0.007);
+      m.position.set(baseR * 0.86, noseStart + 0.26, -0.008);
       arm.add(m);
       emadCanardsGroup.add(arm);
     }
+    // Thermal graphite/titanium protection collar ring around Emad's stepped waist
+    const emadWaistRing = new THREE.Mesh(new THREE.TorusGeometry(baseR * 0.88, 0.014, 12, 40), goldMaterial);
+    emadWaistRing.rotation.x = Math.PI / 2;
+    emadWaistRing.position.y = noseStart + 0.24;
+    emadCanardsGroup.add(emadWaistRing);
     capsuleGroup.add(emadCanardsGroup);
 
     // F) Reyhaneh: Cute golden decorative waist ring with sweet charm on capsuleGroup
@@ -651,47 +661,6 @@ export default function ThreeRocketScene({
       capsuleGroup.add(decalMesh);
     }
 
-    // Dynamic model switcher - Warhead and Booster share identical distinct colors for each missile
-    const applyMissileModel = (model: MissileModel) => {
-      const cfg = getMissileConfig(model);
-      renderDecalText(model, cfg.textColor);
-
-      hullMaterial.color.set(cfg.colorHex);
-      hullMaterial.metalness = cfg.metalness;
-      hullMaterial.roughness = cfg.roughness;
-
-      if (model === "fattah") {
-        noseMesh.geometry = fattahNoseGeo;
-        beaconMesh.position.set(0, noseStart + 1.45, 0);
-      } else if (model === "sejjil") {
-        noseMesh.geometry = sejjilNoseGeo;
-        beaconMesh.position.set(0, noseStart + 1.25, 0);
-      } else if (model === "khorramshahr") {
-        noseMesh.geometry = khorramshahrNoseGeo;
-        beaconMesh.position.set(0, noseStart + 1.15, 0);
-      } else if (model === "emad") {
-        noseMesh.geometry = emadNoseGeo;
-        beaconMesh.position.set(0, noseStart + 1.38, 0);
-      } else if (model === "reyhaneh") {
-        noseMesh.geometry = reyhanehNoseGeo;
-        beaconMesh.position.set(0, noseStart + 1.32, 0);
-      } else {
-        noseMesh.geometry = kheibarNoseGeo;
-        beaconMesh.position.set(0, noseStart + noseH, 0);
-      }
-      noseMesh.material = hullMaterial;
-      hullMaterial.needsUpdate = true;
-
-      kheibarCanardsGroup.visible = model === "kheibar";
-      fattahGliderGroup.visible = model === "fattah";
-      sejjilRingsGroup.visible = model === "sejjil";
-      khorramshahrCollarGroup.visible = model === "khorramshahr";
-      emadCanardsGroup.visible = model === "emad";
-      reyhanehAccessoriesGroup.visible = model === "reyhaneh";
-    };
-
-    onModelChangeRef.current = applyMissileModel;
-    applyMissileModel(modelRef.current);
 
     // Capsule docking baseplate
     const capsuleBase = new THREE.Mesh(new THREE.CylinderGeometry(baseR * 0.98, baseR * 0.96, 0.03, 36), hullMaterial);
@@ -929,6 +898,55 @@ export default function ThreeRocketScene({
       finGroup.add(finArm);
     }
     boosterGroup.add(finGroup);
+
+    // ── Dedicated High-Performance Swept Delta Stabilization Fins for Emad ──
+    const emadBaseFinShape = new THREE.Shape();
+    emadBaseFinShape.moveTo(0, 0.06);
+    emadBaseFinShape.lineTo(0.38, -0.16); // Sharp swept leading edge
+    emadBaseFinShape.lineTo(0.60, -0.42); // Extended aerodynamic wingtip
+    emadBaseFinShape.lineTo(0.60, -0.64); // Vertical outer aerodynamic fence
+    emadBaseFinShape.lineTo(0.16, -0.64); // Base trailing edge
+    emadBaseFinShape.lineTo(0, -0.56);
+    emadBaseFinShape.closePath();
+    const emadBaseFinGeom = new THREE.ExtrudeGeometry(emadBaseFinShape, {
+      depth: 0.038,
+      bevelEnabled: true,
+      bevelSize: 0.012,
+      bevelThickness: 0.012,
+      bevelSegments: 2,
+    });
+    const emadFinGroup = new THREE.Group();
+    for (let i = 0; i < 4; i++) {
+      const angle = (i * Math.PI) / 2;
+      const fin = new THREE.Mesh(emadBaseFinGeom, hullMaterial);
+      fin.position.set(0.3, -0.6, -0.019);
+
+      if (i === 0 || i === 2) {
+        const frontFlag = new THREE.Mesh(flagGeom, flagMaterial);
+        frontFlag.position.set(0.28, -0.44, 0.051);
+        fin.add(frontFlag);
+
+        const backFlag = new THREE.Mesh(flagGeom, flagBackMaterial);
+        backFlag.position.set(0.28, -0.44, -0.014);
+        backFlag.rotation.y = Math.PI;
+        fin.add(backFlag);
+
+        const frontText = new THREE.Mesh(textGeom, iranTextMat);
+        frontText.position.set(0.28, -0.525, 0.051);
+        fin.add(frontText);
+
+        const backText = new THREE.Mesh(textGeom, iranTextBackMat);
+        backText.position.set(0.28, -0.525, -0.014);
+        backText.rotation.y = Math.PI;
+        fin.add(backText);
+      }
+
+      const finArm = new THREE.Group();
+      finArm.rotation.y = angle;
+      finArm.add(fin);
+      emadFinGroup.add(finArm);
+    }
+    boosterGroup.add(emadFinGroup);
 
     const nozzle = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.26, 0.28, 32, 1, true), nozzleMaterial);
     nozzle.position.set(0, -1.39, 0);
@@ -1308,6 +1326,63 @@ export default function ThreeRocketScene({
     let boosterLanded = false;
     let isDocked = false;
 
+    // ── Dynamic Model Switcher (All physical parts & materials initialized) ──
+    const applyMissileModel = (model: MissileModel) => {
+      const cfg = getMissileConfig(model);
+      renderDecalText(model, cfg.textColor);
+
+      hullMaterial.color.set(cfg.colorHex);
+      hullMaterial.metalness = cfg.metalness;
+      hullMaterial.roughness = cfg.roughness;
+
+      // Unique custom fuel & thruster plume colors for each missile model
+      fuelMaterial.color.set(cfg.fuelColor);
+      fuelMaterial.emissive.set(cfg.fuelEmissive);
+      fuelCoreLight.color.set(cfg.fuelColor);
+      const meniscusColor = new THREE.Color(cfg.fuelColor).lerp(new THREE.Color("#ffffff"), 0.55);
+      meniscusMaterial.color.copy(meniscusColor);
+      flameMat.uniforms.uColorFlame.value.set(cfg.fuelColor);
+      thrusterLight.color.set(cfg.fuelColor);
+      machConeMat.color.set(cfg.fuelColor);
+
+      if (model === "fattah") {
+        noseMesh.geometry = fattahNoseGeo;
+        beaconMesh.position.set(0, noseStart + 1.45, 0);
+      } else if (model === "sejjil") {
+        noseMesh.geometry = sejjilNoseGeo;
+        beaconMesh.position.set(0, noseStart + 1.25, 0);
+      } else if (model === "khorramshahr") {
+        noseMesh.geometry = khorramshahrNoseGeo;
+        beaconMesh.position.set(0, noseStart + 1.15, 0);
+      } else if (model === "emad") {
+        noseMesh.geometry = emadNoseGeo;
+        beaconMesh.position.set(0, noseStart + 1.82, 0);
+      } else if (model === "reyhaneh") {
+        noseMesh.geometry = reyhanehNoseGeo;
+        beaconMesh.position.set(0, noseStart + 1.32, 0);
+      } else {
+        noseMesh.geometry = kheibarNoseGeo;
+        beaconMesh.position.set(0, noseStart + noseH, 0);
+      }
+      noseMesh.material = hullMaterial;
+      hullMaterial.needsUpdate = true;
+
+      // Model-specific accessories
+      kheibarCanardsGroup.visible = model === "kheibar";
+      fattahGliderGroup.visible = model === "fattah";
+      sejjilRingsGroup.visible = model === "sejjil";
+      khorramshahrCollarGroup.visible = model === "khorramshahr";
+      emadCanardsGroup.visible = model === "emad";
+      reyhanehAccessoriesGroup.visible = model === "reyhaneh";
+
+      // Base stabilization fins: Emad has dedicated swept clipped-delta wings with vertical fences
+      finGroup.visible = model !== "emad";
+      emadFinGroup.visible = model === "emad";
+    };
+
+    onModelChangeRef.current = applyMissileModel;
+    applyMissileModel(modelRef.current);
+
     // ── Animation Loop ──
     let animId: number;
     let lastTime = performance.now();
@@ -1317,6 +1392,7 @@ export default function ThreeRocketScene({
     let isFlightActive = false;
     let flightFinishedNotified = false;
     let hasNotifiedReady = false;
+    let currentFuelProgress = progressRef.current;
 
     const animate = (now?: number) => {
       animId = requestAnimationFrame(animate);
@@ -1335,23 +1411,55 @@ export default function ThreeRocketScene({
       if (pulseRef.current > 0) pulseRef.current = Math.max(0, pulseRef.current - dt * 2.2);
       const currentPulse = pulseRef.current;
 
-      // ── Fuel Column ──
-      const p = progressRef.current;
-      const targetFuelHeight = Math.max(0.001, p * CHAMBER_H);
+      // ── Dynamic Responsive Fuel Depletion & Refill Animation ──
+      const pTarget = progressRef.current;
+      let calculatedFuelTarget = pTarget;
+
+      if (isFlightActive) {
+        const t = flightElapsedTime;
+        if (t < IGNITION_DUR) {
+          // Phase 1: Ignition tremor - small consumption ripple
+          const ignFrac = t / IGNITION_DUR;
+          calculatedFuelTarget = pTarget * (1.0 - ignFrac * 0.04);
+        } else if (t < ASCENT_END) {
+          // Phase 2: Extended Majestic Ascent - fuel steadily depletes as rocket climbs into space
+          const ascFrac = (t - IGNITION_DUR) / ASCENT_DUR;
+          // Smooth burning depletion from pTarget down to near empty (0.015)
+          calculatedFuelTarget = pTarget * Math.max(0.015, Math.pow(1.0 - ascFrac, 1.25));
+        } else if (t < BOOSTER_LAND_TIME) {
+          // Phase 3-5: Staging and camera-tracked descent - fuel chamber remains spent
+          calculatedFuelTarget = 0.015;
+        } else {
+          // Phase 6-7: Booster landed safely on launch pad! Rapid and smooth fluid refill animation
+          const refillElapsed = t - BOOSTER_LAND_TIME;
+          // 2.2s fluid refill rush back to current progress
+          const refillFrac = Math.min(1.0, refillElapsed / 2.2);
+          // Cubic ease-out: rapid rush then gentle deceleration to exact fuel line
+          const refillCurve = 1 - Math.pow(1 - refillFrac, 3);
+          calculatedFuelTarget = 0.015 + (pTarget - 0.015) * refillCurve;
+        }
+      }
+
+      // Smooth interpolation for silky-smooth fluid dynamics
+      const fuelLerpSpeed = isFlightActive ? 6.5 : 4.0;
+      currentFuelProgress += (calculatedFuelTarget - currentFuelProgress) * Math.min(1, dt * fuelLerpSpeed);
+
+      const effectiveP = Math.max(0.001, currentFuelProgress);
+      const targetFuelHeight = Math.max(0.001, effectiveP * CHAMBER_H);
       fuelMesh.scale.set(1, targetFuelHeight, 1);
       const currentSurfaceY = CHAMBER_BOTTOM_Y + targetFuelHeight;
       fuelMesh.position.y = CHAMBER_BOTTOM_Y + targetFuelHeight / 2;
       meniscusMesh.position.y = currentSurfaceY;
-      meniscusMesh.visible = p > 0.01;
+      meniscusMesh.visible = effectiveP > 0.01;
       fuelCoreLight.position.y = currentSurfaceY;
-      fuelCoreLight.intensity = 0.5 + p * 1.2 + currentPulse * 1.4;
-      fuelMaterial.emissiveIntensity = 0.75 + p * 0.8 + currentPulse * 1.1;
-      goldMaterial.emissiveIntensity = 0.4 + p * 0.3 + currentPulse * 0.6;
+      fuelCoreLight.intensity = 0.5 + effectiveP * 1.2 + currentPulse * 1.4;
+      fuelMaterial.emissiveIntensity = 0.75 + effectiveP * 0.8 + currentPulse * 1.1;
+      goldMaterial.emissiveIntensity = 0.4 + effectiveP * 0.3 + currentPulse * 0.6;
 
       // ── Flight Choreography ──
       const st = stateRef.current;
       const lifted = liftedRef.current;
-      const isReady = st === "READY_TO_LAUNCH" || p >= 1.0;
+      const isReady = st === "READY_TO_LAUNCH" || pTarget >= 1.0;
       const isLaunched = st === "LAUNCHED";
       const countingDown = launchingRef.current && !lifted;
 
@@ -1788,6 +1896,7 @@ export default function ThreeRocketScene({
       kheibarCanardGeo.dispose();
       fattahGliderGeo.dispose();
       emadCanardGeo.dispose();
+      emadBaseFinGeom.dispose();
       carbonMaterial.dispose();
       modelTexture.dispose();
       renderer.dispose();

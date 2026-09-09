@@ -17,7 +17,7 @@
     "visualPreset": "balanced",
     "finalMessage": "در این مسیر نورانی، با هم هزاران صلوات تقدیم روح پرفتوح شهدا کردیم. یادشان تا ابد در دل‌ها جاودان باد.",
     "isCompleted": false,
-    "activeMissileModel": "reyhaneh",
+    "activeMissileModel": "emad",
     "adminPinHash": "scrypt$916426ebc2ae319ade07e1ade525eb6e$80ccb1fff0f01f4d34d5e0d1053a259a391d9b8d85e3338256b523224f1258c9",
     "shareMessage": "«پویش معنوی یادواره ۷۶ شهید شهیدیه میبد»\n🕊️ هر صلوات، یک قدم تا پرواز\n\nدر این پویش معنوی، هر صلوات شما صرف تامین سوخت پرواز نمادین موشک میشه و پس از اوجگیری، ستارهای ماندگار به یاد شهدای والامقام در آسمان روشن میکند. (هدف امروز: 1000 صلوات)\n\n🔗 برای همراهی در پویش و ثبت صلوات روزانه وارد شوید:\n\n https://yar67.ir\n\n«اللّهُمَّ صَلِّ عَلی مُحَمَّدٍ وَ آلِ مُحَمَّدٍ وَ عَجِّل فَرَجَهُم»"
   },
@@ -90,7 +90,7 @@
       "date": "2026-09-09",
       "dayNumber": 11,
       "target": 1000,
-      "currentCount": 1005,
+      "currentCount": 1007,
       "participantsCount": 1,
       "state": "LAUNCHED",
       "epoch": 3,
@@ -959,9 +959,24 @@
     "22747a62-e1c2-48f0-ba24-cce51f1576a4": {
       "timestamp": 1788936264702,
       "count": 4
+    },
+    "27ff1ee3-51e4-4608-8582-ea060789dd3f": {
+      "timestamp": 1788937490172,
+      "count": 1
+    },
+    "53c6b9f5-4635-4719-9b56-047a9707db09": {
+      "timestamp": 1788937502231,
+      "count": 1
     }
   },
   "auditLogs": [
+    {
+      "id": "382c741d-ff8f-4bd0-bb84-e981eabc3480",
+      "timestamp": 1788937595552,
+      "action": "SETTINGS_UPDATED",
+      "details": "تنظیمات کلی پویش بروزرسانی شد.",
+      "ip": "::1"
+    },
     {
       "id": "96c527b5-d9c8-494c-99ce-2bd57f04a472",
       "timestamp": 1788936780445,
@@ -1375,5 +1390,5 @@
       "details": "پایگاه داده اولیه با موفقیت راه‌اندازی شد."
     }
   ],
-  "totalCampaignSalawat": 15427
+  "totalCampaignSalawat": 15429
 }

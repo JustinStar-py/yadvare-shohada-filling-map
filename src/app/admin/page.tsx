@@ -767,7 +767,7 @@ export default function AdminPage() {
                 </span>
               </div>
               <p className="text-xs text-slate-400">
-                مدیر گرامی، هر یک از ۶ مدل موشک دارای رنگ‌آمیزی و هویت بصری متمایز (فیلی، قهوه‌ای دارک، قهوه‌ای خاکی، قهوه‌ای برنزه دودی، سفید بالستیک، و طرح اختصاصی صورتی دخترانه با برچسب‌های شاد کارتونی)، کلاهک و بالک‌های اختصاصی و استوانه متالیک شفاف نمایش سوخت صلوات است. برای تغییر موشک صفحه اصلی، روی کارت موردنظر کلیک کنید:
+                مدیر گرامی، هر یک از ۶ مدل موشک دارای رنگ‌آمیزی بدنه، کلاهک و بالک‌های اختصاصی، و رنگ سوخت صلوات منحصربه‌فرد (نظیر سوخت سرخ هایپرسونیک فتاح، نارنجی قرمز آتشین سجیل، فیروزه‌ای نئونی عماد، صورتی جادویی ریحانه و طلایی کهربایی خیبر و خرمشهر) است. همچنین در حین پرواز، سوخت موشک متناسب با اوج‌گیری مصرف شده و پس از فرود مجدداً با انیمیشن روان پر می‌شود:
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
                 {MISSILE_MODELS.map((item) => {
@@ -812,13 +812,23 @@ export default function AdminPage() {
 
                       <div className="flex flex-col gap-1.5 w-full">
                         <div className="flex items-center justify-between text-[11px] pt-1 border-t border-slate-800/80">
-                          <span className="text-slate-400">رنگ پوشش بدنه:</span>
+                          <span className="text-slate-400">رنگ بدنه:</span>
                           <span className="font-bold text-slate-200 flex items-center gap-1.5 text-[11px]">
                             <span
                               className="w-2 h-2 rounded-full inline-block border border-white/20"
                               style={{ backgroundColor: item.colorHex }}
                             />
                             {item.colorName}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between text-[11px]">
+                          <span className="text-slate-400">نور سوخت:</span>
+                          <span className="font-bold text-slate-200 flex items-center gap-1.5 text-[11px]">
+                            <span
+                              className="w-2 h-2 rounded-full inline-block border border-white/40 shadow-sm"
+                              style={{ backgroundColor: item.fuelColor }}
+                            />
+                            {item.fuelName}
                           </span>
                         </div>
                         <p className="text-[11px] text-slate-400 leading-relaxed">{item.caption}</p>

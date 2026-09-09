@@ -8,6 +8,9 @@ export const MISSILE_MODELS = [
     metalness: 0.58,
     roughness: 0.32,
     textColor: "#000000",
+    fuelColor: "#f59e0b",
+    fuelEmissive: "#d97706",
+    fuelName: "طلایی کهربایی معنوی",
     caption: "فرم تاکتیکی · بالک‌های هدایت میانی · رنگ فیلی تیتانیومی",
   },
   {
@@ -18,6 +21,9 @@ export const MISSILE_MODELS = [
     metalness: 0.52,
     roughness: 0.42,
     textColor: "#ffffff",
+    fuelColor: "#ef4444",
+    fuelEmissive: "#b91c1c",
+    fuelName: "سرخ پلاسما هایپرسونیک",
     caption: "هایپرسونیک · کلاهک گلایدری دو مخروطه · رنگ قهوه‌ای تیره مات",
   },
   {
@@ -28,6 +34,9 @@ export const MISSILE_MODELS = [
     metalness: 0.48,
     roughness: 0.38,
     textColor: "#ffffff",
+    fuelColor: "#f97316",
+    fuelEmissive: "#c2410c",
+    fuelName: "نارنجی قرمز آتشین سوخت جامد",
     caption: "دوربرد سوخت جامد · دو مرحله‌ای با رینگ‌های طلایی · رنگ قهوه‌ای خاکی",
   },
   {
@@ -38,6 +47,9 @@ export const MISSILE_MODELS = [
     metalness: 0.55,
     roughness: 0.36,
     textColor: "#ffffff",
+    fuelColor: "#eab308",
+    fuelEmissive: "#a16207",
+    fuelName: "برنز گداخته و مس تابان",
     caption: "سرجنگی سنگین · دماغه مخروطی پهن · رنگ قهوه‌ای برنزه دودی",
   },
   {
@@ -48,6 +60,9 @@ export const MISSILE_MODELS = [
     metalness: 0.52,
     roughness: 0.34,
     textColor: "#0f172a",
+    fuelColor: "#06b6d4",
+    fuelEmissive: "#0e7490",
+    fuelName: "فیروزه‌ای نئونی هدایت نقطه‌زن",
     caption: "نقطه‌زن دوربرد · بالک‌های هدایت سرجنگی کلاهک · رنگ سفید متالیک",
   },
   {
@@ -58,6 +73,9 @@ export const MISSILE_MODELS = [
     metalness: 0.38,
     roughness: 0.28,
     textColor: "#ffffff",
+    fuelColor: "#ec4899",
+    fuelEmissive: "#be185d",
+    fuelName: "صورتی جادویی درخشان",
     caption: "طرح اختصاصی ریحانه · رنگ صورتی شاد با برچسب‌های قلبی، پروانه و گل‌های کارتونی",
   },
 ] as const;

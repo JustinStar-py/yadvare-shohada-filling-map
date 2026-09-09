@@ -90,9 +90,9 @@ export default function Missile3DThumbnail({
     });
 
     const fuelMaterial = new THREE.MeshStandardMaterial({
-      color: GOLD_COLOR,
-      emissive: GOLD_COLOR,
-      emissiveIntensity: 0.85,
+      color: new THREE.Color(cfg.fuelColor),
+      emissive: new THREE.Color(cfg.fuelEmissive),
+      emissiveIntensity: 0.95,
       roughness: 0.2,
       metalness: 0.3,
     });
@@ -151,13 +151,17 @@ export default function Missile3DThumbnail({
       beaconY = noseStart + 1.15;
     } else if (model === "emad") {
       const pts: THREE.Vector2[] = [];
-      for (let i = 0; i <= 12; i++) {
-        const t = i / 12;
-        const r = baseR * Math.pow(1 - t, 0.88);
-        pts.push(new THREE.Vector2(Math.max(r, 0.002), noseStart + t * 1.38));
-      }
+      pts.push(new THREE.Vector2(baseR * 1.05, noseStart));
+      pts.push(new THREE.Vector2(baseR * 0.98, noseStart + 0.10));
+      pts.push(new THREE.Vector2(baseR * 0.88, noseStart + 0.24));
+      pts.push(new THREE.Vector2(baseR * 0.86, noseStart + 0.34));
+      pts.push(new THREE.Vector2(baseR * 0.72, noseStart + 0.60));
+      pts.push(new THREE.Vector2(baseR * 0.54, noseStart + 0.95));
+      pts.push(new THREE.Vector2(baseR * 0.35, noseStart + 1.30));
+      pts.push(new THREE.Vector2(baseR * 0.15, noseStart + 1.65));
+      pts.push(new THREE.Vector2(0.012, noseStart + 1.82));
       noseGeo = new THREE.LatheGeometry(pts, 32);
-      beaconY = noseStart + 1.38;
+      beaconY = noseStart + 1.82;
     } else if (model === "reyhaneh") {
       const pts: THREE.Vector2[] = [];
       for (let i = 0; i <= 12; i++) {
@@ -241,22 +245,27 @@ export default function Missile3DThumbnail({
       collar.position.y = noseStart + 0.05;
       rocketGroup.add(collar);
     } else if (model === "emad") {
-      // 4 terminal steerable warhead guidance canards
+      // 4 terminal steerable warhead guidance canards on stepped waist
       const canardShape = new THREE.Shape();
-      canardShape.moveTo(0, 0);
-      canardShape.lineTo(0.20, -0.12);
-      canardShape.lineTo(0.14, -0.22);
-      canardShape.lineTo(0, -0.22);
+      canardShape.moveTo(0, 0.04);
+      canardShape.lineTo(0.26, -0.06);
+      canardShape.lineTo(0.24, -0.20);
+      canardShape.lineTo(0.12, -0.22);
+      canardShape.lineTo(0, -0.20);
       canardShape.closePath();
-      const canardGeo = new THREE.ExtrudeGeometry(canardShape, { depth: 0.012, bevelEnabled: false });
+      const canardGeo = new THREE.ExtrudeGeometry(canardShape, { depth: 0.014, bevelEnabled: false });
       for (let i = 0; i < 4; i++) {
         const arm = new THREE.Group();
         arm.rotation.y = (i * Math.PI) / 2;
         const c = new THREE.Mesh(canardGeo, hullMaterial);
-        c.position.set(baseR * 0.95, noseStart + 0.14, -0.006);
+        c.position.set(baseR * 0.86, noseStart + 0.26, -0.007);
         arm.add(c);
         rocketGroup.add(arm);
       }
+      const waistRing = new THREE.Mesh(new THREE.TorusGeometry(baseR * 0.88, 0.014, 10, 32), goldMaterial);
+      waistRing.rotation.x = Math.PI / 2;
+      waistRing.position.y = noseStart + 0.24;
+      rocketGroup.add(waistRing);
     } else if (model === "reyhaneh") {
       // Cute golden decorative waist ring with charm
       const ring = new THREE.Mesh(new THREE.TorusGeometry(baseR + 0.012, 0.016, 10, 36), goldMaterial);
@@ -402,13 +411,23 @@ export default function Missile3DThumbnail({
     nozzle.position.set(0, -1.38, 0);
     rocketGroup.add(nozzle);
 
-    // E) 4 Stabilization Base Fins
+    // E) 4 Stabilization Base Fins (Emad has dedicated swept-delta wings with vertical fences)
     const baseFinShape = new THREE.Shape();
-    baseFinShape.moveTo(0, 0);
-    baseFinShape.lineTo(0.48, -0.35);
-    baseFinShape.lineTo(0.48, -0.58);
-    baseFinShape.lineTo(0, -0.58);
-    baseFinShape.closePath();
+    if (model === "emad") {
+      baseFinShape.moveTo(0, 0.06);
+      baseFinShape.lineTo(0.38, -0.16);
+      baseFinShape.lineTo(0.60, -0.42);
+      baseFinShape.lineTo(0.60, -0.64);
+      baseFinShape.lineTo(0.16, -0.64);
+      baseFinShape.lineTo(0, -0.56);
+      baseFinShape.closePath();
+    } else {
+      baseFinShape.moveTo(0, 0);
+      baseFinShape.lineTo(0.48, -0.35);
+      baseFinShape.lineTo(0.48, -0.58);
+      baseFinShape.lineTo(0, -0.58);
+      baseFinShape.closePath();
+    }
     const baseFinGeo = new THREE.ExtrudeGeometry(baseFinShape, { depth: 0.025, bevelEnabled: false });
 
     for (let i = 0; i < 4; i++) {
