@@ -266,14 +266,14 @@ export default function AtmosphereCanvas({
       const low = qualityRef.current === "low";
       const layers = low
         ? [
-            { count: 85, sizeMin: 0.3, sizeMax: 0.9, alpha: 0.22, layer: 0 },
-            { count: 48, sizeMin: 0.7, sizeMax: 1.5, alpha: 0.36, layer: 1 },
-            { count: 24, sizeMin: 1.2, sizeMax: 2.2, alpha: 0.48, layer: 2 },
+            { count: 85, sizeMin: 0.4, sizeMax: 1.1, alpha: 0.32, layer: 0 },
+            { count: 48, sizeMin: 0.8, sizeMax: 1.8, alpha: 0.48, layer: 1 },
+            { count: 24, sizeMin: 1.4, sizeMax: 2.6, alpha: 0.62, layer: 2 },
           ]
         : [
-            { count: 145, sizeMin: 0.3, sizeMax: 0.9, alpha: 0.2, layer: 0 },
-            { count: 85, sizeMin: 0.7, sizeMax: 1.6, alpha: 0.35, layer: 1 },
-            { count: 42, sizeMin: 1.2, sizeMax: 2.4, alpha: 0.52, layer: 2 },
+            { count: 145, sizeMin: 0.4, sizeMax: 1.1, alpha: 0.3, layer: 0 },
+            { count: 85, sizeMin: 0.8, sizeMax: 1.9, alpha: 0.46, layer: 1 },
+            { count: 42, sizeMin: 1.4, sizeMax: 2.8, alpha: 0.64, layer: 2 },
           ];
       const stars: BgStar[] = [];
       for (const L of layers) {
@@ -323,11 +323,23 @@ export default function AtmosphereCanvas({
           const cy = by * h;
           const r = br * Math.max(w, h);
           const g = octx.createRadialGradient(cx, cy, 0, cx, cy, r);
-          g.addColorStop(0, `rgba(${Math.round(rgb[0])}, ${Math.round(rgb[1])}, ${rgb[2]}, ${0.07 + warm * 0.03})`);
+          g.addColorStop(0, `rgba(${Math.round(rgb[0])}, ${Math.round(rgb[1])}, ${rgb[2]}, ${0.11 + warm * 0.04})`);
           g.addColorStop(1, "rgba(0,0,0,0)");
           octx.fillStyle = g;
           octx.fillRect(0, 0, w, h);
         }
+
+        // Faint milky-way band so the hero sky never reads as empty black
+        octx.save();
+        octx.translate(w / 2, h * 0.3);
+        octx.rotate(-0.5);
+        const band = octx.createLinearGradient(0, -h * 0.2, 0, h * 0.2);
+        band.addColorStop(0, "rgba(148, 163, 184, 0)");
+        band.addColorStop(0.5, `rgba(148, 163, 184, ${0.055 + warm * 0.02})`);
+        band.addColorStop(1, "rgba(148, 163, 184, 0)");
+        octx.fillStyle = band;
+        octx.fillRect(-w * 0.75, -h * 0.2, w * 1.5, h * 0.4);
+        octx.restore();
       }
       nebulaRef.current = off;
     };
@@ -417,9 +429,9 @@ export default function AtmosphereCanvas({
       const parallax = [0.016, 0.04, 0.075];
       for (const s of bgStarsRef.current) {
         const sy = ((s.y * h - scroll * parallax[s.layer]) % h + h) % h;
-        // Natural lively twinkling pulse
+        // Natural lively twinkling pulse (floor kept visible on dim phone screens)
         const tw = 0.42 + Math.sin(time * s.twinkleSpeed + s.phase) * 0.58;
-        const alpha = Math.max(0.04, s.baseAlpha * tw);
+        const alpha = Math.max(0.1, s.baseAlpha * tw);
         const starColor = s.flare
           ? `rgba(254, 243, 199, ${alpha.toFixed(3)})`
           : `rgba(226, 232, 240, ${alpha.toFixed(3)})`;
@@ -428,7 +440,7 @@ export default function AtmosphereCanvas({
         ctx.arc(s.x * w, sy, s.size * (0.8 + tw * 0.35), 0, Math.PI * 2);
         ctx.fill();
 
-        if (s.flare && alpha > 0.35 && !low) {
+        if (s.flare && alpha > 0.18) {
           ctx.strokeStyle = `rgba(251, 191, 36, ${(alpha * 0.45).toFixed(3)})`;
           ctx.lineWidth = 0.7;
           const fl = s.size * 4.5 * tw;
