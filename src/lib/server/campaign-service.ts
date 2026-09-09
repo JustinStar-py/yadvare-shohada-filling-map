@@ -758,9 +758,15 @@ export class CampaignService {
       const today = getTehranDateString(new Date(), db.settings.dailyResetHour ?? 0);
       const mission = this.ensureMissionForDate(db, today);
 
-      mission.currentCount += count;
+      // Admin correction: never drive counts below zero; only the actually
+      // applied delta moves the campaign total.
+      const before = mission.currentCount;
+      mission.currentCount = Math.max(0, mission.currentCount + count);
+      const applied = mission.currentCount - before;
       if (mission.currentCount >= mission.target && mission.state === "ACTIVE") {
         mission.state = "READY_TO_LAUNCH";
+      } else if (mission.currentCount < mission.target && mission.state === "READY_TO_LAUNCH") {
+        mission.state = "ACTIVE";
       }
 
       let totalCampaignSalawat = typeof db.totalCampaignSalawat === "number" ? db.totalCampaignSalawat : 0;
@@ -769,13 +775,16 @@ export class CampaignService {
           totalCampaignSalawat += m.currentCount || 0;
         }
       }
-      db.totalCampaignSalawat = totalCampaignSalawat + count;
+      db.totalCampaignSalawat = Math.max(0, totalCampaignSalawat + applied);
 
       db.auditLogs.unshift({
         id: generateUUID(),
         timestamp: Date.now(),
         action: "ADMIN_SALAWAT_BULK",
-        details: `${count} صلوات آزمایشی توسط مدیریت ثبت شد.`,
+        details:
+          count >= 0
+            ? `${count} صلوات آزمایشی توسط مدیریت ثبت شد.`
+            : `${-count} صلوات آزمایشی توسط مدیریت کسر شد.`,
         ip,
       });
 

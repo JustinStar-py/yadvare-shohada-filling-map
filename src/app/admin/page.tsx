@@ -269,7 +269,11 @@ export default function AdminPage() {
       });
       const data = await res.json().catch(() => ({}));
       if (res.ok) {
-        showNotification(`تعداد ${formatPersianNumber(count)} صلوات تستی ثبت شد`);
+        showNotification(
+          count < 0
+            ? `تعداد ${formatPersianNumber(-count)} صلوات تستی کسر شد`
+            : `تعداد ${formatPersianNumber(count)} صلوات تستی ثبت شد`
+        );
         loadAdminData();
       } else {
         showNotification(data.error || "خطا در ثبت صلوات تستی", "error");
@@ -699,6 +703,30 @@ export default function AdminPage() {
                     className="px-3 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-amber-300"
                   >
                     + ۱٬۰۰۰
+                  </button>
+                  <button
+                    onClick={() => handleSimulateSalawat(-50)}
+                    disabled={!todayMission || todayMission.currentCount <= 0}
+                    className="px-3 py-1 rounded-lg bg-slate-800 hover:bg-rose-950/60 text-xs text-rose-300/90 disabled:opacity-40"
+                    title="کسر ۵۰ صلوات تستی (اصلاح دستی)"
+                  >
+                    − ۵۰
+                  </button>
+                  <button
+                    onClick={() => handleSimulateSalawat(-100)}
+                    disabled={!todayMission || todayMission.currentCount <= 0}
+                    className="px-3 py-1 rounded-lg bg-slate-800 hover:bg-rose-950/60 text-xs text-rose-300/90 disabled:opacity-40"
+                    title="کسر ۱۰۰ صلوات تستی (اصلاح دستی)"
+                  >
+                    − ۱۰۰
+                  </button>
+                  <button
+                    onClick={() => handleSimulateSalawat(-150)}
+                    disabled={!todayMission || todayMission.currentCount <= 0}
+                    className="px-3 py-1 rounded-lg bg-slate-800 hover:bg-rose-950/60 text-xs text-rose-300/90 disabled:opacity-40"
+                    title="کسر ۱۵۰ صلوات تستی (اصلاح دستی)"
+                  >
+                    − ۱۵۰
                   </button>
 
                   <button

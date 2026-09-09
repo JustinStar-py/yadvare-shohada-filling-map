@@ -179,7 +179,10 @@ export const TargetOverrideSchema = z.object({
 });
 
 export const BulkSalawatSchema = z.object({
-  count: z.number().int().min(1).max(100000),
+  // Positive = test recitations, negative = admin correction (clamped at zero).
+  count: z.number().int().min(-100000).max(100000).refine((c) => c !== 0, {
+    message: "count must be non-zero",
+  }),
 });
 
 export const MartyrProfileSchema = z.object({
