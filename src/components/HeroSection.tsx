@@ -130,7 +130,10 @@ export default function HeroSection({
         style={{ direction: "ltr" }}
       >
         {/* Left Side: Target Goal (Vertical Column Box) */}
-        <div className="flex flex-col items-center justify-between px-2.5 py-2.5 rounded-2xl bg-slate-900/70 border border-slate-700/50 backdrop-blur-md shadow-[0_8px_24px_rgba(0,0,0,0.45)] w-[62px] min-h-[190px] pointer-events-auto select-none">
+        <div
+          data-tour="target"
+          className="flex flex-col items-center justify-between px-2.5 py-2.5 rounded-2xl bg-slate-900/70 border border-slate-700/50 backdrop-blur-md shadow-[0_8px_24px_rgba(0,0,0,0.45)] w-[62px] min-h-[190px] pointer-events-auto select-none"
+        >
           <div className="w-full flex flex-col items-center pb-1.5 border-b border-white/[0.08] text-center">
             <span className="text-xs font-bold text-slate-300 drop-shadow-[0_1px_4px_rgba(0,0,0,0.9)]">
               هدف
@@ -199,7 +202,10 @@ export default function HeroSection({
         </div>
 
         {/* Left Side on Screen in RTL (Left Flank: Target Goal) */}
-        <div className="flex flex-col gap-1.5 p-3.5 lg:p-4 rounded-2xl bg-slate-900/80 border border-slate-700/60 backdrop-blur-md shadow-[0_8px_32px_rgba(0,0,0,0.5)] w-48 lg:w-56 pointer-events-auto select-none">
+        <div
+          data-tour="target"
+          className="flex flex-col gap-1.5 p-3.5 lg:p-4 rounded-2xl bg-slate-900/80 border border-slate-700/60 backdrop-blur-md shadow-[0_8px_32px_rgba(0,0,0,0.5)] w-48 lg:w-56 pointer-events-auto select-none"
+        >
           <div className="flex items-center justify-between pb-1.5 border-b border-white/[0.08]">
             <div className="flex items-center gap-2">
               <Target className="w-4 h-4 text-slate-400 shrink-0" />

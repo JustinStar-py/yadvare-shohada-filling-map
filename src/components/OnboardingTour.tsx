@@ -22,7 +22,7 @@ const TOUR_STEPS: TourStep[] = [
   },
   {
     id: "counter",
-    selector: '[data-tour="counter"]',
+    selector: '[data-tour="counter"], [data-tour="target"]',
     title: "شمارنده صلوات‌ها و هدف روز",
     description: "تعداد صلوات‌های ثبت‌شده امروز و هدف تعیین‌شده برای آماده‌سازی پرواز در این بخش نمایش داده می‌شود.",
     preferredPosition: "auto",
@@ -66,81 +66,91 @@ interface SpotlightRect {
 
 export default function OnboardingTour({ isOpen, onClose, onComplete }: OnboardingTourProps) {
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
-  const [spotlightRect, setSpotlightRect] = useState<SpotlightRect | null>(null);
+  const [spotlightRects, setSpotlightRects] = useState<SpotlightRect[]>([]);
   const [tooltipPos, setTooltipPos] = useState<{ top: number; left: number; arrowSide: "top" | "bottom" } | null>(null);
   const animFrameRef = useRef<number | null>(null);
 
   const step = TOUR_STEPS[currentStepIndex];
 
-  // Find visible element matching selector (handles mobile vs desktop alternatives)
-  const findElement = useCallback((selector: string): HTMLElement | null => {
-    if (typeof document === "undefined") return null;
+  // Find all visible elements matching selector (supports multi-element steps like target + counter)
+  const findElements = useCallback((selector: string): HTMLElement[] => {
+    if (typeof document === "undefined") return [];
     const elements = document.querySelectorAll<HTMLElement>(selector);
+    const visible: HTMLElement[] = [];
     for (const el of Array.from(elements)) {
       const rect = el.getBoundingClientRect();
       if (rect.width > 0 && rect.height > 0) {
-        return el;
+        visible.push(el);
       }
     }
-    return elements[0] || null;
+    return visible;
   }, []);
 
   // Update spotlight & tooltip geometry
   const updateGeometry = useCallback(() => {
     if (!isOpen || !step) return;
 
-    const el = findElement(step.selector);
-    if (!el) {
+    const els = findElements(step.selector);
+    if (els.length === 0) {
       // Fallback center of screen
       const cx = window.innerWidth / 2;
       const cy = window.innerHeight / 2;
-      setSpotlightRect({ x: cx - 120, y: cy - 120, width: 240, height: 240, radius: 24 });
+      setSpotlightRects([{ x: cx - 120, y: cy - 120, width: 240, height: 240, radius: 24 }]);
       setTooltipPos({ top: cy + 140, left: Math.max(16, cx - 160), arrowSide: "top" });
       return;
     }
 
-    const b = el.getBoundingClientRect();
-    const padding = 10;
-    const x = Math.max(6, b.left - padding);
-    const y = Math.max(6, b.top - padding);
-    const width = Math.min(window.innerWidth - 12, b.width + padding * 2);
-    const height = Math.min(window.innerHeight - 12, b.height + padding * 2);
-    const radius = 20;
+    const padding = 8;
+    const rects: SpotlightRect[] = els.map((el) => {
+      const b = el.getBoundingClientRect();
+      const x = Math.max(4, b.left - padding);
+      const y = Math.max(4, b.top - padding);
+      const width = Math.min(window.innerWidth - 8, b.width + padding * 2);
+      const height = Math.min(window.innerHeight - 8, b.height + padding * 2);
+      const radius = 20;
+      return { x, y, width, height, radius };
+    });
 
-    setSpotlightRect({ x, y, width, height, radius });
+    setSpotlightRects(rects);
 
-    // Calculate tooltip coordinates
+    // Calculate combined bounding box across all highlighted elements
+    const minX = Math.min(...rects.map((r) => r.x));
+    const maxX = Math.max(...rects.map((r) => r.x + r.width));
+    const minY = Math.min(...rects.map((r) => r.y));
+    const maxY = Math.max(...rects.map((r) => r.y + r.height));
+    const combinedWidth = maxX - minX;
+
     const tooltipWidth = Math.min(360, window.innerWidth - 32);
     const tooltipHeight = 190;
-    const spaceBelow = window.innerHeight - (y + height);
-    const spaceAbove = y;
+    const spaceBelow = window.innerHeight - maxY;
+    const spaceAbove = minY;
 
     let arrowSide: "top" | "bottom" = "top";
-    let top = y + height + 14;
+    let top = maxY + 14;
 
     if (step.preferredPosition === "top") {
       if (spaceAbove >= tooltipHeight + 16) {
-        top = y - tooltipHeight - 14;
+        top = minY - tooltipHeight - 14;
         arrowSide = "bottom";
       } else {
-        top = y + height + 14;
+        top = maxY + 14;
         arrowSide = "top";
       }
     } else if (step.preferredPosition === "bottom") {
       if (spaceBelow >= tooltipHeight + 16 || spaceBelow > spaceAbove) {
-        top = y + height + 14;
+        top = maxY + 14;
         arrowSide = "top";
       } else {
-        top = y - tooltipHeight - 14;
+        top = minY - tooltipHeight - 14;
         arrowSide = "bottom";
       }
     } else {
       // Auto: pick the side with more space
       if (spaceBelow < tooltipHeight + 16 && spaceAbove > spaceBelow) {
-        top = y - tooltipHeight - 14;
+        top = minY - tooltipHeight - 14;
         arrowSide = "bottom";
       } else {
-        top = y + height + 14;
+        top = maxY + 14;
         arrowSide = "top";
       }
     }
@@ -148,12 +158,12 @@ export default function OnboardingTour({ isOpen, onClose, onComplete }: Onboardi
     // Clamp vertical position
     top = Math.max(12, Math.min(window.innerHeight - tooltipHeight - 12, top));
 
-    // Horizontal centering
-    let left = x + width / 2 - tooltipWidth / 2;
+    // Horizontal centering over the combined bounding box (centers nicely between dual boxes)
+    let left = minX + combinedWidth / 2 - tooltipWidth / 2;
     left = Math.max(16, Math.min(window.innerWidth - tooltipWidth - 16, left));
 
     setTooltipPos({ top, left, arrowSide });
-  }, [findElement, isOpen, step]);
+  }, [findElements, isOpen, step]);
 
   // Navigate to step & auto-scroll
   const goToStep = useCallback(
@@ -162,16 +172,17 @@ export default function OnboardingTour({ isOpen, onClose, onComplete }: Onboardi
       setCurrentStepIndex(index);
 
       const targetStep = TOUR_STEPS[index];
-      const el = findElement(targetStep.selector);
+      const els = findElements(targetStep.selector);
 
-      if (el) {
-        const rect = el.getBoundingClientRect();
-        const isInViewport =
-          rect.top >= 70 &&
-          rect.bottom <= window.innerHeight - 70;
+      if (els.length > 0) {
+        // Check if any element is out of viewport
+        const outOfView = els.find((el) => {
+          const rect = el.getBoundingClientRect();
+          return rect.top < 70 || rect.bottom > window.innerHeight - 70;
+        });
 
-        if (!isInViewport) {
-          el.scrollIntoView({ behavior: "smooth", block: "center" });
+        if (outOfView) {
+          outOfView.scrollIntoView({ behavior: "smooth", block: "center" });
         }
       }
 
@@ -185,7 +196,7 @@ export default function OnboardingTour({ isOpen, onClose, onComplete }: Onboardi
       };
       animFrameRef.current = requestAnimationFrame(followScroll);
     },
-    [findElement, updateGeometry]
+    [findElements, updateGeometry]
   );
 
   useEffect(() => {
@@ -200,10 +211,8 @@ export default function OnboardingTour({ isOpen, onClose, onComplete }: Onboardi
       if (e.key === "Escape") {
         handleSkip();
       } else if (e.key === "ArrowLeft") {
-        // In Persian RTL, left arrow moves forward
         handleNext();
       } else if (e.key === "ArrowRight") {
-        // Right arrow moves back
         handlePrev();
       }
     };
@@ -253,60 +262,59 @@ export default function OnboardingTour({ isOpen, onClose, onComplete }: Onboardi
 
   return (
     <div className="fixed inset-0 z-[100] select-none pointer-events-none" style={{ direction: "rtl" }}>
-      {/* ── 4-Rectangle Backdrop: Darkens & Blurs everything EXCEPT the spotlight region ── */}
-      {/* This ensures the highlighted element is 100% visible and interactable with ZERO DOM obstruction */}
-      {spotlightRect ? (
-        <>
-          {/* Top backdrop */}
-          <div
-            className="fixed top-0 left-0 right-0 bg-[#05080e]/75 backdrop-blur-[3.5px] pointer-events-auto transition-all duration-300 ease-out"
-            style={{ height: Math.max(0, spotlightRect.y) }}
-            onClick={handleSkip}
-          />
-          {/* Bottom backdrop */}
-          <div
-            className="fixed left-0 right-0 bottom-0 bg-[#05080e]/75 backdrop-blur-[3.5px] pointer-events-auto transition-all duration-300 ease-out"
-            style={{ top: Math.max(0, spotlightRect.y + spotlightRect.height) }}
-            onClick={handleSkip}
-          />
-          {/* Left backdrop */}
-          <div
-            className="fixed left-0 bg-[#05080e]/75 backdrop-blur-[3.5px] pointer-events-auto transition-all duration-300 ease-out"
-            style={{
-              top: Math.max(0, spotlightRect.y),
-              width: Math.max(0, spotlightRect.x),
-              height: Math.max(0, spotlightRect.height),
-            }}
-            onClick={handleSkip}
-          />
-          {/* Right backdrop */}
-          <div
-            className="fixed right-0 bg-[#05080e]/75 backdrop-blur-[3.5px] pointer-events-auto transition-all duration-300 ease-out"
-            style={{
-              top: Math.max(0, spotlightRect.y),
-              left: Math.max(0, spotlightRect.x + spotlightRect.width),
-              height: Math.max(0, spotlightRect.height),
-            }}
-            onClick={handleSkip}
-          />
-        </>
-      ) : (
-        <div
-          className="fixed inset-0 bg-[#05080e]/75 backdrop-blur-[3.5px] pointer-events-auto transition-opacity duration-300"
-          onClick={handleSkip}
-        />
-      )}
+      {/* ── SVG Mask Definition: Punches holes for ALL active elements in the step ── */}
+      <svg width="0" height="0" className="absolute">
+        <defs>
+          <mask id="tour-spotlight-mask" maskContentUnits="userSpaceOnUse">
+            <rect x="0" y="0" width="100%" height="100%" fill="white" />
+            {spotlightRects.map((rect, idx) => (
+              <rect
+                key={idx}
+                x={rect.x}
+                y={rect.y}
+                width={rect.width}
+                height={rect.height}
+                rx={rect.radius}
+                fill="black"
+              />
+            ))}
+          </mask>
+        </defs>
+      </svg>
 
-      {/* Golden Glowing Focus Border around the active element */}
-      {spotlightRect && (
+      {/* Darkened Backdrop with cutout hole(s) for ALL active elements */}
+      <div
+        className="fixed inset-0 bg-[#05080e]/75 backdrop-blur-[3.5px] transition-opacity duration-300 pointer-events-auto"
+        style={{
+          mask: "url(#tour-spotlight-mask)",
+          WebkitMask: "url(#tour-spotlight-mask)",
+        }}
+        onClick={(e) => {
+          const { clientX, clientY } = e;
+          const isInsideAnyCutout = spotlightRects.some(
+            (r) =>
+              clientX >= r.x &&
+              clientX <= r.x + r.width &&
+              clientY >= r.y &&
+              clientY <= r.y + r.height
+          );
+          if (!isInsideAnyCutout) {
+            handleSkip();
+          }
+        }}
+      />
+
+      {/* Golden Glowing Focus Border around EACH active element */}
+      {spotlightRects.map((rect, idx) => (
         <div
+          key={idx}
           className="fixed pointer-events-none border-2 border-amber-400/85 shadow-[0_0_24px_rgba(245,158,11,0.55),inset_0_0_12px_rgba(245,158,11,0.2)] transition-all duration-300 ease-out z-[102]"
           style={{
-            top: spotlightRect.y,
-            left: spotlightRect.x,
-            width: spotlightRect.width,
-            height: spotlightRect.height,
-            borderRadius: spotlightRect.radius,
+            top: rect.y,
+            left: rect.x,
+            width: rect.width,
+            height: rect.height,
+            borderRadius: rect.radius,
           }}
         >
           {/* Subtle 4-corner holographic brackets */}
@@ -315,7 +323,7 @@ export default function OnboardingTour({ isOpen, onClose, onComplete }: Onboardi
           <span className="absolute -bottom-1 -right-1 w-3.5 h-3.5 border-b-2 border-r-2 border-amber-300" />
           <span className="absolute -bottom-1 -left-1 w-3.5 h-3.5 border-b-2 border-l-2 border-amber-300" />
         </div>
-      )}
+      ))}
 
       {/* Guided Tooltip Card */}
       {tooltipPos && (
