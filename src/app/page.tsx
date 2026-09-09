@@ -14,11 +14,12 @@ import ShareCardModal from "@/components/ShareCardModal";
 import { PublicCampaignState, SalawatSubmissionResponse, MartyrProfile } from "@/types/campaign";
 import { soundEngine } from "@/lib/client/procedural-audio";
 import YadvareLogo from "@/components/ui/YadvareLogo";
-import { toPersianDigits } from "@/lib/utils";
+import { toPersianDigits, getTehranDateString } from "@/lib/utils";
 import DailyMissionTourModal, { UserDailyMission } from "@/components/DailyMissionTourModal";
 import { getOrCreateVisitorId } from "@/lib/client/visitor-id";
 import { drainOutbox, enqueueSalawat, subscribeOutbox } from "@/lib/client/salawat-outbox";
 import OnboardingTour from "@/components/OnboardingTour";
+import MemorialIntro from "@/components/MemorialIntro";
 
 // Mission-state rank used to reconcile concurrent server updates with local
 // optimistic state: a server update must never regress a locally reached state.
@@ -33,6 +34,9 @@ export default function HomePage() {
   const [state, setState] = useState<PublicCampaignState | null>(null);
   const [loading, setLoading] = useState(true);
   const [isTourOpen, setIsTourOpen] = useState(false);
+  // Cinematic memorial intro: once per user, preloads the main experience.
+  const [showIntro, setShowIntro] = useState(false);
+  const showIntroRef = useRef(false);
   const [isLaunching, setIsLaunching] = useState(false);
   // Physical liftoff (T-0), kept separate from isLaunching (the whole
   // ceremony) so the rocket stays on its pad while the countdown runs.
@@ -60,6 +64,10 @@ export default function HomePage() {
   } | null>(null);
   const missionStateRef = useRef<string | null>(null);
   const stateRef = useRef<PublicCampaignState | null>(null);
+  // Mission as first seen this visit. The ceremony only ever auto-fires on a
+  // *live escalation* past this snapshot — never just for opening the page
+  // on an already-full tank.
+  const entryMissionRef = useRef<{ date: string; state: string } | null>(null);
 
   // ── Optimistic & Multiplayer Salawat Bookkeeping ─────────────────────────
   // displayedCount = serverCount + inFlightLocalCount.
@@ -84,6 +92,9 @@ export default function HomePage() {
         stateRef.current = data;
         setState(data);
         missionStateRef.current = data.mission.state;
+        if (!entryMissionRef.current) {
+          entryMissionRef.current = { date: data.mission.date, state: data.mission.state };
+        }
 
         // ── Check or initialize user's personal daily mission ──
         const todayStr = data.tehranDate;
@@ -139,6 +150,28 @@ export default function HomePage() {
     stateRef.current = state;
   }, [state]);
 
+  // ── Memorial intro: every user experiences it at least once a day ──
+  useEffect(() => {
+    try {
+      const today = getTehranDateString(new Date());
+      if (localStorage.getItem("yadvare_intro_last_seen") !== today) {
+        showIntroRef.current = true;
+        setShowIntro(true);
+      }
+    } catch {
+      showIntroRef.current = true;
+      setShowIntro(true);
+    }
+  }, []);
+
+  const handleIntroDone = useCallback(() => {
+    try {
+      localStorage.setItem("yadvare_intro_last_seen", getTehranDateString(new Date()));
+    } catch {}
+    showIntroRef.current = false;
+    setShowIntro(false);
+  }, []);
+
   // Day for which THIS client already completed the launch ceremony —
   // prevents our own launch_event SSE echo from replaying the overlay
   const [ceremonyCompletedDate, setCeremonyCompletedDate] = useState<string | null>(null);
@@ -149,8 +182,9 @@ export default function HomePage() {
   }, [ceremonyCompletedDate]);
 
   // ── First-time Onboarding Guided Spotlight Tour Trigger ──
+  // Waits for the memorial intro to finish first — one cinematic at a time.
   useEffect(() => {
-    if (loading || !state) return;
+    if (loading || !state || showIntro) return;
     try {
       const tourCompleted = localStorage.getItem("yadvare_tour_completed_v1");
       if (!tourCompleted) {
@@ -161,7 +195,7 @@ export default function HomePage() {
         return () => clearTimeout(timer);
       }
     } catch {}
-  }, [loading, state]);
+  }, [loading, state, showIntro]);
 
   // Sacred golden bloom when the day's target is reached (once per transition)
   useEffect(() => {
@@ -283,8 +317,10 @@ export default function HomePage() {
             };
           });
 
-          // Don't replay the ceremony for the user who just completed it
-          if (ceremonyCompletedDateRef.current !== mission.date) {
+          // Don't replay the ceremony for the user who just completed it,
+          // and never pop it over the memorial intro — the auto-launch
+          // effect plays it fresh once the intro is dismissed.
+          if (ceremonyCompletedDateRef.current !== mission.date && !showIntroRef.current) {
             setIsLaunching(true);
             setShowLaunchOverlay(true);
           }
@@ -559,8 +595,14 @@ export default function HomePage() {
     };
   }, [state?.tehranDate, handleSalawatSuccess, handleSalawatRejected]);
 
-  // ── Auto launch for every user when they open the page if fuel is full ──
+  // ── Launch ceremony trigger ──
+  // NEVER just for opening the home page on a full tank — entry shows only
+  // the hero "watch flight" CTA. The overlay auto-fires solely on a live
+  // escalation while browsing (fresh fill-up or fresh seal past the entry
+  // snapshot), and even then waits out the intro/tour and yields to the CTA
+  // for first-tour guests.
   const autoLaunchedDateRef = useRef<string | null>(null);
+  const firstTourVisitRef = useRef<boolean | null>(null);
 
   useEffect(() => {
     if (!state || loading) return;
@@ -573,15 +615,51 @@ export default function HomePage() {
 
     if (!isReadyOrLaunched) return;
 
+    // Already full (or sealed) when the page opened? Stay quiet — CTA only.
+    // Only a live escalation past the entry snapshot may auto-fire.
+    const entry = entryMissionRef.current;
+    const liveEscalation =
+      !!entry &&
+      (state.mission.date !== entry.date ||
+        (STATE_PRECEDENCE[state.mission.state] ?? 0) > (STATE_PRECEDENCE[entry.state] ?? 0));
+    if (!liveEscalation) return;
+
+    // Capture visit type on first evaluation (before the tour can set its
+    // completion flag), so a just-finished guest still counts as first-tour.
+    if (firstTourVisitRef.current === null) {
+      try {
+        firstTourVisitRef.current = !localStorage.getItem("yadvare_tour_completed_v1");
+      } catch {
+        firstTourVisitRef.current = false;
+      }
+    }
+    if (isTourOpen) return;
+    // The memorial intro owns the screen until dismissed — the ceremony
+    // starts fresh afterwards (this effect re-runs on showIntro change).
+    if (showIntro) return;
+
+    if (firstTourVisitRef.current) {
+      // Leave the invitation to the hero CTA; mark the date so a later
+      // top-up this visit still doesn't ambush them with the overlay.
+      autoLaunchedDateRef.current = state.mission.date;
+      return;
+    }
+
     autoLaunchedDateRef.current = state.mission.date;
 
     const timer = setTimeout(() => {
+      // Guarantee the hero/rocket is in view before the ceremony starts.
+      try {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      } catch {
+        window.scrollTo(0, 0);
+      }
       setIsLaunching(true);
       setShowLaunchOverlay(true);
     }, 1000);
 
     return () => clearTimeout(timer);
-  }, [state, loading]);
+  }, [state, loading, isTourOpen, showIntro]);
 
   const handleFlightComplete = useCallback(() => {
     setHasLiftedOff(false);
@@ -614,8 +692,20 @@ export default function HomePage() {
     soundEngine.onMissileLaunchEnd();
   }, []);
 
-  const handleTourComplete = useCallback((completed: UserDailyMission) => {
-    setUserMission(completed);
+  // Onboarding spotlight tour ended (finished or skipped): close it and bring
+  // the user back to the hero section, where the "watch flight" CTA invites
+  // them if the fuel is full. (No auto ceremony on entry — only live
+  // escalations while browsing may auto-fire, via the effect above.)
+  const handleOnboardingTourEnd = useCallback(() => {
+    setIsTourOpen(false);
+    try {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } catch {
+      window.scrollTo(0, 0);
+    }
+  }, []);
+
+  const handleTourComplete = useCallback((completed: UserDailyMission) => {    setUserMission(completed);
     userMissionRef.current = completed;
     setShowTourModal(false);
     setIsTourReviewMode(false);
@@ -821,8 +911,12 @@ export default function HomePage() {
       {/* First-Time Visitor Guided Spotlight Onboarding Tour */}
       <OnboardingTour
         isOpen={isTourOpen}
-        onClose={() => setIsTourOpen(false)}
+        onClose={handleOnboardingTourEnd}
+        onComplete={handleOnboardingTourEnd}
       />
+
+      {/* Cinematic memorial intro — once per user, preloads the experience */}
+      {showIntro && <MemorialIntro onDone={handleIntroDone} />}
     </div>
   );
 }
