@@ -90,7 +90,7 @@
       "date": "2026-09-09",
       "dayNumber": 11,
       "target": 1000,
-      "currentCount": 1001,
+      "currentCount": 1005,
       "participantsCount": 1,
       "state": "LAUNCHED",
       "epoch": 3,
@@ -955,6 +955,10 @@
     "test-1788935677228": {
       "timestamp": 1788935677859,
       "count": 1
+    },
+    "22747a62-e1c2-48f0-ba24-cce51f1576a4": {
+      "timestamp": 1788936264702,
+      "count": 4
     }
   },
   "auditLogs": [
@@ -1364,5 +1368,5 @@
       "details": "پایگاه داده اولیه با موفقیت راه‌اندازی شد."
     }
   ],
-  "totalCampaignSalawat": 15423
+  "totalCampaignSalawat": 15427
 }
