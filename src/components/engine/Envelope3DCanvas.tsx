@@ -2,6 +2,12 @@
 
 import React, { useEffect, useRef } from "react";
 import * as THREE from "three";
+import {
+  attachVisibilityPause,
+  getDprCap,
+  isMobileDevice,
+  shouldUseAntialias,
+} from "@/lib/client/quality";
 
 interface Envelope3DCanvasProps {
   isOpen: boolean;
@@ -30,7 +36,11 @@ export default function Envelope3DCanvas({
     const container = containerRef.current;
     if (!container) return;
 
-    let animId: number;
+    let animId = 0;
+    let isInView = typeof document === "undefined" ? true : !document.hidden;
+    const kick = () => {
+      if (animId === 0 && isInView) animId = requestAnimationFrame(animate);
+    };
     let width = container.clientWidth || 320;
     let height = container.clientHeight || 280;
 
@@ -41,11 +51,11 @@ export default function Envelope3DCanvas({
 
     const renderer = new THREE.WebGLRenderer({
       alpha: true,
-      antialias: true,
+      antialias: shouldUseAntialias(),
       powerPreference: "high-performance",
     });
     renderer.setSize(width, height);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, getDprCap()));
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.15;
     container.appendChild(renderer.domElement);
@@ -219,8 +229,8 @@ export default function Envelope3DCanvas({
     sealMesh.position.set(0, -0.88, 0.03);
     flapHinge.add(sealMesh);
 
-    // Floating Stardust Particles
-    const particleCount = 45;
+    // Floating Stardust Particles (halved on mobile GPUs)
+    const particleCount = isMobileDevice() ? 24 : 45;
     const pGeo = new THREE.BufferGeometry();
     const pPos = new Float32Array(particleCount * 3);
     for (let i = 0; i < particleCount * 3; i += 3) {
@@ -263,7 +273,8 @@ export default function Envelope3DCanvas({
     let hasNotifiedReady = false;
 
     const animate = () => {
-      animId = requestAnimationFrame(animate);
+      animId = 0;
+      if (!isInView) return; // fully parked while hidden
       const now = performance.now();
       const delta = Math.min((now - lastTime) / 1000, 0.05);
       lastTime = now;
@@ -306,13 +317,25 @@ export default function Envelope3DCanvas({
         hasNotifiedReady = true;
         onReadyRef.current?.();
       }
+
+      animId = requestAnimationFrame(animate);
     };
 
-    animate();
+    const detachVisibility = attachVisibilityPause(container, (visible) => {
+      isInView = visible;
+      if (visible) {
+        lastTime = performance.now();
+        kick();
+      }
+    });
+
+    kick();
 
     // ── 7. Clean Cleanup & Disposal ──
     return () => {
-      cancelAnimationFrame(animId);
+      isInView = false;
+      if (animId !== 0) cancelAnimationFrame(animId);
+      detachVisibility();
       resizeObserver.disconnect();
       container.removeEventListener("pointermove", handlePointerMove);
 

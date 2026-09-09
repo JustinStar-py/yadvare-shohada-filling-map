@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import { ConstellationStar } from "@/types/campaign";
 import { formatPersianNumber, toPersianDigits, formatShortJalaliDate } from "@/lib/utils";
-import { detectRenderQuality, RenderQuality } from "@/lib/client/quality";
+import { attachVisibilityPause, detectRenderQuality, RenderQuality } from "@/lib/client/quality";
 import { Sparkles, Heart, Calendar, X, Star } from "lucide-react";
 
 interface ConstellationViewProps {
@@ -119,18 +119,19 @@ export default function ConstellationView({ constellation }: ConstellationViewPr
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    let visible = true;
+    let visible = typeof document === "undefined" ? true : !document.hidden;
     let w = 0;
     let h = 0;
     let time = 0;
 
-    const io = new IntersectionObserver(
-      (entries) => {
-        visible = entries[0]?.isIntersecting ?? true;
-      },
-      { threshold: 0.05 }
-    );
-    io.observe(container);
+    const kick = () => {
+      if (rafRef.current === null && visible) rafRef.current = requestAnimationFrame(render);
+    };
+
+    const detachVisibility = attachVisibilityPause(container, (v) => {
+      visible = v;
+      if (visible) kick();
+    });
 
     const layout = () => {
       const rect = container.getBoundingClientRect();
@@ -219,8 +220,8 @@ export default function ConstellationView({ constellation }: ConstellationViewPr
     }
 
     const render = (now: number) => {
-      rafRef.current = requestAnimationFrame(render);
-      if (!visible || w === 0) return;
+      rafRef.current = null;
+      if (!visible || w === 0) return; // fully parked while hidden
       time += 0.016;
 
       ctx.globalCompositeOperation = "source-over";
@@ -383,13 +384,16 @@ export default function ConstellationView({ constellation }: ConstellationViewPr
       }
 
       ctx.globalCompositeOperation = "source-over";
+      rafRef.current = requestAnimationFrame(render);
     };
 
-    rafRef.current = requestAnimationFrame(render);
+    kick();
 
     return () => {
+      visible = false;
       if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
-      io.disconnect();
+      rafRef.current = null;
+      detachVisibility();
       ro.disconnect();
     };
   }, []);

@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef } from "react";
 import { ConstellationStar } from "@/types/campaign";
-import { detectRenderQuality, RenderQuality } from "@/lib/client/quality";
+import { detectRenderQuality, getDprCap, RenderQuality } from "@/lib/client/quality";
 
 interface AtmosphereCanvasProps {
   fuelPercentage: number;
@@ -246,7 +246,8 @@ export default function AtmosphereCanvas({
 
     reducedMotionRef.current = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     qualityRef.current = detectRenderQuality();
-    dprCapRef.current = qualityRef.current === "low" ? 1.3 : 2;
+    // Mobile tile GPUs: 1.25 max (fullscreen canvas = millions of fragments).
+    dprCapRef.current = getDprCap();
 
     // ── Sprites (pre-rendered radial glows — no per-frame gradients) ──
     orbSpriteRef.current = makeGlowSprite(48, [
@@ -344,6 +345,10 @@ export default function AtmosphereCanvas({
 
     const onVisibility = () => {
       visible = !document.hidden;
+      if (visible) {
+        lastNow = performance.now();
+        kick();
+      }
     };
     const onScroll = () => {
       scrollYRef.current = window.scrollY;
@@ -360,12 +365,13 @@ export default function AtmosphereCanvas({
     let lastNow = performance.now();
     let judged = false;
 
+    const kick = () => {
+      if (rafRef.current === null && visible) rafRef.current = requestAnimationFrame(render);
+    };
+
     const render = (now: number) => {
-      rafRef.current = requestAnimationFrame(render);
-      if (!visible) {
-        lastNow = now;
-        return;
-      }
+      rafRef.current = null;
+      if (!visible) return; // fully parked: no pending rAF in background tabs
 
       const dt = now - lastNow;
       lastNow = now;
@@ -718,9 +724,10 @@ export default function AtmosphereCanvas({
       }
 
       ctx.globalCompositeOperation = "source-over";
+      rafRef.current = requestAnimationFrame(render);
     };
 
-    rafRef.current = requestAnimationFrame(render);
+    kick();
 
     return () => {
       if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);

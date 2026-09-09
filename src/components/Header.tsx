@@ -1,9 +1,10 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Volume2, VolumeX, HelpCircle } from "lucide-react";
+import { Volume2, VolumeX, HelpCircle, Gauge } from "lucide-react";
 import YadvareLogo from "@/components/ui/YadvareLogo";
 import { soundEngine } from "@/lib/client/procedural-audio";
+import { setLiteModeOverride, useLiteMode } from "@/lib/client/quality";
 import { formatShortJalaliDate } from "@/lib/utils";
 
 interface HeaderProps {
@@ -15,6 +16,7 @@ export default function Header({ tehranDate, onStartTour }: HeaderProps) {
   const [isMuted, setIsMuted] = useState(true);
   const [mounted, setMounted] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const liteMode = useLiteMode();
 
   useEffect(() => {
     setMounted(true);
@@ -97,6 +99,17 @@ export default function Header({ tehranDate, onStartTour }: HeaderProps) {
           ) : (
             <Volume2 className="w-4 h-4 text-amber-400 animate-pulse group-hover:scale-110 transition-transform duration-200" />
           )}
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setLiteModeOverride(!liteMode)}
+          className="w-8.5 h-8.5 sm:w-9 sm:h-9 rounded-full liquid-glass-pill hover:border-amber-400/50 text-slate-300 hover:text-white flex items-center justify-center cursor-pointer ios-press shadow-sm group"
+          title={liteMode ? "خروج از حالت سبک (نمایش سه‌بعدی)" : "حالت سبک (صرفه‌جویی در مصرف باتری و داده)"}
+          aria-label={liteMode ? "خروج از حالت سبک" : "فعال‌سازی حالت سبک"}
+          aria-pressed={liteMode}
+        >
+          <Gauge className={`w-4 h-4 transition-colors ${liteMode ? "text-emerald-400" : "text-slate-400 group-hover:text-slate-200"}`} />
         </button>
       </div>
     </header>

@@ -3,6 +3,11 @@
 import React, { useEffect, useRef } from "react";
 import * as THREE from "three";
 import { MissileModel, getMissileConfig } from "./missile-catalog";
+import {
+  attachVisibilityPause,
+  isMobileDevice,
+  shouldUseAntialias,
+} from "@/lib/client/quality";
 
 interface Missile3DThumbnailProps {
   model: MissileModel;
@@ -21,9 +26,13 @@ export default function Missile3DThumbnail({
     const container = containerRef.current;
     if (!container) return;
 
-    let animId: number;
+    let animId = 0;
     let isDisposed = false;
-    let isVisible = true;
+    let isVisible = typeof document === "undefined" ? true : !document.hidden;
+    // anim is hoisted via function declaration below; kick only runs after mount.
+    const kick = () => {
+      if (animId === 0 && isVisible && !isDisposed) animId = requestAnimationFrame(animate);
+    };
 
     const width = container.clientWidth || 180;
     const height = container.clientHeight || 140;
@@ -37,7 +46,7 @@ export default function Missile3DThumbnail({
     let renderer: THREE.WebGLRenderer;
     try {
       renderer = new THREE.WebGLRenderer({
-        antialias: true,
+        antialias: shouldUseAntialias(),
         alpha: true,
         powerPreference: "low-power",
       });
@@ -46,7 +55,7 @@ export default function Missile3DThumbnail({
     }
 
     renderer.setSize(width, height);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, isMobileDevice() ? 1 : 1.5));
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     container.appendChild(renderer.domElement);
 
@@ -97,16 +106,27 @@ export default function Missile3DThumbnail({
       metalness: 0.3,
     });
 
-    const translucentMetalMaterial = new THREE.MeshPhysicalMaterial({
-      color: 0xdde4ec,
-      metalness: 0.82,
-      roughness: 0.16,
-      transparent: true,
-      opacity: 0.44,
-      transmission: 0.5,
-      depthWrite: false,
-      side: THREE.DoubleSide,
-    });
+    // Mobile: skip the transmission pass (extra scene render on tile GPUs).
+    const translucentMetalMaterial: THREE.Material = isMobileDevice()
+      ? new THREE.MeshStandardMaterial({
+          color: 0xdde4ec,
+          metalness: 0.82,
+          roughness: 0.16,
+          transparent: true,
+          opacity: 0.44,
+          depthWrite: false,
+          side: THREE.DoubleSide,
+        })
+      : new THREE.MeshPhysicalMaterial({
+          color: 0xdde4ec,
+          metalness: 0.82,
+          roughness: 0.16,
+          transparent: true,
+          opacity: 0.44,
+          transmission: 0.5,
+          depthWrite: false,
+          side: THREE.DoubleSide,
+        });
 
     // ── 4. Rocket Group Hierarchy ──
     const rocketGroup = new THREE.Group();
@@ -467,17 +487,10 @@ export default function Missile3DThumbnail({
     });
     resizeObserver.observe(container);
 
-    const io = new IntersectionObserver((entries) => {
-      isVisible = entries[0]?.isIntersecting ?? true;
-    });
-    io.observe(container);
-
     let angle = 0;
     const animate = () => {
-      if (isDisposed) return;
-      animId = requestAnimationFrame(animate);
-
-      if (!isVisible) return;
+      animId = 0;
+      if (isDisposed || !isVisible) return;
 
       angle += 0.014;
       rocketGroup.rotation.y = angle;
@@ -487,15 +500,22 @@ export default function Missile3DThumbnail({
       }
 
       renderer.render(scene, camera);
+      animId = requestAnimationFrame(animate);
     };
 
-    animate();
+    const detachVisibility = attachVisibilityPause(container, (visible) => {
+      isVisible = visible;
+      if (visible) kick();
+    });
+
+    kick();
 
     return () => {
       isDisposed = true;
-      cancelAnimationFrame(animId);
+      isVisible = false;
+      if (animId !== 0) cancelAnimationFrame(animId);
+      detachVisibility();
       resizeObserver.disconnect();
-      io.disconnect();
       if (renderer.domElement.parentNode) {
         renderer.domElement.parentNode.removeChild(renderer.domElement);
       }

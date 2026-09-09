@@ -1147,7 +1147,7 @@ export default function AdminPage() {
                   <div className="w-16 h-16 rounded-xl bg-slate-800 overflow-hidden shrink-0">
                     {martyr.photoUrl ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={martyr.photoUrl} alt={martyr.name} className="w-full h-full object-cover" />
+                      <img src={martyr.photoUrl} alt={martyr.name} className="w-full h-full object-cover" loading="lazy" decoding="async" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-slate-500">
                         <Users className="w-6 h-6" />

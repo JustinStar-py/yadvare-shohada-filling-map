@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import { MissionState } from "@/types/campaign";
+import { useLiteMode } from "@/lib/client/quality";
 
 // Dynamic import for 3D Three.js scene (zero SSR overhead, client-only)
 const ThreeRocketScene = dynamic(() => import("./ThreeRocketScene"), {
@@ -34,6 +35,7 @@ export default function ParallaxRocket({
 }: ParallaxRocketProps) {
   const [mounted, setMounted] = useState(false);
   const [is3DReady, setIs3DReady] = useState(false);
+  const lite = useLiteMode();
 
   const percentage = Math.min(100, Math.max(0, fillPercentage));
 
@@ -45,6 +47,22 @@ export default function ParallaxRocket({
     setIs3DReady(true);
     onReady?.();
   };
+
+  // Lite mode: zero-GPU static fuel gauge (auto on very weak devices, manual via header toggle)
+  if (lite) {
+    return (
+      <div className="w-full h-full relative flex items-center justify-center pointer-events-none select-none" aria-hidden="true">
+        <div className="relative w-16 sm:w-20 h-64 sm:h-80 rounded-full border border-amber-500/40 bg-slate-950/60 overflow-hidden shadow-[0_0_40px_rgba(245,158,11,0.25)]">
+          <div
+            className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-amber-700 via-amber-400 to-amber-200 transition-[height] duration-700 ease-out"
+            style={{ height: `${percentage}%` }}
+          />
+          <div className="absolute inset-0 rounded-full border border-white/10" />
+          <div className="absolute inset-x-4 top-3 h-10 rounded-full bg-white/[0.07] blur-md" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full h-full relative flex items-center justify-center pointer-events-none select-none">

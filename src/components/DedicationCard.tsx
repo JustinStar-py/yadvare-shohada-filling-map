@@ -163,10 +163,11 @@ export default function DedicationCard({ martyr, martyrs }: DedicationCardProps)
                 {selectedMartyr.photoUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
-                    src={selectedMartyr.photoUrl}
-                    alt={selectedMartyr.name}
-                    className="w-full h-full object-cover"
-                  />
+                      src={selectedMartyr.photoUrl}
+                      alt={selectedMartyr.name}
+                      className="w-full h-full object-cover"
+                      decoding="async"
+                    />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-amber-400">
                     <Award className="w-10 h-10" />

@@ -6,6 +6,12 @@ import { MissionState } from "@/types/campaign";
 import { MissileModel, getMissileConfig } from "./missile-catalog";
 import { soundEngine } from "@/lib/client/procedural-audio";
 import { SHOHADA_SHAHIDIEH_PROFILES } from "@/lib/data/shohada-shahidieh";
+import {
+  attachVisibilityPause,
+  getDprCap,
+  isMobileDevice,
+  shouldUseAntialias,
+} from "@/lib/client/quality";
 
 interface ThreeRocketSceneProps {
   fillPercentage: number;
@@ -300,7 +306,7 @@ export default function ThreeRocketScene({
     if (!container) return;
 
     const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const isMobile = /Mobi|Android/i.test(navigator.userAgent) || window.innerWidth < 768;
+    const isMobile = isMobileDevice();
 
     const scene = new THREE.Scene();
     const width = container.clientWidth || 240;
@@ -317,11 +323,12 @@ export default function ThreeRocketScene({
 
     let renderer: THREE.WebGLRenderer;
     try {
-      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance" });
+      // No MSAA on mobile tile GPUs: DPR 1.25 already resolves all visible aliasing.
+      renderer = new THREE.WebGLRenderer({ antialias: shouldUseAntialias(), alpha: true, powerPreference: "high-performance" });
     } catch { return; }
 
     renderer.setSize(width, height);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, getDprCap()));
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     container.appendChild(renderer.domElement);
 
@@ -636,17 +643,29 @@ export default function ThreeRocketScene({
     const CHAMBER_BOTTOM_Y = CHAMBER_CENTER_Y - CHAMBER_H / 2;
     const chamberRadius = baseR;
 
-    const translucentMetalMaterial = new THREE.MeshPhysicalMaterial({
-      color: 0xdde4ec,
-      metalness: 0.82,
-      roughness: 0.16,
-      transparent: true,
-      opacity: 0.44,
-      transmission: isMobile ? 0.35 : 0.54,
-      ior: 1.50,
-      depthWrite: false,
-      side: THREE.DoubleSide,
-    });
+    // Mobile: plain transparent standard material. MeshPhysicalMaterial with
+    // transmission costs a full extra scene render pass on tile-based mobile GPUs.
+    const translucentMetalMaterial: THREE.Material = isMobile
+      ? new THREE.MeshStandardMaterial({
+          color: 0xdde4ec,
+          metalness: 0.82,
+          roughness: 0.16,
+          transparent: true,
+          opacity: 0.44,
+          depthWrite: false,
+          side: THREE.DoubleSide,
+        })
+      : new THREE.MeshPhysicalMaterial({
+          color: 0xdde4ec,
+          metalness: 0.82,
+          roughness: 0.16,
+          transparent: true,
+          opacity: 0.44,
+          transmission: 0.54,
+          ior: 1.50,
+          depthWrite: false,
+          side: THREE.DoubleSide,
+        });
 
     const tankMetalCylinder = new THREE.Mesh(
       new THREE.CylinderGeometry(chamberRadius, chamberRadius, CHAMBER_H, 40, 1, true),
@@ -1320,8 +1339,10 @@ export default function ThreeRocketScene({
       const ry = rocketGroup.position.y;
       const rz = rocketGroup.position.z;
       const nozzleWorldY = ry + NOZZLE_LOCAL_Y;
+      // Fewer live particles on mobile GPUs (same look, ~40% less overdraw).
+      const spawnScale = isMobile ? 0.6 : 1;
 
-      const flameN = Math.ceil(intensity * 12 * dt * 60);
+      const flameN = Math.ceil(intensity * 12 * dt * 60 * spawnScale);
       for (let k = 0; k < flameN; k++) {
         const a = Math.random() * Math.PI * 2;
         const rad = Math.random() * 0.04;
@@ -1333,7 +1354,7 @@ export default function ThreeRocketScene({
         );
       }
 
-      const smokeN = Math.ceil((intensity * 8 + (isPadRoll ? 6 : 0)) * dt * 60);
+      const smokeN = Math.ceil((intensity * 8 + (isPadRoll ? 6 : 0)) * dt * 60 * spawnScale);
       for (let k = 0; k < smokeN; k++) {
         if (isPadRoll) {
           const a = Math.random() * Math.PI * 2;
@@ -1413,7 +1434,13 @@ export default function ThreeRocketScene({
     onModelChangeRef.current = applyMissileModel;
     applyMissileModel(modelRef.current);
 
-    let animId: number;
+    let animId = 0;
+    // Fully parked while off-screen / tab hidden: no pending rAF, the
+    // CPU/GPU and radio can actually sleep (critical on Android).
+    let isInView = typeof document === "undefined" ? true : !document.hidden;
+    const kick = () => {
+      if (animId === 0 && isInView) animId = requestAnimationFrame(animate);
+    };
     let lastTime = performance.now();
     const startTime = performance.now();
     let wasLifted = false;
@@ -1424,7 +1451,8 @@ export default function ThreeRocketScene({
     let currentFuelProgress = progressRef.current;
 
     const animate = (now?: number) => {
-      animId = requestAnimationFrame(animate);
+      animId = 0;
+      if (!isInView) return;
 
       const currentTime = typeof now === "number" ? now : performance.now();
       const dt = Math.min((currentTime - lastTime) / 1000, 0.1);
@@ -1859,12 +1887,23 @@ export default function ThreeRocketScene({
         hasNotifiedReady = true;
         onReadyRef.current?.();
       }
+      animId = requestAnimationFrame(animate);
     };
 
-    animate();
+    const detachVisibility = attachVisibilityPause(container, (visible) => {
+      isInView = visible;
+      if (visible) {
+        lastTime = performance.now();
+        kick();
+      }
+    });
+
+    kick();
 
     return () => {
-      cancelAnimationFrame(animId);
+      isInView = false;
+      if (animId !== 0) cancelAnimationFrame(animId);
+      detachVisibility();
       window.removeEventListener("pointermove", onPointerMove);
       resizeObserver.disconnect();
       if (renderer.domElement.parentNode) renderer.domElement.parentNode.removeChild(renderer.domElement);

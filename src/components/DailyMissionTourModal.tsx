@@ -280,6 +280,8 @@ export default function DailyMissionTourModal({
                       src={mission.martyr.photoUrl}
                       alt={martyrDisplayName}
                       className="w-full h-full object-cover object-top scale-105"
+                      loading="lazy"
+                      decoding="async"
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center bg-gradient-to-b from-rose-950 to-slate-950">
