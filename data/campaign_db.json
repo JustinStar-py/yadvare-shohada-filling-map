@@ -11,7 +11,9 @@
     "dailyResetHour": 0,
     "startTarget": 500,
     "dailyIncrease": 500,
-    "targetOverrides": {},
+    "targetOverrides": {
+      "2026-09-09": 1000
+    },
     "visualPreset": "balanced",
     "finalMessage": "در این مسیر نورانی، با هم هزاران صلوات تقدیم روح پرفتوح شهدا کردیم. یادشان تا ابد در دل‌ها جاودان باد.",
     "isCompleted": false,
@@ -87,14 +89,13 @@
     "2026-09-09": {
       "date": "2026-09-09",
       "dayNumber": 11,
-      "target": 5500,
-      "currentCount": 5500,
-      "participantsCount": 0,
-      "state": "LAUNCHED",
-      "epoch": 2,
+      "target": 1000,
+      "currentCount": 13,
+      "participantsCount": 1,
+      "state": "ACTIVE",
+      "epoch": 3,
       "martyrId": "martyr-sh-11",
-      "isOverrideTarget": false,
-      "launchTimestamp": 1788906207547
+      "isOverrideTarget": true
     }
   },
   "martyrs": [
@@ -751,17 +752,6 @@
       "y": 38,
       "brightness": 1,
       "launchedAt": 1788647785544
-    },
-    {
-      "date": "2026-09-09",
-      "dayNumber": 11,
-      "salawatCount": 5500,
-      "target": 5500,
-      "martyrName": "شهید یحیی سیفی",
-      "x": 30,
-      "y": 17,
-      "brightness": 1,
-      "launchedAt": 1788906207547
     }
   ],
   "dailyVisitors": {},
@@ -933,9 +923,39 @@
     "62a1ae64-b4e9-4a3f-99d2-7a9448525c1a": {
       "timestamp": 1788878610517,
       "count": 1
+    },
+    "b233eb9c-b518-4d9b-b02b-8db85f6f61a4": {
+      "timestamp": 1788934404862,
+      "count": 5
+    },
+    "203cadd7-392e-4ba1-88d1-a57a9c39e5eb": {
+      "timestamp": 1788934415341,
+      "count": 1
+    },
+    "fe9d1b40-8a59-4848-a1b3-029f38f43603": {
+      "timestamp": 1788934425563,
+      "count": 5
+    },
+    "487e009c-1da6-4afb-8cb5-9e625fd97bf7": {
+      "timestamp": 1788934438983,
+      "count": 2
     }
   },
   "auditLogs": [
+    {
+      "id": "209ceb4a-d6b6-4e9d-9890-c3ce5e35dbfa",
+      "timestamp": 1788934372997,
+      "action": "TARGET_OVERRIDE_SET",
+      "details": "هدف اختصاصی تاریخ 2026-09-09 به 1000 صلوات تغییر یافت.",
+      "ip": "::1"
+    },
+    {
+      "id": "1def116c-6e57-4bfa-85e3-77234d502249",
+      "timestamp": 1788934369421,
+      "action": "RESET_SALAWAT",
+      "details": "صفر کردن صلوات‌های امروز (2026-09-09) توسط مدیر.",
+      "ip": "::1"
+    },
     {
       "id": "fe43ecfc-1a3b-4b4b-8e20-ddb31f411e6a",
       "timestamp": 1788933355000,
@@ -1314,5 +1334,5 @@
       "details": "پایگاه داده اولیه با موفقیت راه‌اندازی شد."
     }
   ],
-  "totalCampaignSalawat": 19922
+  "totalCampaignSalawat": 14435
 }

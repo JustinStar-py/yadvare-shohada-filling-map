@@ -45,6 +45,7 @@ export default function LaunchOverlay({
       return;
     }
 
+    soundEngine.onMissileLaunchStart();
     soundEngine.playTick();
 
     let current = COUNT_START;
@@ -68,6 +69,8 @@ export default function LaunchOverlay({
             setPhase("completed");
             setContentVisible(true);
             soundEngine.playStarBirth();
+            // Missile mission passed: resume playground background music
+            soundEngine.onMissileLaunchEnd();
 
             // Hold completion celebration card for 3.5s so user can appreciate the moment, then fade
             setTimeout(() => {
@@ -81,7 +84,10 @@ export default function LaunchOverlay({
       }
     }, 1500);
 
-    return () => clearInterval(timer);
+    return () => {
+      clearInterval(timer);
+      soundEngine.onMissileLaunchEnd();
+    };
   }, [isOpen]);
 
   if (!isOpen) return null;

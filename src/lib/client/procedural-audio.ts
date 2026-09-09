@@ -17,7 +17,8 @@ class ProceduralAudioEngine {
   private ambientGain: GainNode | null = null;
   private noiseBuffer: AudioBuffer | null = null;
   private bgMusic: HTMLAudioElement | null = null;
-  private musicVolume: number = 0.85; // 85% volume per specification
+  private musicVolume: number = 0.75; // 75% volume
+  private isLaunchMuted: boolean = false; // Muted during missile launch until mission passed
 
   constructor() {
     if (typeof window !== "undefined") {
@@ -81,7 +82,7 @@ class ProceduralAudioEngine {
     this.autoPlayInitialized = true;
 
     const onUserInteraction = () => {
-      if (!this.isMuted) {
+      if (!this.isMuted && !this.isLaunchMuted) {
         this.playPlaygroundMusic();
       }
       if (this.bgMusic && !this.bgMusic.paused) {
@@ -93,7 +94,7 @@ class ProceduralAudioEngine {
     };
 
     // Try immediately (works if browser allows or user already engaged)
-    if (!this.isMuted) {
+    if (!this.isMuted && !this.isLaunchMuted) {
       this.playPlaygroundMusic();
     }
 
@@ -117,7 +118,7 @@ class ProceduralAudioEngine {
           console.error("Playground audio error:", audio.error);
         });
         audio.addEventListener("playing", () => {
-          console.log("Playground background music playing at 85% volume");
+          console.log("Playground background music playing at 75% volume");
         });
 
         this.bgMusic = audio;
@@ -130,7 +131,7 @@ class ProceduralAudioEngine {
   }
 
   public playPlaygroundMusic() {
-    if (this.isMuted || typeof window === "undefined") return;
+    if (this.isMuted || this.isLaunchMuted || typeof window === "undefined") return;
     const music = this.initPlaygroundMusic();
     if (!music) return;
     music.volume = this.musicVolume;
@@ -153,6 +154,31 @@ class ProceduralAudioEngine {
         this.bgMusic.pause();
       } catch {}
     }
+  }
+
+  /**
+   * Ducks / mutes background playground music when a missile launch starts
+   * so rocket thrusters and countdown sound effects have full acoustic focus.
+   */
+  public onMissileLaunchStart() {
+    this.isLaunchMuted = true;
+    this.pausePlaygroundMusic();
+  }
+
+  /**
+   * Resumes playground music once the missile mission has passed / completed
+   * (honoring the user's manual mute toggle).
+   */
+  public onMissileLaunchEnd() {
+    if (!this.isLaunchMuted) return;
+    this.isLaunchMuted = false;
+    if (!this.isMuted) {
+      this.playPlaygroundMusic();
+    }
+  }
+
+  public isMissileLaunchMuted(): boolean {
+    return this.isLaunchMuted;
   }
 
   public setPlaygroundMusicVolume(volume: number) {

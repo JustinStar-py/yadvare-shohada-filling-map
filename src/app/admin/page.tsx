@@ -76,7 +76,7 @@ export default function AdminPage() {
       let aud = audioTestInstance;
       if (!aud) {
         aud = new Audio("/audio/bayad-barkhast-playground.mp3");
-        aud.volume = 0.85;
+        aud.volume = 0.75;
         aud.loop = true;
         setAudioTestInstance(aud);
       }
@@ -846,7 +846,7 @@ export default function AdminPage() {
                 <div className="grid grid-cols-2 gap-2">
                   <div className="p-3 rounded-xl bg-slate-950 border border-slate-800">
                     <span className="text-slate-400 text-[11px]">بلندی صدا:</span>
-                    <p className="font-bold text-slate-100 mt-0.5">۸۵٪ (0.85)</p>
+                    <p className="font-bold text-slate-100 mt-0.5">۷۵٪ (0.75)</p>
                   </div>
                   <div className="p-3 rounded-xl bg-slate-950 border border-slate-800">
                     <span className="text-slate-400 text-[11px]">لود تنبل (Lazy):</span>

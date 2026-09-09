@@ -585,6 +585,7 @@ export default function HomePage() {
 
   const handleFlightComplete = useCallback(() => {
     setHasLiftedOff(false);
+    soundEngine.onMissileLaunchEnd();
   }, []);
 
   const handleLaunchOverlayComplete = useCallback(async () => {
@@ -603,12 +604,14 @@ export default function HomePage() {
     setShowLaunchOverlay(false);
     setIsLaunching(false);
     setHasLiftedOff(false);
+    soundEngine.onMissileLaunchEnd();
   }, [state]);
 
   const handleLaunchOverlayClose = useCallback(() => {
     setShowLaunchOverlay(false);
     setIsLaunching(false);
     setHasLiftedOff(false);
+    soundEngine.onMissileLaunchEnd();
   }, []);
 
   const handleTourComplete = useCallback((completed: UserDailyMission) => {
