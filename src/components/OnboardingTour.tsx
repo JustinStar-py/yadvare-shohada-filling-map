@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useLayoutEffect, useCallback, useRef } from "react";
 import { Sparkles, ChevronRight, ChevronLeft, X, Check } from "lucide-react";
 import { toPersianDigits } from "@/lib/utils";
 
@@ -193,12 +193,92 @@ function computeBackdropRects(
   return rects;
 }
 
+// ── Tooltip placement ──────────────────────────────────────────────
+// Minimum breathing room between the yellow spotlight rim and the card.
+const TOOLTIP_GAP = 16;
+// First-render guess until the real card height is measured (see below).
+const FALLBACK_TOOLTIP_HEIGHT = 230;
+
+interface SpotlightBox {
+  minX: number;
+  maxX: number;
+  minY: number;
+  maxY: number;
+}
+
+export interface TooltipPlacement {
+  top: number;
+  left: number;
+  arrowSide: "top" | "bottom";
+  /** True → dock as a bottom sheet (neither side fits a readable card). */
+  docked: boolean;
+}
+
+/**
+ * Places the tooltip fully outside the spotlight box with TOOLTIP_GAP clearance.
+ * Never lets the card overlap the yellow rim: if the preferred side cannot fit
+ * the (measured) card height, it tries the other side, then falls back to a
+ * bottom sheet which is always readable on small screens.
+ */
+function placeTooltip(
+  preferred: "top" | "bottom" | "auto",
+  box: SpotlightBox,
+  vw: number,
+  vh: number,
+  estH: number
+): TooltipPlacement {
+  const tooltipWidth = Math.min(360, vw - 32);
+  const spaceBelow = vh - box.maxY;
+  const spaceAbove = box.minY;
+  const need = estH + TOOLTIP_GAP + 8; // +8 safe-area slack
+  const fitsAbove = spaceAbove >= need;
+  const fitsBelow = spaceBelow >= need;
+
+  let side: "above" | "below" | "docked";
+  if (preferred === "top") {
+    side = fitsAbove ? "above" : fitsBelow ? "below" : "docked";
+  } else if (preferred === "bottom") {
+    side = fitsBelow ? "below" : fitsAbove ? "above" : "docked";
+  } else {
+    if (fitsBelow && fitsAbove) side = "below";
+    else if (fitsBelow) side = "below";
+    else if (fitsAbove) side = "above";
+    else side = "docked";
+  }
+
+  // Horizontal centering over the combined spotlight box
+  const combinedWidth = box.maxX - box.minX;
+  const left = Math.max(14, Math.min(vw - tooltipWidth - 14, box.minX + combinedWidth / 2 - tooltipWidth / 2));
+
+  if (side === "docked") return { top: 0, left, arrowSide: "top", docked: true };
+  if (side === "above") {
+    return {
+      top: Math.max(8, box.minY - estH - TOOLTIP_GAP),
+      left,
+      arrowSide: "bottom",
+      docked: false,
+    };
+  }
+  return {
+    top: Math.min(vh - estH - 8, box.maxY + TOOLTIP_GAP),
+    left,
+    arrowSide: "top",
+    docked: false,
+  };
+}
+
 export default function OnboardingTour({ isOpen, onClose, onComplete }: OnboardingTourProps) {
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [spotlightRects, setSpotlightRects] = useState<SpotlightRect[]>([]);
   const [viewport, setViewport] = useState({ width: 1000, height: 800 });
-  const [tooltipPos, setTooltipPos] = useState<{ top: number; left: number; arrowSide: "top" | "bottom" } | null>(null);
+  const [tooltipPos, setTooltipPos] = useState<TooltipPlacement | null>(null);
   const animFrameRef = useRef<number | null>(null);
+  // Real measured card height per step (the card is ~2x taller than it looks
+  // in code, so a hardcoded guess always misplaces it). Reposition attempts
+  // are capped per step so measurement can never loop.
+  const tooltipRef = useRef<HTMLDivElement | null>(null);
+  const measuredHeightsRef = useRef<Record<number, number>>({});
+  const repositionAttemptsRef = useRef<Record<number, number>>({});
 
   const step = TOUR_STEPS[currentStepIndex];
 
@@ -232,7 +312,10 @@ export default function OnboardingTour({ isOpen, onClose, onComplete }: Onboardi
         const cx = vw / 2;
         const cy = vh / 2;
         setSpotlightRects([{ x: cx - 120, y: cy - 120, width: 240, height: 240, radius: 24 }]);
-        setTooltipPos({ top: cy + 140, left: Math.max(16, cx - 160), arrowSide: "top" });
+        const estH = measuredHeightsRef.current[stepIdx] ?? FALLBACK_TOOLTIP_HEIGHT;
+        setTooltipPos(
+          placeTooltip("auto", { minX: cx - 120, maxX: cx + 120, minY: cy - 120, maxY: cy + 120 }, vw, vh, estH)
+        );
         return;
       }
 
@@ -250,55 +333,17 @@ export default function OnboardingTour({ isOpen, onClose, onComplete }: Onboardi
       setSpotlightRects(rects);
 
       // Calculate combined bounding box across all active elements
-      const minX = Math.min(...rects.map((r) => r.x));
-      const maxX = Math.max(...rects.map((r) => r.x + r.width));
-      const minY = Math.min(...rects.map((r) => r.y));
-      const maxY = Math.max(...rects.map((r) => r.y + r.height));
-      const combinedWidth = maxX - minX;
+      const box: SpotlightBox = {
+        minX: Math.min(...rects.map((r) => r.x)),
+        maxX: Math.max(...rects.map((r) => r.x + r.width)),
+        minY: Math.min(...rects.map((r) => r.y)),
+        maxY: Math.max(...rects.map((r) => r.y + r.height)),
+      };
 
-      const tooltipWidth = Math.min(360, vw - 32);
-      const tooltipHeight = 125;
-      const spaceBelow = vh - maxY;
-      const spaceAbove = minY;
-
-      let arrowSide: "top" | "bottom" = "top";
-      let top = maxY + 14;
-
-      if (currentStep.preferredPosition === "top") {
-        if (spaceAbove >= tooltipHeight + 8 || spaceAbove >= spaceBelow) {
-          top = minY - tooltipHeight - 10;
-          arrowSide = "bottom";
-        } else {
-          top = maxY + 12;
-          arrowSide = "top";
-        }
-      } else if (currentStep.preferredPosition === "bottom") {
-        if (spaceBelow >= tooltipHeight + 16 || spaceBelow >= spaceAbove) {
-          top = maxY + 14;
-          arrowSide = "top";
-        } else {
-          top = minY - tooltipHeight - 14;
-          arrowSide = "bottom";
-        }
-      } else {
-        // Auto: pick the side with more space
-        if (spaceBelow < tooltipHeight + 16 && spaceAbove > spaceBelow) {
-          top = minY - tooltipHeight - 14;
-          arrowSide = "bottom";
-        } else {
-          top = maxY + 14;
-          arrowSide = "top";
-        }
-      }
-
-      // Clamp vertical position within viewport bounds
-      top = Math.max(10, Math.min(vh - tooltipHeight - 10, top));
-
-      // Horizontal centering over the combined bounding box
-      let left = minX + combinedWidth / 2 - tooltipWidth / 2;
-      left = Math.max(16, Math.min(vw - tooltipWidth - 16, left));
-
-      setTooltipPos({ top, left, arrowSide });
+      // Use the measured card height when known — a hardcoded guess is what
+      // used to drop the card on top of the yellow spotlight rim.
+      const estH = measuredHeightsRef.current[stepIdx] ?? FALLBACK_TOOLTIP_HEIGHT;
+      setTooltipPos(placeTooltip(currentStep.preferredPosition ?? "auto", box, vw, vh, estH));
     },
     [findElements, isOpen]
   );
@@ -390,6 +435,23 @@ export default function OnboardingTour({ isOpen, onClose, onComplete }: Onboardi
     };
   }, [isOpen, currentStepIndex, updateGeometry]);
 
+  // Measure the real card height after paint and reposition once if the guess
+  // was off — this is what guarantees the card never covers the yellow rim.
+  useLayoutEffect(() => {
+    if (!isOpen || !tooltipPos || tooltipPos.docked) return;
+    const el = tooltipRef.current;
+    if (!el) return;
+    const realH = el.offsetHeight;
+    if (realH <= 0) return;
+    const prev = measuredHeightsRef.current[currentStepIndex];
+    if (prev !== undefined && Math.abs(prev - realH) <= 2) return;
+    const attempts = repositionAttemptsRef.current[currentStepIndex] ?? 0;
+    if (prev !== undefined && attempts >= 2) return;
+    measuredHeightsRef.current[currentStepIndex] = realH;
+    repositionAttemptsRef.current[currentStepIndex] = attempts + 1;
+    updateGeometry(currentStepIndex);
+  }, [isOpen, currentStepIndex, tooltipPos, updateGeometry]);
+
   const handleNext = () => {
     if (currentStepIndex < TOUR_STEPS.length - 1) {
       goToStep(currentStepIndex + 1);
@@ -464,11 +526,16 @@ export default function OnboardingTour({ isOpen, onClose, onComplete }: Onboardi
       {/* ── Guided Tooltip Card — Apple iOS 18 Liquid Glass Sheet ── */}
       {tooltipPos && (
         <div
+          ref={tooltipRef}
           className="fixed pointer-events-auto z-[105] w-[calc(100vw-28px)] max-w-[360px] p-3.5 sm:p-4 rounded-[26px] liquid-glass border border-amber-400/40 shadow-[0_24px_70px_rgba(0,0,0,0.85),0_0_35px_rgba(245,158,11,0.25)] transition-all duration-300 ease-out text-right animate-in fade-in zoom-in-95"
-          style={{
-            top: tooltipPos.top,
-            left: tooltipPos.left,
-          }}
+          style={
+            tooltipPos.docked
+              ? { left: 14, right: 14, bottom: "calc(14px + env(safe-area-inset-bottom))", top: "auto" }
+              : {
+                  top: tooltipPos.top,
+                  left: tooltipPos.left,
+                }
+          }
         >
           {/* Header: Step Pill + Apple Capsule Dots + Close X */}
           <div className="flex items-center justify-between pb-2 mb-2 border-b border-amber-400/20">
