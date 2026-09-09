@@ -27,8 +27,8 @@ export default function DedicationCard({ martyr, martyrs }: DedicationCardProps)
   const count = martyrsList.length;
 
   return (
-    <section data-tour="dedication" className="w-full max-w-2xl mx-auto px-4 py-8 relative z-10" style={{ direction: "rtl" }}>
-      <div className="relative overflow-hidden glass-panel rounded-3xl p-5 sm:p-7 md:p-8 border border-amber-500/20 shadow-[0_12px_40px_rgba(0,0,0,0.55)]">
+    <section data-tour="dedication" className="w-full max-w-2xl sm:max-w-3xl mx-auto px-3 sm:px-4 py-8 relative z-10" style={{ direction: "rtl" }}>
+      <div className="relative overflow-hidden glass-panel rounded-3xl p-3.5 sm:p-6 md:p-8 border border-amber-500/20 shadow-[0_12px_40px_rgba(0,0,0,0.55)]">
         {/* Ambient celestial glows */}
         <div className="absolute -top-24 -right-24 w-72 h-72 bg-amber-500/[0.08] rounded-full blur-3xl pointer-events-none" />
         <div className="absolute -bottom-32 -left-24 w-72 h-72 bg-blue-500/[0.05] rounded-full blur-3xl pointer-events-none" />
@@ -49,7 +49,7 @@ export default function DedicationCard({ martyr, martyrs }: DedicationCardProps)
         </div>
 
         {/* 3x3 + 1 centered grid (3 تا ردیف سه تایی با یکی ردیف یکی) */}
-        <div className="grid grid-cols-3 gap-3 sm:gap-4.5 w-full">
+        <div className="grid grid-cols-3 gap-2 sm:gap-3.5 md:gap-4.5 w-full">
           {martyrsList.map((m, idx) => {
             // If total is 10, the 10th item (idx === 9) sits in the center column
             const isTenthInTen = count === 10 && idx === 9;
@@ -58,13 +58,13 @@ export default function DedicationCard({ martyr, martyrs }: DedicationCardProps)
                 key={m.id || idx}
                 type="button"
                 onClick={() => setSelectedMartyr(m)}
-                className={`flex flex-col items-center p-2 sm:p-3 rounded-2xl bg-slate-900/70 hover:bg-slate-850 border border-amber-500/20 hover:border-amber-400/50 shadow-sm hover:shadow-[0_0_18px_rgba(245,158,11,0.25)] transition-all duration-300 cursor-pointer group select-none ${
+                className={`flex flex-col items-center justify-between h-full px-1.5 py-2.5 sm:px-2.5 sm:py-3.5 rounded-2xl bg-slate-900/70 hover:bg-slate-850 border border-amber-500/20 hover:border-amber-400/50 shadow-sm hover:shadow-[0_0_18px_rgba(245,158,11,0.25)] transition-all duration-300 cursor-pointer group select-none ${
                   isTenthInTen ? "col-start-2" : ""
                 }`}
                 title="مشاهده مشخصات و زندگی‌نامه"
               >
                 {/* Photo */}
-                <div className="w-16 h-16 sm:w-20 sm:h-20 md:w-22 md:h-22 rounded-2xl overflow-hidden bg-slate-800 border border-amber-500/35 shadow-[0_2px_10px_rgba(0,0,0,0.6)] group-hover:scale-105 transition-transform duration-300 shrink-0 relative">
+                <div className="w-14 h-14 sm:w-18 sm:h-18 md:w-20 md:h-20 rounded-2xl overflow-hidden bg-slate-800 border border-amber-500/35 shadow-[0_2px_10px_rgba(0,0,0,0.6)] group-hover:scale-105 transition-transform duration-300 shrink-0 relative">
                   {m.photoUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
@@ -81,10 +81,12 @@ export default function DedicationCard({ martyr, martyrs }: DedicationCardProps)
                   <div className="absolute inset-x-0 bottom-0 h-6 bg-gradient-to-t from-slate-950/80 to-transparent pointer-events-none" />
                 </div>
 
-                {/* Name */}
-                <span className="mt-2 text-[11.5px] sm:text-xs md:text-sm font-bold text-slate-200 group-hover:text-amber-300 text-center leading-snug line-clamp-2 drop-shadow-xs transition-colors">
-                  {m.name}
-                </span>
+                {/* Name: 100% visible, no ellipsis, comfortable font size & spacing */}
+                <div className="w-full mt-2 min-h-[2.4rem] sm:min-h-[2.75rem] flex items-center justify-center">
+                  <span className="text-[10px] sm:text-[11px] md:text-xs font-bold text-slate-200 group-hover:text-amber-300 text-center leading-[1.35] break-words drop-shadow-xs transition-colors">
+                    {m.name}
+                  </span>
+                </div>
               </button>
             );
           })}
