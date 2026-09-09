@@ -69,36 +69,33 @@ export default function Header({ tehranDate, onStartTour }: HeaderProps) {
         </div>
       </div>
 
-      {/* Actions */}
-      <div className="flex items-center gap-2">
-        <button
-          onClick={handleToggleAudio}
-          className="flex items-center gap-1.5 h-10 px-3.5 rounded-full bg-slate-800/70 border border-slate-700/60 text-xs text-slate-300 hover:text-white hover:border-slate-600 hover:bg-slate-800 cursor-pointer emil-btn"
-          title={isMuted ? "روشن کردن صدای محیطی" : "قطع صدای محیطی"}
-          aria-label={isMuted ? "روشن کردن صدای محیطی" : "قطع صدای محیطی"}
-        >
-          {isMuted ? (
-            <VolumeX className="w-4 h-4 text-slate-500" />
-          ) : (
-            <Volume2 className="w-4 h-4 text-amber-400 animate-pulse" />
-          )}
-          <span className="hidden md:inline">{isMuted ? "صدا: خاموش" : "صدا: روشن"}</span>
-        </button>
-
+      {/* Actions: Stacked vertically with Tour button on top and Sound button below */}
+      <div className="flex flex-col items-center justify-center gap-1.5 shrink-0">
         {onStartTour && (
           <button
             type="button"
             onClick={onStartTour}
-            className="flex items-center gap-1.5 h-10 px-3.5 rounded-full bg-slate-800/70 border border-slate-700/60 text-xs text-slate-300 hover:text-white hover:border-amber-500/50 hover:bg-slate-800 cursor-pointer transition-all emil-btn"
-            title="مشاهده راهنمای تصویری پویش"
-            aria-label="مشاهده راهنما"
+            className="w-8.5 h-8.5 sm:w-9 sm:h-9 rounded-full bg-slate-800/80 hover:bg-slate-750 border border-slate-700/60 hover:border-amber-500/50 text-slate-300 hover:text-white flex items-center justify-center cursor-pointer transition-all shadow-sm emil-btn"
+            title="مشاهده راهنمای پویش"
+            aria-label="مشاهده راهنمای پویش"
           >
             <HelpCircle className="w-4 h-4 text-amber-400" />
-            <span className="hidden sm:inline font-bold">راهنما</span>
           </button>
         )}
 
-
+        <button
+          type="button"
+          onClick={handleToggleAudio}
+          className="w-8.5 h-8.5 sm:w-9 sm:h-9 rounded-full bg-slate-800/80 hover:bg-slate-750 border border-slate-700/60 hover:border-slate-500 text-slate-300 hover:text-white flex items-center justify-center cursor-pointer transition-all shadow-sm emil-btn"
+          title={isMuted ? "روشن کردن صدای محیطی" : "قطع صدای محیطی"}
+          aria-label={isMuted ? "روشن کردن صدای محیطی" : "قطع صدای محیطی"}
+        >
+          {isMuted ? (
+            <VolumeX className="w-4 h-4 text-slate-400" />
+          ) : (
+            <Volume2 className="w-4 h-4 text-amber-400 animate-pulse" />
+          )}
+        </button>
       </div>
     </header>
   );

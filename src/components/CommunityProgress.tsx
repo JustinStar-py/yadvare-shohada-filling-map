@@ -32,7 +32,7 @@ export default function CommunityProgress({
             <div className="flex items-center justify-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/25 shadow-sm">
               <CheckCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-400 shrink-0" />
               <span className="text-emerald-300 font-bold text-[11px] sm:text-xs leading-relaxed text-center">
-                با همراهی شما عزیزان، سوخت پرواز امروز با صلوات‌های پرمهرتان تأمین شد؛ سپاسگزاریم ✨
+                 سوخت پرواز امروز با صلوات‌های پرمهرتان تأمین شد؛ سپاسگزاریم  
               </span>
             </div>
           ) : (
