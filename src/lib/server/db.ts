@@ -185,27 +185,53 @@ function normalizeDb(db: DatabaseSchema): DatabaseSchema {
 }
 
 async function readJsonFile(file: string): Promise<DatabaseSchema | null> {
-  try {
-    const content = await fs.readFile(file, "utf-8");
-    const parsed: unknown = JSON.parse(content);
-    if (!isValidDb(parsed)) return null;
-    return normalizeDb(parsed);
-  } catch {
-    return null;
+  for (let attempt = 0; attempt < 5; attempt++) {
+    try {
+      const content = await fs.readFile(file, "utf-8");
+      if (!content || content.trim().length === 0) {
+        // Transient partial write: wait and retry
+        await new Promise((resolve) => setTimeout(resolve, 30 * (attempt + 1)));
+        continue;
+      }
+      const parsed: unknown = JSON.parse(content);
+      if (!isValidDb(parsed)) return null;
+      return normalizeDb(parsed);
+    } catch (err: unknown) {
+      const code = (err as { code?: string })?.code;
+      if (code === "ENOENT") {
+        return null;
+      }
+      if (code === "EBUSY" || code === "EPERM" || code === "EACCES" || err instanceof SyntaxError) {
+        // Transient lock or mid-flush read on Windows, retry with backoff
+        await new Promise((resolve) => setTimeout(resolve, 30 * (attempt + 1)));
+        continue;
+      }
+      return null;
+    }
   }
+  return null;
 }
 
 /**
  * Loads from disk with corruption recovery: primary file → backup → fresh state.
+ * Guaranteed never to overwrite in-memory dirty cache with stale disk data,
+ * and never to falsely restore an old backup when memory state is valid.
  */
 async function loadIntoCache(): Promise<DatabaseSchema> {
+  // CRITICAL FIX 1: If cachedDb exists and has unpersisted writes (isDirty = true),
+  // RAM is the authoritative single source of truth. NEVER bypass or overwrite it from disk!
+  if (cachedDb && isDirty) {
+    return cachedDb;
+  }
+
   let diskMtime = 0;
   try {
     const stat = await fs.stat(DB_FILE);
     diskMtime = stat.mtimeMs;
   } catch {}
 
-  if (cachedDb && !isDirty && diskMtime > 0 && diskMtime <= lastDiskMtimeMs) {
+  // If memory cache is valid and disk has not changed externally, return cache
+  if (cachedDb && diskMtime > 0 && diskMtime <= lastDiskMtimeMs) {
     if (typeof cachedDb.totalCampaignSalawat !== "number") {
       let sum = 0;
       for (const m of Object.values(cachedDb.missions)) {
@@ -218,6 +244,13 @@ async function loadIntoCache(): Promise<DatabaseSchema> {
 
   let db = await readJsonFile(DB_FILE);
   if (!db) {
+    // CRITICAL FIX 2: If reading DB_FILE failed (e.g. transient Windows lock or error),
+    // but cachedDb is already alive in memory, NEVER wipe it out with an older backup!
+    if (cachedDb) {
+      console.warn("[db] DB_FILE read failed, but valid cachedDb exists in memory. Retaining cachedDb.");
+      return cachedDb;
+    }
+
     console.error("[db] Primary database unreadable or corrupt, attempting backup recovery…");
     db = await readJsonFile(BACKUP_FILE);
     if (db) {
@@ -231,12 +264,37 @@ async function loadIntoCache(): Promise<DatabaseSchema> {
   }
 
   if (!db) {
+    if (cachedDb) {
+      return cachedDb;
+    }
     console.warn("[db] No valid database or backup found — starting with a fresh database.");
     db = getInitialData();
     try {
       await persistDb(db);
     } catch (error) {
       console.error("[db] Failed to persist initial database:", error);
+    }
+  }
+
+  // Monotonic sanity check: if cachedDb already exists, counts must NEVER regress to lower numbers
+  if (cachedDb) {
+    for (const [date, mission] of Object.entries(cachedDb.missions)) {
+      if (db.missions[date]) {
+        db.missions[date].currentCount = Math.max(
+          db.missions[date].currentCount,
+          mission.currentCount
+        );
+        db.missions[date].participantsCount = Math.max(
+          db.missions[date].participantsCount,
+          mission.participantsCount
+        );
+      }
+    }
+    if (typeof cachedDb.totalCampaignSalawat === "number") {
+      db.totalCampaignSalawat = Math.max(
+        db.totalCampaignSalawat ?? 0,
+        cachedDb.totalCampaignSalawat
+      );
     }
   }
 
@@ -294,8 +352,22 @@ async function persistDb(data: DatabaseSchema): Promise<void> {
   if (Date.now() - lastBackupAt > BACKUP_INTERVAL_MS) {
     const tempBackup = `${BACKUP_FILE}.tmp.${process.pid}.${writeCounter}`;
     try {
-      await fs.copyFile(DB_FILE, tempBackup);
-      await fs.rename(tempBackup, BACKUP_FILE);
+      // Write jsonContent directly instead of copying DB_FILE (which locks DB_FILE on Windows)
+      await fs.writeFile(tempBackup, jsonContent, "utf-8");
+      let backupRenamed = false;
+      for (let attempt = 0; attempt < 3; attempt++) {
+        try {
+          await fs.rename(tempBackup, BACKUP_FILE);
+          backupRenamed = true;
+          break;
+        } catch {
+          await new Promise((resolve) => setTimeout(resolve, 20));
+        }
+      }
+      if (!backupRenamed) {
+        await fs.writeFile(BACKUP_FILE, jsonContent, "utf-8").catch(() => {});
+        await fs.unlink(tempBackup).catch(() => {});
+      }
       lastBackupAt = Date.now();
     } catch {
       // Primary file may not exist yet or locked — safe to ignore backup rotation
