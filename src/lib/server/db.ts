@@ -12,6 +12,11 @@ import {
 import { getShahidiehMartyrProfiles } from "@/lib/data/shohada-shahidieh";
 import { getTehranDateString } from "@/lib/utils";
 import { hashPin } from "./pin";
+import * as pgStore from "./db-postgres";
+
+function usePostgres(): boolean {
+  return !!process.env.DATABASE_URL || !!process.env.POSTGRES_URL;
+}
 
 export interface DatabaseSchema {
   settings: CampaignSettings;
@@ -484,6 +489,7 @@ function scheduleWriteBehindFlush(delayMs = WRITE_BEHIND_INTERVAL_MS): void {
  * Flushes dirty in-memory database state to disk atomically.
  */
 export async function flushDirtyState(): Promise<void> {
+  if (usePostgres()) return pgStore.flushDirtyState();
   if (!isDirty || !cachedDb) return;
   if (currentFlushPromise) {
     await currentFlushPromise;
@@ -515,6 +521,7 @@ export async function flushDirtyState(): Promise<void> {
  * Synchronously waits for any pending background write-behind flush to complete.
  */
 export async function forceFlush(): Promise<void> {
+  if (usePostgres()) return pgStore.forceFlush();
   if (flushTimer) {
     clearTimeout(flushTimer);
     flushTimer = null;
@@ -532,6 +539,7 @@ export async function mutateDbFast<T>(
     data: DatabaseSchema
   ) => Promise<{ data: DatabaseSchema; result: T }> | { data: DatabaseSchema; result: T }
 ): Promise<T> {
+  if (usePostgres()) return pgStore.mutateDbFast(mutator);
   await ensureDbInitialized();
   const current = await loadIntoCache();
 
@@ -547,6 +555,7 @@ export async function mutateDbFast<T>(
  * Reads database state (cached after first load, mutex-protected)
  */
 export async function readDb(): Promise<DatabaseSchema> {
+  if (usePostgres()) return pgStore.readDb();
   return dbMutex.runExclusive(async () => {
     await ensureDbInitialized();
     return loadIntoCache();
@@ -557,6 +566,7 @@ export async function readDb(): Promise<DatabaseSchema> {
  * Writes database state atomically
  */
 export async function writeDb(data: DatabaseSchema): Promise<void> {
+  if (usePostgres()) return pgStore.writeDb(data);
   return dbMutex.runExclusive(async () => {
     await ensureDbInitialized();
     pruneDb(data);
@@ -574,6 +584,7 @@ export async function mutateDb<T>(
     data: DatabaseSchema
   ) => Promise<{ data: DatabaseSchema; result: T }> | { data: DatabaseSchema; result: T }
 ): Promise<T> {
+  if (usePostgres()) return pgStore.mutateDb(mutator);
   // If there are pending dirty changes from write-behind, flush them first
   if (isDirty) {
     await forceFlush();

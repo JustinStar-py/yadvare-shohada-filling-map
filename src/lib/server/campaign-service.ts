@@ -214,7 +214,19 @@ export class CampaignService {
     count: number = 1,
     visitorId?: string
   ): Promise<SalawatSubmissionResponse> {
-    return mutateDbFast<SalawatSubmissionResponse>(async (db) => {
+    const outcome = await mutateDbFast<
+      Omit<SalawatSubmissionResponse, "seq"> & {
+        pendingBroadcast?: {
+          epoch: number;
+          date: string;
+          currentCount: number;
+          target: number;
+          totalCampaignSalawat: number;
+          participantsCount: number;
+          state: DailyMission["state"];
+        };
+      }
+    >(async (db) => {
       const today = getTehranDateString(new Date(), db.settings.dailyResetHour ?? 0);
       const mission = this.ensureMissionForDate(db, today);
       const epoch = mission.epoch ?? 1;
@@ -225,7 +237,6 @@ export class CampaignService {
           data: db,
           result: {
             success: true,
-            seq: sseBroadcaster.getCurrentSeq(),
             epoch,
             currentCount: mission.currentCount,
             target: mission.target,
@@ -272,21 +283,10 @@ export class CampaignService {
       // Broadcast realtime update to all subscribers (RAM-first by design:
       // the write-behind flusher persists within ~500ms and the broadcaster
       // stamps the authoritative seq into the payload itself)
-      const assignedSeq = sseBroadcaster.broadcast("salawat_update", {
-        epoch,
-        date: today,
-        currentCount: mission.currentCount,
-        target: mission.target,
-        totalCampaignSalawat: db.totalCampaignSalawat,
-        participantsCount: mission.participantsCount,
-        state: mission.state,
-      });
-
       return {
         data: db,
         result: {
           success: true,
-          seq: assignedSeq,
           epoch,
           currentCount: mission.currentCount,
           target: mission.target,
@@ -294,9 +294,26 @@ export class CampaignService {
           participantsCount: mission.participantsCount,
           missionState: mission.state,
           isDuplicate: false,
+          pendingBroadcast: {
+            epoch,
+            date: today,
+            currentCount: mission.currentCount,
+            target: mission.target,
+            totalCampaignSalawat: db.totalCampaignSalawat,
+            participantsCount: mission.participantsCount,
+            state: mission.state,
+          },
         },
       };
     });
+
+    if (outcome.pendingBroadcast) {
+      const assignedSeq = sseBroadcaster.broadcast("salawat_update", outcome.pendingBroadcast);
+      const { pendingBroadcast: _dropped, ...rest } = outcome;
+      return { ...rest, seq: assignedSeq };
+    }
+    const { pendingBroadcast: _dropped, ...rest } = outcome;
+    return { ...rest, seq: sseBroadcaster.getCurrentSeq() };
   }
 
   /**
