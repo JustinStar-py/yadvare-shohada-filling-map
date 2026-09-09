@@ -90,12 +90,13 @@
       "date": "2026-09-09",
       "dayNumber": 11,
       "target": 1000,
-      "currentCount": 13,
+      "currentCount": 1001,
       "participantsCount": 1,
-      "state": "ACTIVE",
+      "state": "LAUNCHED",
       "epoch": 3,
       "martyrId": "martyr-sh-11",
-      "isOverrideTarget": true
+      "isOverrideTarget": true,
+      "launchTimestamp": 1788935429026
     }
   },
   "martyrs": [
@@ -752,6 +753,17 @@
       "y": 38,
       "brightness": 1,
       "launchedAt": 1788647785544
+    },
+    {
+      "date": "2026-09-09",
+      "dayNumber": 11,
+      "salawatCount": 1000,
+      "target": 1000,
+      "martyrName": "شهید محمدحسن گلمحمدی",
+      "x": 30,
+      "y": 17,
+      "brightness": 1,
+      "launchedAt": 1788935429026
     }
   ],
   "dailyVisitors": {},
@@ -939,9 +951,27 @@
     "487e009c-1da6-4afb-8cb5-9e625fd97bf7": {
       "timestamp": 1788934438983,
       "count": 2
+    },
+    "test-1788935677228": {
+      "timestamp": 1788935677859,
+      "count": 1
     }
   },
   "auditLogs": [
+    {
+      "id": "61d2cd38-2324-4c78-9ce9-b9276bff4ea2",
+      "timestamp": 1788935429028,
+      "action": "LAUNCH_EXECUTED",
+      "details": "پرتاب راکت روز 11 با 1000 صلوات انجام شد.",
+      "ip": "::1"
+    },
+    {
+      "id": "e522825a-1378-4ff7-b0b7-4e9a5f0eb179",
+      "timestamp": 1788935340721,
+      "action": "ADMIN_SALAWAT_BULK",
+      "details": "987 صلوات آزمایشی توسط مدیریت ثبت شد.",
+      "ip": "::1"
+    },
     {
       "id": "209ceb4a-d6b6-4e9d-9890-c3ce5e35dbfa",
       "timestamp": 1788934372997,
@@ -1334,5 +1364,5 @@
       "details": "پایگاه داده اولیه با موفقیت راه‌اندازی شد."
     }
   ],
-  "totalCampaignSalawat": 14435
+  "totalCampaignSalawat": 15423
 }

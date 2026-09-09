@@ -34,10 +34,9 @@ export async function POST(req: NextRequest) {
     const result = await CampaignService.submitSalawat(idempotencyKey, count, visitorId);
 
     if (!result.success) {
-      // The day's rocket already launched — the day is sealed
       return NextResponse.json(
-        { error: "پرواز امروز ثبت شده است و صلوات جدیدی پذیرفته نمی‌شود.", result },
-        { status: 409 }
+        { error: "خطا در ثبت صلوات", result },
+        { status: 400 }
       );
     }
 

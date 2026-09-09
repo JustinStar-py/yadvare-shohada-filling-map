@@ -219,24 +219,6 @@ export class CampaignService {
       const mission = this.ensureMissionForDate(db, today);
       const epoch = mission.epoch ?? 1;
 
-      // Post-launch seal: if today's rocket already launched, reject new recitations for today
-      if (mission.state === "LAUNCHED") {
-        return {
-          data: db,
-          result: {
-            success: false,
-            seq: sseBroadcaster.getCurrentSeq(),
-            epoch,
-            currentCount: mission.currentCount,
-            target: mission.target,
-            totalCampaignSalawat: db.totalCampaignSalawat ?? 0,
-            participantsCount: mission.participantsCount,
-            missionState: mission.state,
-            isDuplicate: false,
-          },
-        };
-      }
-
       // Check idempotency
       if (db.idempotencyKeys[idempotencyKey]) {
         return {
