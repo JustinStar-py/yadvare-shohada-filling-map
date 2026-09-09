@@ -4,6 +4,7 @@ import React, { useEffect, useRef } from "react";
 import * as THREE from "three";
 import { MissionState } from "@/types/campaign";
 import { MissileModel, getMissileConfig } from "./missile-catalog";
+import { soundEngine } from "@/lib/client/procedural-audio";
 
 interface ThreeRocketSceneProps {
   fillPercentage: number;
@@ -1118,7 +1119,10 @@ export default function ThreeRocketScene({
         } else if (t < BOOSTER_LAND_TIME) {
           // ── Phase 4: Booster Retro-Landing Descent (18.6s → 24.6s) ──
           // Capsule is in space orbit. Booster descends toward pad, camera tracking it all the way down.
-          if (!capsuleExitedAtmosphere) capsuleExitedAtmosphere = true;
+          if (!capsuleExitedAtmosphere) {
+            capsuleExitedAtmosphere = true;
+            soundEngine.playBoosterDescent();
+          }
           capsuleGroup.position.set(0, 25.0, 0);
           capsuleGroup.visible = false;
           capsuleRcsLight.intensity = 0;
@@ -1140,7 +1144,10 @@ export default function ThreeRocketScene({
         } else if (t < REDOCK_START) {
           // ── Phase 5: Booster Touchdown on Pad (24.6s → 25.6s) ──
           // Soft touchdown on pad ring with authentic spring compression dampening
-          if (!boosterLanded) boosterLanded = true;
+          if (!boosterLanded) {
+            boosterLanded = true;
+            soundEngine.playBoosterTouchdown();
+          }
           const touchFrac = (t - BOOSTER_LAND_TIME) / TOUCHDOWN_DUR;
           const springDip = -Math.sin(Math.min(1, touchFrac) * Math.PI) * 0.03 * (1 - touchFrac * 0.5);
           ascentY = springDip;
@@ -1183,6 +1190,7 @@ export default function ThreeRocketScene({
           if (!isDocked) {
             isDocked = true;
             dockingFlashMat.opacity = 1.0;
+            soundEngine.playDockingLock();
           }
           dockingFlashMat.opacity = Math.max(0, dockingFlashMat.opacity - dt * 2.0);
 

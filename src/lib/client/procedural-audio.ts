@@ -19,6 +19,9 @@ class ProceduralAudioEngine {
   private bgMusic: HTMLAudioElement | null = null;
   private musicVolume: number = 0.75; // 75% volume
   private isLaunchMuted: boolean = false; // Muted during missile launch until mission passed
+  private launchNodes: (AudioNode & { stop?: (when?: number) => void })[] = [];
+  private launchTimers: (NodeJS.Timeout | number)[] = [];
+  private lastReturnSoundTimes: Record<string, number> = {};
 
   constructor() {
     if (typeof window !== "undefined") {
@@ -167,14 +170,35 @@ class ProceduralAudioEngine {
 
   /**
    * Resumes playground music once the missile mission has passed / completed
-   * (honoring the user's manual mute toggle).
+   * (honoring the user's manual mute toggle) and terminates any lingering launch nodes.
    */
   public onMissileLaunchEnd() {
+    this.stopLaunchSounds();
     if (!this.isLaunchMuted) return;
     this.isLaunchMuted = false;
     if (!this.isMuted) {
       this.playPlaygroundMusic();
     }
+  }
+
+  /**
+   * Immediately stops all active rocket ascent, descent, and return sound nodes and timers.
+   */
+  public stopLaunchSounds() {
+    this.launchTimers.forEach((t) => clearTimeout(t));
+    this.launchTimers = [];
+    const now = this.ctx ? this.ctx.currentTime : 0;
+    this.launchNodes.forEach((node) => {
+      try {
+        if ("gain" in node && (node as GainNode).gain) {
+          (node as GainNode).gain.setTargetAtTime(0.0001, now, 0.04);
+        }
+        if (typeof (node as AudioScheduledSourceNode).stop === "function") {
+          (node as AudioScheduledSourceNode).stop(now + 0.05);
+        }
+      } catch {}
+    });
+    this.launchNodes = [];
   }
 
   public isMissileLaunchMuted(): boolean {
@@ -330,104 +354,485 @@ class ProceduralAudioEngine {
   }
 
   /**
-   * Resonant launch crescendo: sub rumble + rising sweep + exhaust hiss.
+   * Resonant, thrilling launch crescendo:
+   * 1. Ignition shockwave
+   * 2. Dual-beating sub-propulsion core
+   * 3. Supersonic aero-whistle & turbine climb (high-excitement tension)
+   * 4. Supersonic flame roar with flutter
+   * 5. Stratospheric celestial swell
+   * 6. Stage separation, booster return descent, pad touchdown, and docking lock
    */
   public playLaunchAscent() {
     if (this.isMuted) return;
     this.initContext();
     if (!this.ctx || !this.masterGain) return;
 
+    this.stopLaunchSounds();
+
     const ctx = this.ctx;
     const now = ctx.currentTime;
 
-    // 1. Sub rumble — felt more than heard
-    // 1. Sub rumble — felt more than heard, sustains through the 15-second ascent
-    const rumble = ctx.createOscillator();
+    // ── 1. Ignition Shockwave Punch (0.0s - 1.2s) ──
+    const shock = ctx.createOscillator();
+    const shockGain = ctx.createGain();
+    shock.type = "sawtooth";
+    shock.frequency.setValueAtTime(78, now);
+    shock.frequency.exponentialRampToValueAtTime(34, now + 0.6);
+    shockGain.gain.setValueAtTime(0.42, now);
+    shockGain.gain.exponentialRampToValueAtTime(0.001, now + 0.7);
+    shock.connect(shockGain);
+    shockGain.connect(this.masterGain);
+    shock.start(now);
+    shock.stop(now + 0.75);
+    this.launchNodes.push(shock, shockGain);
+
+    // ── 2. Dual Sub-Bass Propulsion Rumble (0.0s - 16.2s) ──
+    // Two detuned low oscillators create natural acoustic beating and chest-rumbling pressure
+    const rumbleA = ctx.createOscillator();
+    const rumbleB = ctx.createOscillator();
     const rumbleGain = ctx.createGain();
     const rumbleFilter = ctx.createBiquadFilter();
-    rumble.type = "sawtooth";
-    rumble.frequency.setValueAtTime(48, now);
-    rumble.frequency.exponentialRampToValueAtTime(110, now + 4.2);
-    rumble.frequency.exponentialRampToValueAtTime(64, now + 14.0);
+
+    rumbleA.type = "sawtooth";
+    rumbleA.frequency.setValueAtTime(46, now);
+    rumbleA.frequency.exponentialRampToValueAtTime(68, now + 4.0);
+    rumbleA.frequency.exponentialRampToValueAtTime(52, now + 14.0);
+
+    rumbleB.type = "square";
+    rumbleB.frequency.setValueAtTime(48.5, now);
+    rumbleB.frequency.exponentialRampToValueAtTime(71.5, now + 4.0);
+    rumbleB.frequency.exponentialRampToValueAtTime(54, now + 14.0);
+
     rumbleFilter.type = "lowpass";
-    rumbleFilter.frequency.setValueAtTime(140, now);
-    rumbleFilter.frequency.exponentialRampToValueAtTime(420, now + 4.0);
-    rumbleFilter.frequency.exponentialRampToValueAtTime(380, now + 3.5);
-    rumbleFilter.frequency.exponentialRampToValueAtTime(180, now + 14.0);
+    rumbleFilter.frequency.setValueAtTime(160, now);
+    rumbleFilter.frequency.exponentialRampToValueAtTime(540, now + 3.8); // Thruster nozzle opens full throttle
+    rumbleFilter.frequency.exponentialRampToValueAtTime(240, now + 14.0);
+    rumbleFilter.Q.setValueAtTime(2.2, now);
 
     rumbleGain.gain.setValueAtTime(0.0001, now);
-    rumbleGain.gain.linearRampToValueAtTime(0.3, now + 1.8);
-    rumbleGain.gain.exponentialRampToValueAtTime(0.0001, now + 5.4);
-    rumbleGain.gain.linearRampToValueAtTime(0.28, now + 1.8);
-    rumbleGain.gain.linearRampToValueAtTime(0.08, now + 5.0);
-    rumbleGain.gain.linearRampToValueAtTime(0.06, now + 14.0);
-    rumbleGain.gain.exponentialRampToValueAtTime(0.0001, now + 16.0);
+    rumbleGain.gain.linearRampToValueAtTime(0.38, now + 1.8);
+    rumbleGain.gain.linearRampToValueAtTime(0.32, now + 6.0);
+    rumbleGain.gain.linearRampToValueAtTime(0.18, now + 13.5);
+    rumbleGain.gain.exponentialRampToValueAtTime(0.0001, now + 16.2);
 
-    rumble.connect(rumbleFilter);
+    rumbleA.connect(rumbleFilter);
+    rumbleB.connect(rumbleFilter);
     rumbleFilter.connect(rumbleGain);
     rumbleGain.connect(this.masterGain);
-    rumble.start(now);
-    rumble.stop(now + 5.6);
-    rumble.stop(now + 16.2);
 
-    // 2. Rising celestial sweep
-    const riser = ctx.createOscillator();
-    const riserGain = ctx.createGain();
-    riser.type = "sine";
-    riser.frequency.setValueAtTime(220, now);
-    riser.frequency.exponentialRampToValueAtTime(880, now + 3.8);
-    riser.frequency.exponentialRampToValueAtTime(660, now + 4.0);
+    rumbleA.start(now);
+    rumbleB.start(now);
+    rumbleA.stop(now + 16.3);
+    rumbleB.stop(now + 16.3);
+    this.launchNodes.push(rumbleA, rumbleB, rumbleFilter, rumbleGain);
 
-    riserGain.gain.setValueAtTime(0.0001, now);
-    riserGain.gain.linearRampToValueAtTime(0.07, now + 2.6);
-    riserGain.gain.exponentialRampToValueAtTime(0.0001, now + 4.8);
-    riserGain.gain.linearRampToValueAtTime(0.06, now + 2.5);
-    riserGain.gain.exponentialRampToValueAtTime(0.0001, now + 6.0);
+    // ── 3. Supersonic Aero Whistle & Turbine Scream (1.2s - 14.8s) ──
+    // The exhilarating high-altitude pitch climb that makes the ascent thrilling!
+    const whistle = ctx.createOscillator();
+    const whistleGain = ctx.createGain();
+    const whistleFilter = ctx.createBiquadFilter();
 
-    riser.connect(riserGain);
-    riserGain.connect(this.masterGain);
-    riser.start(now);
-    riser.stop(now + 5.0);
-    riser.stop(now + 6.2);
+    whistle.type = "triangle";
+    whistle.frequency.setValueAtTime(180, now + 1.2);
+    whistle.frequency.exponentialRampToValueAtTime(440, now + 4.5);
+    whistle.frequency.exponentialRampToValueAtTime(880, now + 8.5);
+    whistle.frequency.exponentialRampToValueAtTime(1320, now + 13.0);
 
-    // 3. Exhaust hiss — filtered noise burst
-    // 3. Exhaust hiss — filtered noise burst sustaining into thin air
+    whistleFilter.type = "bandpass";
+    whistleFilter.frequency.setValueAtTime(200, now + 1.2);
+    whistleFilter.frequency.exponentialRampToValueAtTime(460, now + 4.5);
+    whistleFilter.frequency.exponentialRampToValueAtTime(920, now + 8.5);
+    whistleFilter.frequency.exponentialRampToValueAtTime(1380, now + 13.0);
+    whistleFilter.Q.setValueAtTime(3.8, now); // Tight resonant whistle
+
+    whistleGain.gain.setValueAtTime(0.0001, now);
+    whistleGain.gain.setValueAtTime(0.0001, now + 1.2);
+    whistleGain.gain.linearRampToValueAtTime(0.10, now + 4.5);
+    whistleGain.gain.linearRampToValueAtTime(0.18, now + 8.5);
+    whistleGain.gain.linearRampToValueAtTime(0.20, now + 12.5);
+    whistleGain.gain.exponentialRampToValueAtTime(0.0001, now + 14.8);
+
+    whistle.connect(whistleFilter);
+    whistleFilter.connect(whistleGain);
+    whistleGain.connect(this.masterGain);
+    whistle.start(now + 1.2);
+    whistle.stop(now + 15.0);
+    this.launchNodes.push(whistle, whistleFilter, whistleGain);
+
+    // ── 4. Supersonic Exhaust Flame Roar & Flutter (0.0s - 16.0s) ──
     const noiseBuffer = this.getNoiseBuffer();
     if (noiseBuffer) {
       const noise = ctx.createBufferSource();
       const noiseGain = ctx.createGain();
       const noiseFilter = ctx.createBiquadFilter();
+
+      // Flutter LFO to modulate exhaust amplitude organically (combustion instability)
+      const flutter = ctx.createOscillator();
+      const flutterGain = ctx.createGain();
+      flutter.type = "sine";
+      flutter.frequency.setValueAtTime(13.5, now);
+      flutterGain.gain.setValueAtTime(0.04, now);
+
       noise.buffer = noiseBuffer;
       noise.loop = true;
       noiseFilter.type = "bandpass";
-      noiseFilter.frequency.setValueAtTime(400, now);
-      noiseFilter.frequency.exponentialRampToValueAtTime(1800, now + 3.5);
-      noiseFilter.frequency.exponentialRampToValueAtTime(1600, now + 3.0);
-      noiseFilter.frequency.exponentialRampToValueAtTime(600, now + 14.0);
-      noiseFilter.Q.setValueAtTime(0.6, now);
+      noiseFilter.frequency.setValueAtTime(360, now);
+      noiseFilter.frequency.exponentialRampToValueAtTime(1600, now + 3.8);
+      noiseFilter.frequency.exponentialRampToValueAtTime(900, now + 8.0);
+      noiseFilter.frequency.exponentialRampToValueAtTime(450, now + 14.0);
+      noiseFilter.Q.setValueAtTime(1.1, now);
 
       noiseGain.gain.setValueAtTime(0.0001, now);
-      noiseGain.gain.linearRampToValueAtTime(0.1, now + 1.2);
-      noiseGain.gain.exponentialRampToValueAtTime(0.0001, now + 5.2);
-      noiseGain.gain.linearRampToValueAtTime(0.09, now + 1.2);
-      noiseGain.gain.linearRampToValueAtTime(0.035, now + 4.5);
-      noiseGain.gain.linearRampToValueAtTime(0.025, now + 13.5);
-      noiseGain.gain.exponentialRampToValueAtTime(0.0001, now + 15.5);
+      noiseGain.gain.linearRampToValueAtTime(0.24, now + 1.6);
+      noiseGain.gain.linearRampToValueAtTime(0.20, now + 6.0);
+      noiseGain.gain.linearRampToValueAtTime(0.09, now + 13.5);
+      noiseGain.gain.exponentialRampToValueAtTime(0.0001, now + 15.8);
+
+      flutter.connect(flutterGain);
+      flutterGain.connect(noiseGain.gain);
+
+      noise.connect(noiseFilter);
+      noiseFilter.connect(noiseGain);
+      noiseGain.connect(this.masterGain);
+
+      noise.start(now);
+      flutter.start(now);
+      noise.stop(now + 16.0);
+      flutter.stop(now + 16.0);
+      this.launchNodes.push(noise, noiseFilter, noiseGain, flutter, flutterGain);
+    }
+
+    // ── 5. Stratospheric Celestial Pad Swell (5.0s - 15.2s) ──
+    const choirA = ctx.createOscillator();
+    const choirB = ctx.createOscillator();
+    const choirGain = ctx.createGain();
+
+    choirA.type = "sine";
+    choirA.frequency.setValueAtTime(164.81, now); // E3
+    choirB.type = "sine";
+    choirB.frequency.setValueAtTime(329.63, now); // E4
+
+    choirGain.gain.setValueAtTime(0.0001, now);
+    choirGain.gain.setValueAtTime(0.0001, now + 5.0);
+    choirGain.gain.linearRampToValueAtTime(0.07, now + 9.0);
+    choirGain.gain.linearRampToValueAtTime(0.08, now + 12.5);
+    choirGain.gain.exponentialRampToValueAtTime(0.0001, now + 15.2);
+
+    choirA.connect(choirGain);
+    choirB.connect(choirGain);
+    choirGain.connect(this.masterGain);
+    choirA.start(now + 5.0);
+    choirB.start(now + 5.0);
+    choirA.stop(now + 15.5);
+    choirB.stop(now + 15.5);
+    this.launchNodes.push(choirA, choirB, choirGain);
+
+    // ── 6. Stage Separation & Apogee Bell (16.2s - 18.0s) ──
+    const tSep = setTimeout(() => {
+      if (!this.isMuted) {
+        this.playStageSeparation();
+      }
+    }, 16200);
+    this.launchTimers.push(tSep);
+
+    // ── 7. Booster Retro-Burn Descent (18.6s - 24.6s) ──
+    const tDescent = setTimeout(() => {
+      if (!this.isMuted) {
+        this.playBoosterDescent();
+      }
+    }, 18600);
+    this.launchTimers.push(tDescent);
+
+    // ── 8. Booster Touchdown on Launch Pad (24.6s) ──
+    const tTouchdown = setTimeout(() => {
+      if (!this.isMuted) {
+        this.playBoosterTouchdown();
+      }
+    }, 24600);
+    this.launchTimers.push(tTouchdown);
+
+    // ── 9. Capsule RCS Alignment Puffs (26.2s & 27.4s) ──
+    const tRcs1 = setTimeout(() => {
+      if (!this.isMuted) this.playRcsBurst();
+    }, 26200);
+    const tRcs2 = setTimeout(() => {
+      if (!this.isMuted) this.playRcsBurst();
+    }, 27400);
+    this.launchTimers.push(tRcs1, tRcs2);
+
+    // ── 10. Golden Docking Lock (28.8s) ──
+    const tDocking = setTimeout(() => {
+      if (!this.isMuted) {
+        this.playDockingLock();
+      }
+    }, 28800);
+    this.launchTimers.push(tDocking);
+  }
+
+  /**
+   * Stage separation: clean pneumatic detachment pop & celestial apogee chime.
+   */
+  public playStageSeparation() {
+    if (this.isMuted) return;
+    this.initContext();
+    if (!this.ctx || !this.masterGain) return;
+    const ctx = this.ctx;
+    const now = ctx.currentTime;
+
+    // Pneumatic separation pop & hiss
+    const noiseBuffer = this.getNoiseBuffer();
+    if (noiseBuffer) {
+      const pop = ctx.createBufferSource();
+      const popGain = ctx.createGain();
+      const popFilter = ctx.createBiquadFilter();
+
+      pop.buffer = noiseBuffer;
+      popFilter.type = "bandpass";
+      popFilter.frequency.setValueAtTime(750, now);
+      popFilter.Q.setValueAtTime(2.0, now);
+
+      popGain.gain.setValueAtTime(0.20, now);
+      popGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.35);
+
+      pop.connect(popFilter);
+      popFilter.connect(popGain);
+      popGain.connect(this.masterGain);
+      pop.start(now);
+      pop.stop(now + 0.4);
+      this.launchNodes.push(pop, popGain);
+    }
+
+    // Celestial Apogee Bells
+    this.playBell({ freq: 784, gain: 0.14, decay: 3.5 });
+    setTimeout(() => {
+      if (!this.isMuted) {
+        this.playBell({ freq: 1046.5, gain: 0.10, decay: 3.8 });
+      }
+    }, 120);
+  }
+
+  /**
+   * Booster Retro-Burn Descent Sound:
+   * Throttled deceleration thruster roar + reverse Doppler air resistance whoosh.
+   */
+  public playBoosterDescent() {
+    const nowMs = Date.now();
+    if (this.isMuted || nowMs - (this.lastReturnSoundTimes["descent"] || 0) < 4000) return;
+    this.lastReturnSoundTimes["descent"] = nowMs;
+
+    this.initContext();
+    if (!this.ctx || !this.masterGain) return;
+    const ctx = this.ctx;
+    const now = ctx.currentTime;
+
+    // Deceleration retro-burn: pulsed thruster rumble + descending air whoosh
+    const retro = ctx.createOscillator();
+    const retroGain = ctx.createGain();
+    const retroFilter = ctx.createBiquadFilter();
+
+    retro.type = "sawtooth";
+    retro.frequency.setValueAtTime(65, now);
+    retro.frequency.exponentialRampToValueAtTime(42, now + 5.5);
+
+    retroFilter.type = "lowpass";
+    retroFilter.frequency.setValueAtTime(320, now);
+    retroFilter.frequency.exponentialRampToValueAtTime(160, now + 5.5);
+    retroFilter.Q.setValueAtTime(2.5, now);
+
+    retroGain.gain.setValueAtTime(0.0001, now);
+    retroGain.gain.linearRampToValueAtTime(0.24, now + 1.0);
+    retroGain.gain.linearRampToValueAtTime(0.20, now + 4.5);
+    retroGain.gain.exponentialRampToValueAtTime(0.0001, now + 5.8);
+
+    retro.connect(retroFilter);
+    retroFilter.connect(retroGain);
+    retroGain.connect(this.masterGain);
+    retro.start(now);
+    retro.stop(now + 6.0);
+    this.launchNodes.push(retro, retroGain);
+
+    // Retro exhaust noise with ground proximity cushion
+    const noiseBuffer = this.getNoiseBuffer();
+    if (noiseBuffer) {
+      const noise = ctx.createBufferSource();
+      const noiseGain = ctx.createGain();
+      const noiseFilter = ctx.createBiquadFilter();
+
+      noise.buffer = noiseBuffer;
+      noise.loop = true;
+      noiseFilter.type = "bandpass";
+      noiseFilter.frequency.setValueAtTime(450, now);
+      noiseFilter.frequency.exponentialRampToValueAtTime(820, now + 5.0); // Ground cushion hiss increases near pad
+      noiseFilter.Q.setValueAtTime(1.0, now);
+
+      noiseGain.gain.setValueAtTime(0.0001, now);
+      noiseGain.gain.linearRampToValueAtTime(0.12, now + 1.2);
+      noiseGain.gain.linearRampToValueAtTime(0.16, now + 4.8);
+      noiseGain.gain.exponentialRampToValueAtTime(0.0001, now + 5.8);
 
       noise.connect(noiseFilter);
       noiseFilter.connect(noiseGain);
       noiseGain.connect(this.masterGain);
       noise.start(now);
-      noise.stop(now + 5.4);
-      noise.stop(now + 15.8);
+      noise.stop(now + 6.0);
+      this.launchNodes.push(noise, noiseGain);
     }
+  }
 
-    // 4. Celestial bell as the rocket reaches apogee
-    setTimeout(() => {
-      if (!this.isMuted) {
-        this.playBell({ freq: 648, gain: 0.12, decay: 3.2 });
-      }
-    }, 14500);
+  /**
+   * Booster Pad Touchdown Sound:
+   * Heavy mechanical pad contact impact + metallic leg ring + pneumatic damper release ("pssshhht!").
+   */
+  public playBoosterTouchdown() {
+    const nowMs = Date.now();
+    if (this.isMuted || nowMs - (this.lastReturnSoundTimes["touchdown"] || 0) < 4000) return;
+    this.lastReturnSoundTimes["touchdown"] = nowMs;
+
+    this.initContext();
+    if (!this.ctx || !this.masterGain) return;
+    const ctx = this.ctx;
+    const now = ctx.currentTime;
+
+    // 1. Heavy pad contact thud (sub-bass impact)
+    const thud = ctx.createOscillator();
+    const thudGain = ctx.createGain();
+    thud.type = "sine";
+    thud.frequency.setValueAtTime(95, now);
+    thud.frequency.exponentialRampToValueAtTime(28, now + 0.38);
+
+    thudGain.gain.setValueAtTime(0.42, now);
+    thudGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.42);
+
+    thud.connect(thudGain);
+    thudGain.connect(this.masterGain);
+    thud.start(now);
+    thud.stop(now + 0.45);
+    this.launchNodes.push(thud, thudGain);
+
+    // 2. Metallic clamp ping / ring
+    const clang = ctx.createOscillator();
+    const clangGain = ctx.createGain();
+    clang.type = "triangle";
+    clang.frequency.setValueAtTime(480, now);
+    clang.frequency.exponentialRampToValueAtTime(240, now + 0.18);
+
+    clangGain.gain.setValueAtTime(0.12, now);
+    clangGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.22);
+
+    clang.connect(clangGain);
+    clangGain.connect(this.masterGain);
+    clang.start(now);
+    clang.stop(now + 0.25);
+    this.launchNodes.push(clang, clangGain);
+
+    // 3. Pneumatic damper air-release hiss ("pssshhht")
+    const noiseBuffer = this.getNoiseBuffer();
+    if (noiseBuffer) {
+      const hiss = ctx.createBufferSource();
+      const hissGain = ctx.createGain();
+      const hissFilter = ctx.createBiquadFilter();
+
+      hiss.buffer = noiseBuffer;
+      hissFilter.type = "bandpass";
+      hissFilter.frequency.setValueAtTime(1400, now);
+      hissFilter.frequency.exponentialRampToValueAtTime(600, now + 0.7);
+      hissFilter.Q.setValueAtTime(1.8, now);
+
+      hissGain.gain.setValueAtTime(0.24, now);
+      hissGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.75);
+
+      hiss.connect(hissFilter);
+      hissFilter.connect(hissGain);
+      hissGain.connect(this.masterGain);
+      hiss.start(now);
+      hiss.stop(now + 0.8);
+      this.launchNodes.push(hiss, hissGain);
+    }
+  }
+
+  /**
+   * Cold-gas RCS micro thruster alignment puff.
+   */
+  public playRcsBurst() {
+    if (this.isMuted) return;
+    this.initContext();
+    if (!this.ctx || !this.masterGain) return;
+    const ctx = this.ctx;
+    const now = ctx.currentTime;
+
+    const noiseBuffer = this.getNoiseBuffer();
+    if (noiseBuffer) {
+      const puff = ctx.createBufferSource();
+      const puffGain = ctx.createGain();
+      const puffFilter = ctx.createBiquadFilter();
+
+      puff.buffer = noiseBuffer;
+      puffFilter.type = "highpass";
+      puffFilter.frequency.setValueAtTime(2000, now);
+
+      puffGain.gain.setValueAtTime(0.09, now);
+      puffGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.09);
+
+      puff.connect(puffFilter);
+      puffFilter.connect(puffGain);
+      puffGain.connect(this.masterGain);
+      puff.start(now);
+      puff.stop(now + 0.1);
+      this.launchNodes.push(puff, puffGain);
+    }
+  }
+
+  /**
+   * Golden Docking Lock Sound:
+   * Tactile magnetic latch engagement + warm celestial triad confirmation chord.
+   */
+  public playDockingLock() {
+    const nowMs = Date.now();
+    if (this.isMuted || nowMs - (this.lastReturnSoundTimes["docking"] || 0) < 4000) return;
+    this.lastReturnSoundTimes["docking"] = nowMs;
+
+    this.initContext();
+    if (!this.ctx || !this.masterGain) return;
+    const ctx = this.ctx;
+    const now = ctx.currentTime;
+
+    // 1. Mechanical docking clamp click-clack
+    const clickA = ctx.createOscillator();
+    const clickGainA = ctx.createGain();
+    clickA.type = "triangle";
+    clickA.frequency.setValueAtTime(740, now);
+    clickA.frequency.exponentialRampToValueAtTime(220, now + 0.05);
+    clickGainA.gain.setValueAtTime(0.18, now);
+    clickGainA.gain.exponentialRampToValueAtTime(0.0001, now + 0.06);
+    clickA.connect(clickGainA);
+    clickGainA.connect(this.masterGain);
+    clickA.start(now);
+    clickA.stop(now + 0.07);
+
+    const clickB = ctx.createOscillator();
+    const clickGainB = ctx.createGain();
+    clickB.type = "triangle";
+    clickB.frequency.setValueAtTime(980, now + 0.04);
+    clickB.frequency.exponentialRampToValueAtTime(320, now + 0.10);
+    clickGainB.gain.setValueAtTime(0.0001, now);
+    clickGainB.gain.setValueAtTime(0.22, now + 0.04);
+    clickGainB.gain.exponentialRampToValueAtTime(0.0001, now + 0.12);
+    clickB.connect(clickGainB);
+    clickGainB.connect(this.masterGain);
+    clickB.start(now + 0.04);
+    clickB.stop(now + 0.14);
+
+    this.launchNodes.push(clickA, clickGainA, clickB, clickGainB);
+
+    // 2. Warm golden harmony confirmation chord (reunion of rocket & capsule)
+    const chord = [523.25, 659.25, 783.99]; // C5, E5, G5
+    chord.forEach((freq, i) => {
+      setTimeout(() => {
+        if (!this.isMuted) {
+          this.playBell({ freq, gain: 0.09 - i * 0.015, decay: 2.2, type: "sine" });
+        }
+      }, 70 + i * 45);
+    });
   }
 
   /**
