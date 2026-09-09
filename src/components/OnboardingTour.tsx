@@ -216,87 +216,92 @@ export default function OnboardingTour({ isOpen, onClose, onComplete }: Onboardi
     return visible;
   }, []);
 
-  // Update spotlight & tooltip geometry
-  const updateGeometry = useCallback(() => {
-    if (!isOpen || !step) return;
+  // Update spotlight & tooltip geometry for any specific step index
+  const updateGeometry = useCallback(
+    (stepIdx: number) => {
+      if (!isOpen) return;
+      const currentStep = TOUR_STEPS[stepIdx];
+      if (!currentStep) return;
 
-    const vw = window.innerWidth;
-    const vh = window.innerHeight;
-    setViewport({ width: vw, height: vh });
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      setViewport({ width: vw, height: vh });
 
-    const els = findElements(step.selector);
-    if (els.length === 0) {
-      const cx = vw / 2;
-      const cy = vh / 2;
-      setSpotlightRects([{ x: cx - 120, y: cy - 120, width: 240, height: 240, radius: 24 }]);
-      setTooltipPos({ top: cy + 140, left: Math.max(16, cx - 160), arrowSide: "top" });
-      return;
-    }
-
-    const padding = 8;
-    const rects: SpotlightRect[] = els.map((el) => {
-      const b = el.getBoundingClientRect();
-      const x = Math.max(4, b.left - padding);
-      const y = Math.max(4, b.top - padding);
-      const width = Math.min(vw - 8, b.width + padding * 2);
-      const height = Math.min(vh - 8, b.height + padding * 2);
-      const radius = 20;
-      return { x, y, width, height, radius };
-    });
-
-    setSpotlightRects(rects);
-
-    // Calculate combined bounding box across all active elements
-    const minX = Math.min(...rects.map((r) => r.x));
-    const maxX = Math.max(...rects.map((r) => r.x + r.width));
-    const minY = Math.min(...rects.map((r) => r.y));
-    const maxY = Math.max(...rects.map((r) => r.y + r.height));
-    const combinedWidth = maxX - minX;
-
-    const tooltipWidth = Math.min(360, vw - 32);
-    const tooltipHeight = 190;
-    const spaceBelow = vh - maxY;
-    const spaceAbove = minY;
-
-    let arrowSide: "top" | "bottom" = "top";
-    let top = maxY + 14;
-
-    if (step.preferredPosition === "top") {
-      if (spaceAbove >= tooltipHeight + 16) {
-        top = minY - tooltipHeight - 14;
-        arrowSide = "bottom";
-      } else {
-        top = maxY + 14;
-        arrowSide = "top";
+      const els = findElements(currentStep.selector);
+      if (els.length === 0) {
+        const cx = vw / 2;
+        const cy = vh / 2;
+        setSpotlightRects([{ x: cx - 120, y: cy - 120, width: 240, height: 240, radius: 24 }]);
+        setTooltipPos({ top: cy + 140, left: Math.max(16, cx - 160), arrowSide: "top" });
+        return;
       }
-    } else if (step.preferredPosition === "bottom") {
-      if (spaceBelow >= tooltipHeight + 16 || spaceBelow > spaceAbove) {
-        top = maxY + 14;
-        arrowSide = "top";
+
+      const padding = 8;
+      const rects: SpotlightRect[] = els.map((el) => {
+        const b = el.getBoundingClientRect();
+        const x = Math.max(4, b.left - padding);
+        const y = Math.max(4, b.top - padding);
+        const width = Math.min(vw - 8, b.width + padding * 2);
+        const height = Math.min(vh - 8, b.height + padding * 2);
+        const radius = 20;
+        return { x, y, width, height, radius };
+      });
+
+      setSpotlightRects(rects);
+
+      // Calculate combined bounding box across all active elements
+      const minX = Math.min(...rects.map((r) => r.x));
+      const maxX = Math.max(...rects.map((r) => r.x + r.width));
+      const minY = Math.min(...rects.map((r) => r.y));
+      const maxY = Math.max(...rects.map((r) => r.y + r.height));
+      const combinedWidth = maxX - minX;
+
+      const tooltipWidth = Math.min(360, vw - 32);
+      const tooltipHeight = 190;
+      const spaceBelow = vh - maxY;
+      const spaceAbove = minY;
+
+      let arrowSide: "top" | "bottom" = "top";
+      let top = maxY + 14;
+
+      if (currentStep.preferredPosition === "top") {
+        if (spaceAbove >= tooltipHeight + 16) {
+          top = minY - tooltipHeight - 14;
+          arrowSide = "bottom";
+        } else {
+          top = maxY + 14;
+          arrowSide = "top";
+        }
+      } else if (currentStep.preferredPosition === "bottom") {
+        if (spaceBelow >= tooltipHeight + 16 || spaceBelow > spaceAbove) {
+          top = maxY + 14;
+          arrowSide = "top";
+        } else {
+          top = minY - tooltipHeight - 14;
+          arrowSide = "bottom";
+        }
       } else {
-        top = minY - tooltipHeight - 14;
-        arrowSide = "bottom";
+        // Auto: pick the side with more space
+        if (spaceBelow < tooltipHeight + 16 && spaceAbove > spaceBelow) {
+          top = minY - tooltipHeight - 14;
+          arrowSide = "bottom";
+        } else {
+          top = maxY + 14;
+          arrowSide = "top";
+        }
       }
-    } else {
-      // Auto: pick the side with more space
-      if (spaceBelow < tooltipHeight + 16 && spaceAbove > spaceBelow) {
-        top = minY - tooltipHeight - 14;
-        arrowSide = "bottom";
-      } else {
-        top = maxY + 14;
-        arrowSide = "top";
-      }
-    }
 
-    // Clamp vertical position
-    top = Math.max(12, Math.min(vh - tooltipHeight - 12, top));
+      // Clamp vertical position
+      top = Math.max(12, Math.min(vh - tooltipHeight - 12, top));
 
-    // Horizontal centering over the combined bounding box
-    let left = minX + combinedWidth / 2 - tooltipWidth / 2;
-    left = Math.max(16, Math.min(vw - tooltipWidth - 16, left));
+      // Horizontal centering over the combined bounding box
+      let left = minX + combinedWidth / 2 - tooltipWidth / 2;
+      left = Math.max(16, Math.min(vw - tooltipWidth - 16, left));
 
-    setTooltipPos({ top, left, arrowSide });
-  }, [findElements, isOpen, step]);
+      setTooltipPos({ top, left, arrowSide });
+    },
+    [findElements, isOpen]
+  );
 
   // Navigate to step & auto-scroll
   const goToStep = useCallback(
@@ -317,31 +322,16 @@ export default function OnboardingTour({ isOpen, onClose, onComplete }: Onboardi
           outOfView.scrollIntoView({ behavior: "smooth", block: "center" });
         }
       }
-
-      // Track smooth scroll continuously for 550ms
-      const startTime = performance.now();
-      const followScroll = () => {
-        updateGeometry();
-        if (performance.now() - startTime < 550) {
-          animFrameRef.current = requestAnimationFrame(followScroll);
-        }
-      };
-      animFrameRef.current = requestAnimationFrame(followScroll);
     },
-    [findElements, updateGeometry]
+    [findElements]
   );
 
   const prevIsOpenRef = useRef(false);
-  const goToStepRef = useRef(goToStep);
-  useEffect(() => {
-    goToStepRef.current = goToStep;
-  });
 
   // When tour opens (transition from false to true), ALWAYS restart from the very first step (Step 1) and scroll to top
   useEffect(() => {
     if (isOpen && !prevIsOpenRef.current) {
       setCurrentStepIndex(0);
-      goToStepRef.current(0);
       if (typeof window !== "undefined") {
         window.scrollTo({ top: 0, behavior: "smooth" });
       }
@@ -349,11 +339,26 @@ export default function OnboardingTour({ isOpen, onClose, onComplete }: Onboardi
     prevIsOpenRef.current = isOpen;
   }, [isOpen]);
 
+  // Whenever currentStepIndex changes or window resizes/scrolls, calculate geometry immediately
   useEffect(() => {
     if (!isOpen) return;
 
-    const onScroll = () => updateGeometry();
-    const onResize = () => updateGeometry();
+    // Immediately calculate geometry for current step
+    updateGeometry(currentStepIndex);
+
+    // Track during smooth scroll continuously for 550ms
+    const startTime = performance.now();
+    let animId: number;
+    const followScroll = () => {
+      updateGeometry(currentStepIndex);
+      if (performance.now() - startTime < 550) {
+        animId = requestAnimationFrame(followScroll);
+      }
+    };
+    animId = requestAnimationFrame(followScroll);
+
+    const onScroll = () => updateGeometry(currentStepIndex);
+    const onResize = () => updateGeometry(currentStepIndex);
 
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
@@ -373,7 +378,7 @@ export default function OnboardingTour({ isOpen, onClose, onComplete }: Onboardi
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onResize);
       window.removeEventListener("keydown", onKeyDown);
-      if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
+      cancelAnimationFrame(animId);
     };
   }, [isOpen, currentStepIndex, updateGeometry]);
 

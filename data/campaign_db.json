@@ -763,23 +763,8 @@
       "launchedAt": 1788906207547
     }
   ],
+  "dailyVisitors": {},
   "idempotencyKeys": {
-    "test-batch-node-1788733429166": {
-      "timestamp": 1788733429644,
-      "count": 5
-    },
-    "3c7732e8-485e-4331-97a3-c1782b72f567": {
-      "timestamp": 1788733485813,
-      "count": 5
-    },
-    "4d0cee75-e61a-4352-af2f-080b475c6634": {
-      "timestamp": 1788733498963,
-      "count": 5
-    },
-    "da0d4a89-e051-4c55-a388-5c05f4fbf2cc": {
-      "timestamp": 1788733516825,
-      "count": 3
-    },
     "idemp-key-1-1788774698868": {
       "timestamp": 1788774699000,
       "count": 5

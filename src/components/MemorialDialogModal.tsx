@@ -109,9 +109,22 @@ export default function MemorialDialogModal({
 
   // Copy invitation details
   const handleCopyInvite = useCallback(async () => {
-    const text = `«پویش معنوی یادواره ۷۶ شهید شهیدیه میبد»\n\n📌 دعوت‌نامه حضور در مراسم یادواره شهدای والامقام:\n📅 زمان: ${formattedDate} - ساعت ${toPersianDigits(
+    const text = `«پویش معنوی یادواره ۷۶ شهید شهیدیه میبد»
+🕊️ هر صلوات، یک قدم تا پرواز
+
+در این پویش معنوی، هر صلوات شما انرژی سوخت پرواز نمادین موشک هر روز را تأمین کرده و پس از اوج‌گیری، ستاره‌ای ماندگار به یاد شهدای والامقام در آسمان روشن می‌کند.
+
+📌 دعوتنامه حضور در مراسم یادواره شهدای والامقام:
+📅 زمان: ${formattedDate} - ساعت ${toPersianDigits(
       memorialTime
-    )} (همزمان با نماز مغرب و عشاء)\n📍 مکان: ${memorialLocation}\n📡 همراه با پخش زنده مراسم\n\n«اللّهُمَّ صَلِّ عَلی مُحَمَّدٍ وَ آلِ مُحَمَّدٍ وَ عَجِّل فَرَجَهُم»`;
+    )} (همزمان با نماز مغرب و عشاء)
+📍 مکان: ${memorialLocation || "یزد، میبد، شهیدیه، مسجد امام (عج)"}
+📡 همراه با پخش زنده مراسم
+
+🔗 برای همراهی در پویش و ثبت صلوات روزانه وارد شوید:
+👉 https://yar67.ir
+
+«اللّهُمَّ صَلِّ عَلی مُحَمَّدٍ وَ آلِ مُحَمَّدٍ وَ عَجِّل فَرَجَهُم»`;
 
     try {
       if (navigator.clipboard) {
@@ -131,7 +144,7 @@ export default function MemorialDialogModal({
       const datesParam = `${fmt(start)}/${fmt(end)}`;
       const title = memorialTitle || "یادواره ۷۶ شهید والامقام شهیدیه میبد";
       const details = "مراسم بزرگداشت سرداران و ۷۶ شهید والامقام شهیدیه میبد";
-      const loc = memorialLocation || "میبد، شهیدیه، مسجد امام (ره)";
+      const loc = memorialLocation || "یزد، میبد، شهیدیه، مسجد امام (عج)";
 
       return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(
         title
@@ -145,7 +158,7 @@ export default function MemorialDialogModal({
 
   // Map directions url (Google Maps / Neshan)
   const mapUrl = useMemo(() => {
-    const query = encodeURIComponent(`${memorialLocation || "میبد شهیدیه مسجد امام"}`);
+    const query = encodeURIComponent(`${memorialLocation || "یزد میبد شهیدیه مسجد امام"}`);
     return `https://www.google.com/maps/search/?api=1&query=${query}`;
   }, [memorialLocation]);
 
