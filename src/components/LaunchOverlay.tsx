@@ -56,7 +56,7 @@ export default function LaunchOverlay({
         soundEngine.playTick();
       } else {
         clearInterval(timer);
-        // T-0: Countdown finished — fade text immediately so user sees full ascent
+        // T-0: شمارش معکوس تمام شد، متن محو می‌شود تا پرواز کامل دیده شود
         setContentVisible(false);
 
         setTimeout(() => {
@@ -64,15 +64,13 @@ export default function LaunchOverlay({
           onLiftOffRef.current?.();
           soundEngine.playLaunchAscent();
 
-          const COMPLETION_MS = 28800;
+          // مدت زمان پرواز تا لحظه نشستن و قفل نهایی موشک (۳۸ ثانیه)
+          const COMPLETION_MS = 38000;
           setTimeout(() => {
             setPhase("completed");
             setContentVisible(true);
             soundEngine.playStarBirth();
-            // Missile mission passed: resume playground background music
-            soundEngine.onMissileLaunchEnd();
 
-            // Hold completion celebration card for 3.5s so user can appreciate the moment, then fade
             setTimeout(() => {
               setPhase("fading");
               setTimeout(() => {
@@ -100,7 +98,6 @@ export default function LaunchOverlay({
         phase === "countdown" ? "backdrop-blur-md bg-slate-950/45" : ""
       }`}
       style={{
-        // Completely transparent during flight so the rocket is 100% visible without any blue screen or blur
         background:
           phase === "countdown"
             ? "radial-gradient(ellipse at 50% 50%, rgba(2,4,9,0.3) 0%, rgba(2,4,9,0.6) 100%)"
@@ -111,7 +108,6 @@ export default function LaunchOverlay({
       role="dialog"
       aria-label="مراحل پرواز معنوی"
     >
-      {/* Optional dismiss button placed on top-right (away from top-left sound button) */}
       {onClose && (
         <button
           onClick={onClose}
@@ -122,7 +118,6 @@ export default function LaunchOverlay({
         </button>
       )}
 
-      {/* Ascending light streaks only during flight */}
       {phase === "flight" && (
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           {[16, 34, 52, 70, 84].map((left, i) => (
@@ -146,13 +141,9 @@ export default function LaunchOverlay({
           contentVisible ? "opacity-100 translate-y-0 scale-100" : "opacity-0 -translate-y-4 scale-95"
         }`}
       >
-        {/* Countdown phase: Floating minimal circular counter with progress ring on blurred screen (NO box, NO logo) */}
         {phase === "countdown" && (
           <div className="relative flex items-center justify-center">
-            {/* Ambient golden aura behind the counter */}
             <div className="absolute w-56 h-56 sm:w-64 sm:h-64 rounded-full bg-amber-500/20 blur-3xl pointer-events-none animate-pulse" />
-
-            {/* Countdown numeral with progress ring */}
             <div className="relative w-44 h-44 sm:w-52 sm:h-52 flex items-center justify-center">
               <svg viewBox="0 0 100 100" className="absolute inset-0 w-full h-full -rotate-90 drop-shadow-[0_0_24px_rgba(245,158,11,0.6)]">
                 <circle cx="50" cy="50" r="45" fill="none" stroke="rgba(255,255,255,0.12)" strokeWidth="2.5" />
@@ -187,15 +178,12 @@ export default function LaunchOverlay({
           </div>
         )}
 
-        {/* During flight: ZERO blocking text or blue screen! Rocket is completely unobstructed */}
-
         {(phase === "completed" || phase === "fading") && (
           <div
             className={`flex flex-col items-center gap-5 liquid-glass border border-amber-400/35 p-8 sm:p-9 rounded-[32px] shadow-[0_24px_70px_rgba(0,0,0,0.85),0_0_35px_rgba(245,158,11,0.25)] transition-[transform,opacity] duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] ${
               contentVisible ? "opacity-100 translate-y-0 scale-100" : "opacity-0 translate-y-4 scale-95"
             }`}
           >
-            {/* Star birth celebration */}
             <div className="relative w-24 h-24 flex items-center justify-center">
               <div className="absolute inset-0 rounded-full border border-amber-300/60 animate-shockwave" />
               <svg viewBox="0 0 40 40" className="w-16 h-16 animate-star-birth drop-shadow-[0_0_25px_rgba(251,191,36,0.9)]">

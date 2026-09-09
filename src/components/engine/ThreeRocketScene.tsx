@@ -24,30 +24,26 @@ const TITANIUM_COLOR = new THREE.Color("#d4cec2");
 const NOZZLE_COLOR = new THREE.Color("#1e2430");
 
 // ── Flight Timeline Constants ──
-// Cinematic Aerial Memorial Tour: slow, majestic ascent through sky inscriptions
 const IGNITION_DUR = 1.2;          // 0.0s - 1.2s: Pad tremor & ignition build-up
-const ASCENT_DUR = 22.0;           // 1.2s - 23.2s: Extended cinematic ascent through memorial inscriptions
+const ASCENT_DUR = 22.0;           // 1.2s - 23.2s: Extended cinematic ascent
 const ASCENT_END = IGNITION_DUR + ASCENT_DUR; // 23.2s
-const SEP_DUR = 2.4;               // 23.2s - 25.6s: Stage separation with 100% centered booster & capsule exit
+const SEP_DUR = 2.4;               // 23.2s - 25.6s: Stage separation
 const SEP_END = ASCENT_END + SEP_DUR; // 25.6s
-const BOOSTER_DESCENT_DUR = 7.0;   // 25.6s - 32.6s: Camera-tracked retro landing burn descent
-const BOOSTER_LAND_TIME = SEP_END + BOOSTER_DESCENT_DUR; // 32.6s
-const TOUCHDOWN_DUR = 1.0;         // 32.6s - 33.6s: Gentle spring suspension dampening on pad ring
+const BOOSTER_DESCENT_DUR = 7.0;   // 25.6s - 32.6s: Retro landing burn descent
+const BOOSTER_LAND_TIME = SEP_END + BOOSTER_DESCENT_DUR; // 32.6s: لحظه فرود بوستر روی زمین
+const TOUCHDOWN_DUR = 1.0;         // 32.6s - 33.6s: Dampening on pad ring
 const REDOCK_START = BOOSTER_LAND_TIME + TOUCHDOWN_DUR; // 33.6s
-const REDOCK_DUR = 3.2;            // 33.6s - 36.8s: Capsule returns from space orbit & docks
-const SETTLE_DUR = 1.2;            // 36.8s - 38.0s: Golden celebration aura & pad settlement
+const REDOCK_DUR = 3.2;            // 33.6s - 36.8s: Capsule docks
+const SETTLE_DUR = 1.2;            // 36.8s - 38.0s: Settle
 const FLIGHT_DURATION = REDOCK_START + REDOCK_DUR + SETTLE_DUR; // 38.0s
 
-// Altitude & Framing Constants
-// At apogee (Y=22.0), camera at (22.0 - 0.49 = 21.51) places the booster DEAD CENTER
 const PEAK_ALTITUDE = 22.0;
 const BOOSTER_MID_Y = -0.49;
 
-// Camera smoothing time constant
 const CAM_SMOOTH_TAU = 0.14;
 const POINTER_SMOOTH_TAU = 0.32;
 
-// ── Vector Sticker Drawing Helpers for Reyhaneh Girly Decal ──
+// ── Vector Sticker Helpers for Reyhaneh ──
 function drawStickerHeart(
   ctx: CanvasRenderingContext2D,
   x: number,
@@ -290,8 +286,8 @@ export default function ThreeRocketScene({
   const pulseRef = useRef(0);
   const onFlightCompleteRef = useRef(onFlightComplete);
   const onReadyRef = useRef(onReady);
-  useEffect(() => { onReadyRef.current = onReady; }, [onReady]);
 
+  useEffect(() => { onReadyRef.current = onReady; }, [onReady]);
   useEffect(() => { onFlightCompleteRef.current = onFlightComplete; }, [onFlightComplete]);
   useEffect(() => { progressRef.current = Math.min(1, Math.max(0, fillPercentage / 100)); }, [fillPercentage]);
   useEffect(() => { stateRef.current = missionState; }, [missionState]);
@@ -306,7 +302,6 @@ export default function ThreeRocketScene({
     const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const isMobile = /Mobi|Android/i.test(navigator.userAgent) || window.innerWidth < 768;
 
-    // ── Scene Setup ──
     const scene = new THREE.Scene();
     const width = container.clientWidth || 240;
     const height = container.clientHeight || 460;
@@ -330,7 +325,6 @@ export default function ThreeRocketScene({
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     container.appendChild(renderer.domElement);
 
-    // ── Hierarchy: rocketGroup → { boosterGroup, capsuleGroup } ──
     const rocketGroup = new THREE.Group();
     scene.add(rocketGroup);
     const boosterGroup = new THREE.Group();
@@ -338,7 +332,6 @@ export default function ThreeRocketScene({
     const capsuleGroup = new THREE.Group();
     rocketGroup.add(capsuleGroup);
 
-    // ── Lighting ──
     const ambientLight = new THREE.AmbientLight(0x94a3b8, 0.55);
     scene.add(ambientLight);
     const dirLightWarm = new THREE.DirectionalLight(0xfff6e5, 1.8);
@@ -348,24 +341,17 @@ export default function ThreeRocketScene({
     dirLightCool.position.set(-3.5, 2, -2.5);
     scene.add(dirLightCool);
 
-    // ── Materials ──
     const hullMaterial = new THREE.MeshStandardMaterial({ color: TITANIUM_COLOR, metalness: 0.58, roughness: 0.32 });
     const carbonMaterial = new THREE.MeshStandardMaterial({ color: new THREE.Color("#1a1f26"), metalness: 0.42, roughness: 0.55 });
     const goldMaterial = new THREE.MeshStandardMaterial({ color: GOLD_COLOR, emissive: GOLD_COLOR, emissiveIntensity: 0.45, metalness: 0.85, roughness: 0.22 });
     const nozzleMaterial = new THREE.MeshStandardMaterial({ color: NOZZLE_COLOR, metalness: 0.85, roughness: 0.38, side: THREE.DoubleSide });
-    const glassMaterial = new THREE.MeshPhysicalMaterial({
-      color: 0xffffff, transparent: true, opacity: 0.32, roughness: 0.08, metalness: 0.1,
-      transmission: isMobile ? 0 : 0.82, ior: 1.45, depthWrite: false,
-    });
     const fuelMaterial = new THREE.MeshStandardMaterial({ color: GOLD_COLOR, emissive: GOLD_COLOR, emissiveIntensity: 0.95, roughness: 0.2, metalness: 0.3, transparent: true, opacity: 0.92 });
     const meniscusMaterial = new THREE.MeshBasicMaterial({ color: 0xfffbeb, transparent: true, opacity: 0.95 });
 
-    // ── Capsule Parts (upper stage) ──
     const noseStart = 0.55;
     const noseH = 1.35;
     const baseR = 0.32;
 
-    // 1) Kheibar-Shecan Nose: Aerodynamic ogive curve
     const kheibarNosePts: THREE.Vector2[] = [];
     for (let i = 0; i <= 14; i++) {
       const t = i / 14;
@@ -374,7 +360,6 @@ export default function ThreeRocketScene({
     }
     const kheibarNoseGeo = new THREE.LatheGeometry(kheibarNosePts, 40);
 
-    // 2) Fattah-1 Nose: Pointed hypersonic glide warhead
     const fattahNosePts: THREE.Vector2[] = [];
     for (let i = 0; i <= 16; i++) {
       const t = i / 16;
@@ -383,7 +368,6 @@ export default function ThreeRocketScene({
     }
     const fattahNoseGeo = new THREE.LatheGeometry(fattahNosePts, 40);
 
-    // 3) Sejjil Nose: Solid-propellant rounded ogive
     const sejjilNosePts: THREE.Vector2[] = [];
     for (let i = 0; i <= 14; i++) {
       const t = i / 14;
@@ -392,7 +376,6 @@ export default function ThreeRocketScene({
     }
     const sejjilNoseGeo = new THREE.LatheGeometry(sejjilNosePts, 40);
 
-    // 4) Khorramshahr-4 Nose: Heavy blunt conical re-entry warhead
     const khorramshahrNosePts: THREE.Vector2[] = [];
     for (let i = 0; i <= 14; i++) {
       const t = i / 14;
@@ -401,12 +384,11 @@ export default function ThreeRocketScene({
     }
     const khorramshahrNoseGeo = new THREE.LatheGeometry(khorramshahrNosePts, 40);
 
-    // 5) Emad Nose: Distinctive MARV stepped bi-conic guided warhead with aerodynamic flare & needle tip
     const emadNosePts: THREE.Vector2[] = [];
     emadNosePts.push(new THREE.Vector2(baseR * 1.05, noseStart));
     emadNosePts.push(new THREE.Vector2(baseR * 0.98, noseStart + 0.10));
-    emadNosePts.push(new THREE.Vector2(baseR * 0.88, noseStart + 0.24)); // stepped choke waist
-    emadNosePts.push(new THREE.Vector2(baseR * 0.86, noseStart + 0.34)); // waist collar
+    emadNosePts.push(new THREE.Vector2(baseR * 0.88, noseStart + 0.24));
+    emadNosePts.push(new THREE.Vector2(baseR * 0.86, noseStart + 0.34));
     emadNosePts.push(new THREE.Vector2(baseR * 0.72, noseStart + 0.60));
     emadNosePts.push(new THREE.Vector2(baseR * 0.54, noseStart + 0.95));
     emadNosePts.push(new THREE.Vector2(baseR * 0.35, noseStart + 1.30));
@@ -414,7 +396,6 @@ export default function ThreeRocketScene({
     emadNosePts.push(new THREE.Vector2(0.012, noseStart + 1.82));
     const emadNoseGeo = new THREE.LatheGeometry(emadNosePts, 40);
 
-    // 6) Reyhaneh Nose: Cute rounded aerodynamic ogive bullet curve
     const reyhanehNosePts: THREE.Vector2[] = [];
     for (let i = 0; i <= 14; i++) {
       const t = i / 14;
@@ -440,8 +421,6 @@ export default function ThreeRocketScene({
     noseBand.position.y = noseStart + 1.05;
     capsuleGroup.add(noseBand);
 
-    // ── Dedicated Physical Accessories for Each Missile Model ──
-    // A) Kheibar: 4 mid-fuselage canards on boosterGroup
     const kheibarCanardsGroup = new THREE.Group();
     const kheibarCanardShape = new THREE.Shape();
     kheibarCanardShape.moveTo(0, 0);
@@ -459,7 +438,6 @@ export default function ThreeRocketScene({
     }
     boosterGroup.add(kheibarCanardsGroup);
 
-    // B) Fattah: 4 hypersonic maneuvering fins at the base of the nose cone on capsuleGroup
     const fattahGliderGroup = new THREE.Group();
     const fattahGliderShape = new THREE.Shape();
     fattahGliderShape.moveTo(0, 0);
@@ -478,7 +456,6 @@ export default function ThreeRocketScene({
     }
     capsuleGroup.add(fattahGliderGroup);
 
-    // C) Sejjil: 2 wide golden interstage staging rings on boosterGroup
     const sejjilRingsGroup = new THREE.Group();
     const sejjilRing1 = new THREE.Mesh(new THREE.TorusGeometry(baseR + 0.010, 0.018, 14, 48), goldMaterial);
     sejjilRing1.rotation.x = Math.PI / 2;
@@ -490,20 +467,18 @@ export default function ThreeRocketScene({
     sejjilRingsGroup.add(sejjilRing2);
     boosterGroup.add(sejjilRingsGroup);
 
-    // D) Khorramshahr: Heavy payload collar ring on capsuleGroup
     const khorramshahrCollarGroup = new THREE.Group();
     const collarMesh = new THREE.Mesh(new THREE.CylinderGeometry(baseR * 1.08, baseR * 1.04, 0.10, 40), goldMaterial);
     collarMesh.position.y = noseStart + 0.06;
     khorramshahrCollarGroup.add(collarMesh);
     capsuleGroup.add(khorramshahrCollarGroup);
 
-    // E) Emad: 4 terminal steerable warhead guidance canards on stepped waist of capsuleGroup
     const emadCanardsGroup = new THREE.Group();
     const emadCanardShape = new THREE.Shape();
     emadCanardShape.moveTo(0, 0.04);
-    emadCanardShape.lineTo(0.26, -0.06); // swept delta wingtip
-    emadCanardShape.lineTo(0.24, -0.20); // vertical outer edge
-    emadCanardShape.lineTo(0.12, -0.22); // inner cut
+    emadCanardShape.lineTo(0.26, -0.06);
+    emadCanardShape.lineTo(0.24, -0.20);
+    emadCanardShape.lineTo(0.12, -0.22);
     emadCanardShape.lineTo(0, -0.20);
     emadCanardShape.closePath();
     const emadCanardGeo = new THREE.ExtrudeGeometry(emadCanardShape, { depth: 0.016, bevelEnabled: false });
@@ -515,14 +490,12 @@ export default function ThreeRocketScene({
       arm.add(m);
       emadCanardsGroup.add(arm);
     }
-    // Thermal graphite/titanium protection collar ring around Emad's stepped waist
     const emadWaistRing = new THREE.Mesh(new THREE.TorusGeometry(baseR * 0.88, 0.014, 12, 40), goldMaterial);
     emadWaistRing.rotation.x = Math.PI / 2;
     emadWaistRing.position.y = noseStart + 0.24;
     emadCanardsGroup.add(emadWaistRing);
     capsuleGroup.add(emadCanardsGroup);
 
-    // F) Reyhaneh: Cute golden decorative waist ring with sweet charm on capsuleGroup
     const reyhanehAccessoriesGroup = new THREE.Group();
     const reyhanehRing = new THREE.Mesh(new THREE.TorusGeometry(baseR + 0.012, 0.016, 14, 48), goldMaterial);
     reyhanehRing.rotation.x = Math.PI / 2;
@@ -533,7 +506,6 @@ export default function ThreeRocketScene({
     reyhanehAccessoriesGroup.add(charmMesh);
     capsuleGroup.add(reyhanehAccessoriesGroup);
 
-    // ── Dynamic Missile Stencil Decal Canvas & Texture ──
     const decalCanvas = document.createElement("canvas");
     decalCanvas.width = 512;
     decalCanvas.height = 2048;
@@ -551,8 +523,6 @@ export default function ThreeRocketScene({
       decalCtx.rotate(Math.PI / 2);
 
       if (model === "reyhaneh") {
-        // Cute playful girly stickers layout
-        // 1. Center text with sticker die-cut white outline
         decalCtx.font = 'bold 125px "Comic Sans MS", "Arial Rounded MT Bold", "Vazirmatn", cursive, sans-serif';
         decalCtx.textAlign = "center";
         decalCtx.textBaseline = "middle";
@@ -562,7 +532,6 @@ export default function ThreeRocketScene({
         decalCtx.fillStyle = "#be185d";
         decalCtx.fillText("ریحانه 🌸 Reyhaneh", 0, -20);
 
-        // 2. Subtext "دختران آسمانی ✨"
         decalCtx.font = 'bold 75px "Vazirmatn", "Tahoma", sans-serif';
         decalCtx.strokeStyle = "#ffffff";
         decalCtx.lineWidth = 14;
@@ -570,25 +539,18 @@ export default function ThreeRocketScene({
         decalCtx.fillStyle = "#db2777";
         decalCtx.fillText("دختران آسمانی ✨", 0, 85);
 
-        // 3. Cute Stickers along the rocket body (rotated X: -800 to +800)
-        // Top stickers near nose cone:
         drawStickerStar(decalCtx, -720, -50, 38, 14, "#fde047");
         drawStickerHeart(decalCtx, -580, 45, 42, "#ff4081", -0.2);
         drawStickerButterfly(decalCtx, -420, -60, 48, "#c084fc");
         drawStickerStar(decalCtx, -320, 70, 28, 10, "#fed7aa");
-
-        // Flank stickers around center label:
         drawStickerBow(decalCtx, 0, -135, 42, "#f43f5e");
         drawStickerFlower(decalCtx, -200, 80, 34, "#ffffff", "#fbbf24");
         drawStickerFlower(decalCtx, 200, -75, 36, "#fed7aa", "#f59e0b");
-
-        // Bottom stickers near base:
         drawStickerHeart(decalCtx, 360, 50, 40, "#fb7185", 0.3);
         drawStickerButterfly(decalCtx, 510, -50, 46, "#818cf8");
         drawStickerFlower(decalCtx, 640, 45, 38, "#fbcfe8", "#fbbf24");
         drawStickerStar(decalCtx, 750, -40, 32, 12, "#fde047");
       } else if (model === "emad") {
-        // High-precision ballistic markings
         decalCtx.fillStyle = textColor;
         decalCtx.font = '900 135px "Arial Black", "Impact", "Trebuchet MS", sans-serif';
         decalCtx.textAlign = "center";
@@ -606,7 +568,6 @@ export default function ThreeRocketScene({
         decalCtx.moveTo(720, 0); decalCtx.lineTo(820, 0);
         decalCtx.stroke();
 
-        // Tactical target checkered quadrant marker
         decalCtx.strokeStyle = "#0f172a";
         decalCtx.fillStyle = "#0f172a";
         decalCtx.lineWidth = 4;
@@ -662,8 +623,6 @@ export default function ThreeRocketScene({
       capsuleGroup.add(decalMesh);
     }
 
-
-    // Capsule docking baseplate
     const capsuleBase = new THREE.Mesh(new THREE.CylinderGeometry(baseR * 0.98, baseR * 0.96, 0.03, 36), hullMaterial);
     capsuleBase.position.set(0, noseStart - 0.015, 0);
     capsuleGroup.add(capsuleBase);
@@ -672,20 +631,18 @@ export default function ThreeRocketScene({
     capsuleRcsLight.position.set(0, noseStart - 0.05, 0);
     capsuleGroup.add(capsuleRcsLight);
 
-    // ── Booster Parts (lower stage) ──
     const CHAMBER_H = 1.1;
     const CHAMBER_CENTER_Y = 0.0;
     const CHAMBER_BOTTOM_Y = CHAMBER_CENTER_Y - CHAMBER_H / 2;
     const chamberRadius = baseR;
 
-    // ── Light Translucent Metallic Layer around Tank (showing golden fuel inside) ──
     const translucentMetalMaterial = new THREE.MeshPhysicalMaterial({
-      color: 0xdde4ec, // Light titanium / platinum sheen
-      metalness: 0.82, // High metallic reflection
-      roughness: 0.16, // Polished aerospace metal
+      color: 0xdde4ec,
+      metalness: 0.82,
+      roughness: 0.16,
       transparent: true,
-      opacity: 0.44, // Slightly transparent to showcase the filled golden fuel inside
-      transmission: isMobile ? 0.35 : 0.54, // Light transmits through the cylinder
+      opacity: 0.44,
+      transmission: isMobile ? 0.35 : 0.54,
       ior: 1.50,
       depthWrite: false,
       side: THREE.DoubleSide,
@@ -698,7 +655,6 @@ export default function ThreeRocketScene({
     tankMetalCylinder.position.y = CHAMBER_CENTER_Y;
     boosterGroup.add(tankMetalCylinder);
 
-    // Structural lightweight metallic ribbing & longitudinal support struts around the tank
     const tankStrutsGroup = new THREE.Group();
     const strutGeo = new THREE.CylinderGeometry(0.012, 0.012, CHAMBER_H, 10);
     for (let i = 0; i < 4; i++) {
@@ -711,7 +667,6 @@ export default function ThreeRocketScene({
       );
       tankStrutsGroup.add(strut);
     }
-    // Subtle calibrated fuel level graduation rings (at 25%, 50%, 75%)
     for (const ratio of [0.25, 0.5, 0.75]) {
       const ringY = CHAMBER_BOTTOM_Y + CHAMBER_H * ratio;
       const gaugeRing = new THREE.Mesh(
@@ -755,7 +710,6 @@ export default function ThreeRocketScene({
     const skirtMesh = new THREE.Mesh(skirtGeometry, hullMaterial);
     boosterGroup.add(skirtMesh);
 
-    // ── Flag of Iran Decal on Rocket Fin ──
     const createIranFlagTexture = (): THREE.CanvasTexture => {
       const canvas = document.createElement("canvas");
       canvas.width = 512;
@@ -763,22 +717,17 @@ export default function ThreeRocketScene({
       const ctx = canvas.getContext("2d");
       if (ctx) {
         const h = 320 / 3;
-        // Green
         ctx.fillStyle = "#239f40";
         ctx.fillRect(0, 0, 512, h);
-        // White
         ctx.fillStyle = "#ffffff";
         ctx.fillRect(0, h, 512, h);
-        // Red
         ctx.fillStyle = "#da0000";
         ctx.fillRect(0, h * 2, 512, h);
 
-        // Thin border
         ctx.strokeStyle = "rgba(0, 0, 0, 0.35)";
         ctx.lineWidth = 4;
         ctx.strokeRect(2, 2, 508, 316);
 
-        // Red central emblem (Nishan)
         ctx.save();
         ctx.translate(256, 160);
         ctx.fillStyle = "#da0000";
@@ -872,7 +821,6 @@ export default function ThreeRocketScene({
       const fin = new THREE.Mesh(finExtrudeGeom, hullMaterial);
       fin.position.set(0.3, -0.6, -0.017);
 
-      // Attach Iranian flag & "I.R. IRAN" insignia to designated fins (total 2 blades: blades 0 and 2, opposite pairs)
       if (i === 0 || i === 2) {
         const frontFlag = new THREE.Mesh(flagGeom, flagMaterial);
         frontFlag.position.set(0.26, -0.44, 0.049);
@@ -900,13 +848,12 @@ export default function ThreeRocketScene({
     }
     boosterGroup.add(finGroup);
 
-    // ── Dedicated High-Performance Swept Delta Stabilization Fins for Emad ──
     const emadBaseFinShape = new THREE.Shape();
     emadBaseFinShape.moveTo(0, 0.06);
-    emadBaseFinShape.lineTo(0.38, -0.16); // Sharp swept leading edge
-    emadBaseFinShape.lineTo(0.60, -0.42); // Extended aerodynamic wingtip
-    emadBaseFinShape.lineTo(0.60, -0.64); // Vertical outer aerodynamic fence
-    emadBaseFinShape.lineTo(0.16, -0.64); // Base trailing edge
+    emadBaseFinShape.lineTo(0.38, -0.16);
+    emadBaseFinShape.lineTo(0.60, -0.42);
+    emadBaseFinShape.lineTo(0.60, -0.64);
+    emadBaseFinShape.lineTo(0.16, -0.64);
     emadBaseFinShape.lineTo(0, -0.56);
     emadBaseFinShape.closePath();
     const emadBaseFinGeom = new THREE.ExtrudeGeometry(emadBaseFinShape, {
@@ -957,7 +904,6 @@ export default function ThreeRocketScene({
     thrusterLight.position.set(0, -1.55, 0);
     boosterGroup.add(thrusterLight);
 
-    // Mach cones belong to booster
     const machConeGeo = new THREE.ConeGeometry(0.12, 0.7, 16, 1, true);
     const machConeMat = new THREE.MeshBasicMaterial({ color: GOLD_LIGHT, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, depthWrite: false });
     const machCone = new THREE.Mesh(machConeGeo, machConeMat);
@@ -972,7 +918,6 @@ export default function ThreeRocketScene({
     machDiamond.rotation.x = Math.PI;
     boosterGroup.add(machDiamond);
 
-    // ── Staging & Docking Flash Rings (on rocketGroup so visible during both phases) ──
     const stagingFlashMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, side: THREE.DoubleSide });
     const stagingFlash = new THREE.Mesh(new THREE.RingGeometry(baseR - 0.02, baseR + 0.15, 36), stagingFlashMat);
     stagingFlash.rotation.x = -Math.PI / 2;
@@ -985,7 +930,6 @@ export default function ThreeRocketScene({
     dockingFlash.position.set(0, noseStart, 0);
     rocketGroup.add(dockingFlash);
 
-    // Halo ring on rocketGroup (visible post-flight)
     const haloGeo = new THREE.TorusGeometry(0.55, 0.025, 16, 64);
     const haloMat = new THREE.MeshBasicMaterial({ color: GOLD_LIGHT, transparent: true, opacity: 0, blending: THREE.AdditiveBlending });
     const haloRing = new THREE.Mesh(haloGeo, haloMat);
@@ -993,7 +937,6 @@ export default function ThreeRocketScene({
     haloRing.position.y = 0.6;
     rocketGroup.add(haloRing);
 
-    // ── Launch Pad Ring ──
     const padRing = new THREE.Mesh(
       new THREE.RingGeometry(0.55, 0.62, 48),
       new THREE.MeshBasicMaterial({ color: GOLD_COLOR, transparent: true, opacity: 0.22, side: THREE.DoubleSide })
@@ -1002,8 +945,7 @@ export default function ThreeRocketScene({
     padRing.position.set(0, -1.65, 0);
     scene.add(padRing);
 
-    // ── 3D Memorial Tunnel in the Sky (Luminous Gold-Red Calligraphy with 3D Depth Fly-Past) ──
-    // Evenly distributed along the ascent corridor up to apogee (Y=13.0m)
+    // ── 3D Memorial Tunnel in the Sky ──
     const MEMORIAL_TEXTS = [
       { lines: ["شهدا زنده‌اند"], y: 3, side: 1 },
       { lines: ["به یاد شهدای والامقام", "قهرمان شهیدیه"], y: 7.5, side: -1 },
@@ -1023,12 +965,10 @@ export default function ThreeRocketScene({
 
     const memorialBanners: MemorialBannerItem[] = [];
 
-    // Renders crystal-clear glowing gold-to-red calligraphy on 100% transparent canvas (tightly bounded)
     const createMemorialBannerTexture = (lines: string[]): { texture: THREE.CanvasTexture; aspect: number } => {
       const isSingle = lines.length === 1;
       const fontSize = isSingle ? 76 : 60;
 
-      // Measure max text width with an offscreen canvas to eliminate dead horizontal margins
       const measureCanvas = document.createElement("canvas");
       const mCtx = measureCanvas.getContext("2d");
       let maxLineWidth = 380;
@@ -1040,7 +980,6 @@ export default function ThreeRocketScene({
         });
       }
 
-      // Add tight padding for flanking stars and radiant atmospheric bloom
       const rawWidth = Math.ceil(maxLineWidth + 180);
       const canvasWidth = Math.min(1024, Math.max(480, Math.ceil(rawWidth / 32) * 32));
       const canvasHeight = isSingle ? 200 : 300;
@@ -1051,7 +990,6 @@ export default function ThreeRocketScene({
       const ctx = canvas.getContext("2d");
       if (ctx) {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-
         ctx.direction = "rtl";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
@@ -1065,31 +1003,27 @@ export default function ThreeRocketScene({
         lines.forEach((lineText, idx) => {
           const textY = linePositions[idx];
 
-          // Pass 1: Deep luminous ruby atmospheric bloom
           ctx.shadowColor = "rgba(220, 38, 38, 0.95)";
           ctx.shadowBlur = 28;
           ctx.fillStyle = "rgba(239, 68, 68, 0.92)";
           ctx.fillText(lineText, textX, textY);
 
-          // Pass 2: Warm radiant golden inner glow
           ctx.shadowColor = "rgba(245, 158, 11, 0.95)";
           ctx.shadowBlur = 14;
           ctx.fillStyle = "rgba(251, 191, 36, 0.96)";
           ctx.fillText(lineText, textX, textY);
 
-          // Pass 3: Crisp metallic gold-to-red specular gradient
           ctx.shadowColor = "rgba(254, 240, 138, 0.85)";
           ctx.shadowBlur = 5;
           const textGrad = ctx.createLinearGradient(0, textY - fontSize * 0.6, 0, textY + fontSize * 0.6);
-          textGrad.addColorStop(0.0, "#ffffff"); // Crisp specular highlight
-          textGrad.addColorStop(0.25, "#fef08a"); // Radiant pale gold
-          textGrad.addColorStop(0.55, "#f59e0b"); // Warm amber gold
-          textGrad.addColorStop(0.85, "#ef4444"); // Fiery red
-          textGrad.addColorStop(1.0, "#b91c1c"); // Rich deep ruby crimson
+          textGrad.addColorStop(0.0, "#ffffff");
+          textGrad.addColorStop(0.25, "#fef08a");
+          textGrad.addColorStop(0.55, "#f59e0b");
+          textGrad.addColorStop(0.85, "#ef4444");
+          textGrad.addColorStop(1.0, "#b91c1c");
           ctx.fillStyle = textGrad;
           ctx.fillText(lineText, textX, textY);
 
-          // Delicate luminous ✦ calligraphic stars flanking the first line
           if (idx === 0) {
             ctx.font = "30px sans-serif";
             ctx.shadowColor = "rgba(251, 191, 36, 0.95)";
@@ -1116,16 +1050,15 @@ export default function ThreeRocketScene({
         transparent: true,
         opacity: 0,
         depthWrite: false,
-        blending: THREE.AdditiveBlending, // Radiant additive glow against the dark starry cosmos
+        blending: THREE.AdditiveBlending,
         side: THREE.DoubleSide,
       });
 
-      // Height calibrated for aesthetic balance; width derived directly from canvas aspect
       const planeH = item.lines.length === 1 ? 0.36 : 0.48;
       const planeW = planeH * aspect * 0.98;
       const geo = new THREE.PlaneGeometry(planeW, planeH);
       const mesh = new THREE.Mesh(geo, mat);
-      const initialZ = -0.5; // Sits in subtle celestial depth initially
+      const initialZ = -0.5;
       mesh.position.set(item.side * 0.18, item.y, initialZ);
       mesh.scale.set(0.60, 0.60, 0.60);
       mesh.rotation.y = -item.side * 0.08;
@@ -1133,39 +1066,37 @@ export default function ThreeRocketScene({
       memorialBanners.push({ mesh, mat, targetY: item.y, baseZ: initialZ, side: item.side, planeWidth: planeW });
     });
 
-    // ── Cinematic Martyr Portrait Panels Along Flight Path ──
-    // Randomly select 7 martyrs from the full list and place their portraits
-    // as semi-transparent floating panels along the ascent corridor
+    // ── Cinematic Martyr Portrait Panels (ارتفاعات پایین‌تر، بدون کادر و با زاویه ملایم کج) ──
     interface MartyrPortraitItem {
       mesh: THREE.Mesh;
       mat: THREE.MeshBasicMaterial;
       targetY: number;
       side: number;
       baseZ: number;
+      tiltZ: number;
+      tiltY: number;
     }
 
     const martyrPortraits: MartyrPortraitItem[] = [];
 
-    // Seeded random-ish shuffle using Array sort (client-side, fresh each flight)
     const shuffled = [...SHOHADA_SHAHIDIEH_PROFILES]
       .map((p) => ({ p, r: Math.random() }))
       .sort((a, b) => a.r - b.r)
       .map((x) => x.p)
       .slice(0, 7);
 
-    // Portrait Y positions interleaved between text banners
-    // Text banners: 3, 7.5, 12.5, 17.5, 21.5
-    // Portraits:    5.2, 10, 15, 19.5, 4, 9, 14  (7 portraits spread across corridor)
-    const portraitYPositions = [5.2, 10.0, 15.0, 19.5, 4.0, 9.0, 14.0];
-    // Sides alternate to create a flanking corridor feel
-    const portraitSides = [-1, 1, -1, 1, 1, -1, 1];
+    // ۱. ارتفاعات پایین‌تر (محدوده ۲٫۴ تا ۹٫۲ به جای ۱۵ و ۱۹)
+    const portraitYPositions = [2.4, 3.6, 4.8, 6.0, 7.2, 8.2, 9.2];
+    const portraitSides = [-1, 1, -1, 1, -1, 1, -1];
+    // ۲. زوایای مایل و ارگانیک به چپ یا راست
+    const portraitTiltsZ = [-0.09, 0.07, -0.06, 0.08, -0.07, 0.06, -0.08];
 
-    // Create a portrait panel for each selected martyr
     shuffled.forEach((martyr, i) => {
       const targetY = portraitYPositions[i];
       const side = portraitSides[i];
+      const tiltZ = portraitTiltsZ[i];
+      const tiltY = -side * 0.12;
 
-      // Create canvas overlay with name label — the photo loads async via TextureLoader
       const overlayCanvas = document.createElement("canvas");
       overlayCanvas.width = 256;
       overlayCanvas.height = 320;
@@ -1182,100 +1113,72 @@ export default function ThreeRocketScene({
         side: THREE.DoubleSide,
       });
 
-      const W = 0.60, H = 0.75; // portrait ratio
+      const W = 0.58, H = 0.72;
       const geo = new THREE.PlaneGeometry(W, H);
       const mesh = new THREE.Mesh(geo, mat);
-      const baseZ = -0.6;
-      mesh.position.set(side * 0.38, targetY, baseZ);
-      mesh.rotation.y = -side * 0.10;
+      const baseZ = -0.55;
+      mesh.position.set(side * 0.36, targetY, baseZ);
+      mesh.rotation.set(0, tiltY, tiltZ);
       scene.add(mesh);
 
-      martyrPortraits.push({ mesh, mat, targetY, side, baseZ });
+      martyrPortraits.push({ mesh, mat, targetY, side, baseZ, tiltZ, tiltY });
 
-      // Load the actual photo texture asynchronously
       const img = new Image();
       img.crossOrigin = "anonymous";
       img.onload = () => {
         if (!overlayCtx) return;
         overlayCtx.clearRect(0, 0, 256, 320);
 
-        // Subtle dark vignette frame behind photo
-        overlayCtx.fillStyle = "rgba(0,0,0,0.45)";
-        const r = 12;
+        // پس‌زمینه گرد با گرادیانت نرم فید شونده (بدون خط بردر)
+        const r = 24;
+        overlayCtx.save();
         overlayCtx.beginPath();
         overlayCtx.moveTo(r, 0);
         overlayCtx.lineTo(256 - r, 0);
         overlayCtx.quadraticCurveTo(256, 0, 256, r);
-        overlayCtx.lineTo(256, 280 - r);
-        overlayCtx.quadraticCurveTo(256, 280, 256 - r, 280);
-        overlayCtx.lineTo(r, 280);
-        overlayCtx.quadraticCurveTo(0, 280, 0, 280 - r);
+        overlayCtx.lineTo(256, 320 - r);
+        overlayCtx.quadraticCurveTo(256, 320, 256 - r, 320);
+        overlayCtx.lineTo(r, 320);
+        overlayCtx.quadraticCurveTo(0, 320, 0, 320 - r);
         overlayCtx.lineTo(0, r);
         overlayCtx.quadraticCurveTo(0, 0, r, 0);
         overlayCtx.closePath();
-        overlayCtx.fill();
-
-        // Draw photo clipped into rounded rect
-        overlayCtx.save();
-        overlayCtx.beginPath();
-        overlayCtx.moveTo(r + 4, 4);
-        overlayCtx.lineTo(252 - r, 4);
-        overlayCtx.quadraticCurveTo(252, 4, 252, r + 4);
-        overlayCtx.lineTo(252, 276 - r);
-        overlayCtx.quadraticCurveTo(252, 276, 252 - r, 276);
-        overlayCtx.lineTo(r + 4, 276);
-        overlayCtx.quadraticCurveTo(4, 276, 4, 276 - r);
-        overlayCtx.lineTo(4, r + 4);
-        overlayCtx.quadraticCurveTo(4, 4, r + 4, 4);
-        overlayCtx.closePath();
         overlayCtx.clip();
-        overlayCtx.drawImage(img, 4, 4, 248, 272);
+
+        // رسم تصویر شهید بدون بردر
+        overlayCtx.drawImage(img, 0, 0, 256, 320);
+
+        // فید تیره و گرادیانت ملایم پایینی فقط برای خوانایی نام شهید (بدون قاب مستطیلی)
+        const nameGrad = overlayCtx.createLinearGradient(0, 200, 0, 320);
+        nameGrad.addColorStop(0, "rgba(2, 6, 23, 0.0)");
+        nameGrad.addColorStop(0.5, "rgba(2, 6, 23, 0.7)");
+        nameGrad.addColorStop(1, "rgba(2, 6, 23, 0.95)");
+        overlayCtx.fillStyle = nameGrad;
+        overlayCtx.fillRect(0, 180, 256, 140);
+
         overlayCtx.restore();
 
-        // Golden border frame
-        overlayCtx.strokeStyle = "rgba(245,158,11,0.85)";
-        overlayCtx.lineWidth = 2.5;
-        overlayCtx.beginPath();
-        overlayCtx.moveTo(r + 4, 4);
-        overlayCtx.lineTo(252 - r, 4);
-        overlayCtx.quadraticCurveTo(252, 4, 252, r + 4);
-        overlayCtx.lineTo(252, 276 - r);
-        overlayCtx.quadraticCurveTo(252, 276, 252 - r, 276);
-        overlayCtx.lineTo(r + 4, 276);
-        overlayCtx.quadraticCurveTo(4, 276, 4, 276 - r);
-        overlayCtx.lineTo(4, r + 4);
-        overlayCtx.quadraticCurveTo(4, 4, r + 4, 4);
-        overlayCtx.closePath();
-        overlayCtx.stroke();
-
-        // Name label background
-        overlayCtx.fillStyle = "rgba(0,0,0,0.72)";
-        overlayCtx.fillRect(0, 276, 256, 44);
-
-        // Name text in Persian
+        // متن نام در انتهای تصویر
         overlayCtx.direction = "rtl";
         overlayCtx.textAlign = "center";
         overlayCtx.textBaseline = "middle";
-        overlayCtx.font = "bold 22px Vazirmatn, Tahoma, sans-serif";
+        overlayCtx.font = "bold 23px Vazirmatn, Tahoma, sans-serif";
 
-        // Name glow
-        overlayCtx.shadowColor = "rgba(245,158,11,0.9)";
-        overlayCtx.shadowBlur = 8;
+        overlayCtx.shadowColor = "rgba(0,0,0,0.9)";
+        overlayCtx.shadowBlur = 10;
         overlayCtx.fillStyle = "#fef08a";
-        overlayCtx.fillText(martyr.name.replace("شهید ", ""), 128, 298);
+        overlayCtx.fillText(martyr.name.replace("شهید ", ""), 128, 282);
 
-        // "شهید" label in smaller text above
         overlayCtx.font = "bold 15px Vazirmatn, Tahoma, sans-serif";
-        overlayCtx.shadowBlur = 5;
-        overlayCtx.fillStyle = "rgba(251,191,36,0.82)";
-        overlayCtx.fillText("شهید", 128, 316);
+        overlayCtx.shadowBlur = 6;
+        overlayCtx.fillStyle = "rgba(251,191,36,0.9)";
+        overlayCtx.fillText("شهید والامقام", 128, 304);
 
         overlayTexture.needsUpdate = true;
       };
       img.src = martyr.photoUrl;
     });
 
-    // ── Pointer Parallax ──
     const pointer = { targetX: 0, targetY: 0, currentX: 0, currentY: 0 };
     const onPointerMove = (e: PointerEvent) => {
       if (prefersReducedMotion) return;
@@ -1291,12 +1194,8 @@ export default function ThreeRocketScene({
       const aspect = w / h;
       camera.aspect = aspect;
 
-      // Adaptive vertical FOV and camera framing:
-      // - On narrow portrait mobile (aspect < 0.7): wider fov so rocket & text fit side margins
-      // - On widescreen laptop/desktop (aspect > 1.15): zoomed back slightly and centered with ample top/bottom headroom
-      // - On tablet / square screens: balanced mid values
       if (aspect < 0.7) {
-        camera.fov = 38; // Wider horizontal corridor for mobile screens
+        camera.fov = 38;
         camera.position.z = 9.0;
         currentBaseCameraY = 0.1;
       } else if (aspect > 1.15) {
@@ -1313,10 +1212,6 @@ export default function ThreeRocketScene({
     };
     const resizeObserver = new ResizeObserver(onResize);
     resizeObserver.observe(container);
-
-    // ══════════════════════════════════════════════════════════
-    // PARTICLE SYSTEMS — Struct-of-Arrays Ring Buffers (Zero GC)
-    // ══════════════════════════════════════════════════════════
 
     const FLAME_MAX = 90;
     const fX = new Float32Array(FLAME_MAX);
@@ -1426,7 +1321,6 @@ export default function ThreeRocketScene({
       const rz = rocketGroup.position.z;
       const nozzleWorldY = ry + NOZZLE_LOCAL_Y;
 
-      // Flame core
       const flameN = Math.ceil(intensity * 12 * dt * 60);
       for (let k = 0; k < flameN; k++) {
         const a = Math.random() * Math.PI * 2;
@@ -1439,7 +1333,6 @@ export default function ThreeRocketScene({
         );
       }
 
-      // Smoke
       const smokeN = Math.ceil((intensity * 8 + (isPadRoll ? 6 : 0)) * dt * 60);
       for (let k = 0; k < smokeN; k++) {
         if (isPadRoll) {
@@ -1460,16 +1353,13 @@ export default function ThreeRocketScene({
       }
     };
 
-    // ── Easing ──
     const easeInOutCubic = (x: number): number => x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
 
-    // ── Flight State ──
     let isSeparated = false;
     let capsuleExitedAtmosphere = false;
     let boosterLanded = false;
     let isDocked = false;
 
-    // ── Dynamic Model Switcher (All physical parts & materials initialized) ──
     const applyMissileModel = (model: MissileModel) => {
       const cfg = getMissileConfig(model);
       renderDecalText(model, cfg.textColor);
@@ -1478,7 +1368,6 @@ export default function ThreeRocketScene({
       hullMaterial.metalness = cfg.metalness;
       hullMaterial.roughness = cfg.roughness;
 
-      // Unique custom fuel & thruster plume colors for each missile model
       fuelMaterial.color.set(cfg.fuelColor);
       fuelMaterial.emissive.set(cfg.fuelEmissive);
       fuelCoreLight.color.set(cfg.fuelColor);
@@ -1510,7 +1399,6 @@ export default function ThreeRocketScene({
       noseMesh.material = hullMaterial;
       hullMaterial.needsUpdate = true;
 
-      // Model-specific accessories
       kheibarCanardsGroup.visible = model === "kheibar";
       fattahGliderGroup.visible = model === "fattah";
       sejjilRingsGroup.visible = model === "sejjil";
@@ -1518,7 +1406,6 @@ export default function ThreeRocketScene({
       emadCanardsGroup.visible = model === "emad";
       reyhanehAccessoriesGroup.visible = model === "reyhaneh";
 
-      // Base stabilization fins: Emad has dedicated swept clipped-delta wings with vertical fences
       finGroup.visible = model !== "emad";
       emadFinGroup.visible = model === "emad";
     };
@@ -1526,7 +1413,6 @@ export default function ThreeRocketScene({
     onModelChangeRef.current = applyMissileModel;
     applyMissileModel(modelRef.current);
 
-    // ── Animation Loop ──
     let animId: number;
     let lastTime = performance.now();
     const startTime = performance.now();
@@ -1545,45 +1431,34 @@ export default function ThreeRocketScene({
       lastTime = currentTime;
       const elapsed = (currentTime - startTime) / 1000;
 
-      // Frame-rate independent parallax smoothing
       const ptrAlpha = 1 - Math.exp(-dt / POINTER_SMOOTH_TAU);
       pointer.currentX += (pointer.targetX - pointer.currentX) * ptrAlpha;
       pointer.currentY += (pointer.targetY - pointer.currentY) * ptrAlpha;
 
-      // Pulse decay
       if (pulseRef.current > 0) pulseRef.current = Math.max(0, pulseRef.current - dt * 2.2);
       const currentPulse = pulseRef.current;
 
-      // ── Dynamic Responsive Fuel Depletion & Refill Animation ──
       const pTarget = progressRef.current;
       let calculatedFuelTarget = pTarget;
 
       if (isFlightActive) {
         const t = flightElapsedTime;
         if (t < IGNITION_DUR) {
-          // Phase 1: Ignition tremor - small consumption ripple
           const ignFrac = t / IGNITION_DUR;
           calculatedFuelTarget = pTarget * (1.0 - ignFrac * 0.04);
         } else if (t < ASCENT_END) {
-          // Phase 2: Extended Majestic Ascent - fuel steadily depletes as rocket climbs into space
           const ascFrac = (t - IGNITION_DUR) / ASCENT_DUR;
-          // Smooth burning depletion from pTarget down to near empty (0.015)
           calculatedFuelTarget = pTarget * Math.max(0.015, Math.pow(1.0 - ascFrac, 1.25));
         } else if (t < BOOSTER_LAND_TIME) {
-          // Phase 3-5: Staging and camera-tracked descent - fuel chamber remains spent
           calculatedFuelTarget = 0.015;
         } else {
-          // Phase 6-7: Booster landed safely on launch pad! Rapid and smooth fluid refill animation
           const refillElapsed = t - BOOSTER_LAND_TIME;
-          // 2.2s fluid refill rush back to current progress
           const refillFrac = Math.min(1.0, refillElapsed / 2.2);
-          // Cubic ease-out: rapid rush then gentle deceleration to exact fuel line
           const refillCurve = 1 - Math.pow(1 - refillFrac, 3);
           calculatedFuelTarget = 0.015 + (pTarget - 0.015) * refillCurve;
         }
       }
 
-      // Smooth interpolation for silky-smooth fluid dynamics
       const fuelLerpSpeed = isFlightActive ? 6.5 : 4.0;
       currentFuelProgress += (calculatedFuelTarget - currentFuelProgress) * Math.min(1, dt * fuelLerpSpeed);
 
@@ -1599,7 +1474,6 @@ export default function ThreeRocketScene({
       fuelMaterial.emissiveIntensity = 0.75 + effectiveP * 0.8 + currentPulse * 1.1;
       goldMaterial.emissiveIntensity = 0.4 + effectiveP * 0.3 + currentPulse * 0.6;
 
-      // ── Flight Choreography ──
       const st = stateRef.current;
       const lifted = liftedRef.current;
       const isReady = st === "READY_TO_LAUNCH" || pTarget >= 1.0;
@@ -1641,8 +1515,6 @@ export default function ThreeRocketScene({
         const t = flightElapsedTime;
 
         if (t < IGNITION_DUR) {
-          // ── Phase 1: Ignition Build-up (0.0s → 1.2s) ──
-          // Rocket trembles on pad, engines spool up, pad deluge smoke billows
           const ignFrac = t / IGNITION_DUR;
           ascentY = 0;
           targetCameraY = currentBaseCameraY;
@@ -1655,13 +1527,10 @@ export default function ThreeRocketScene({
           capsuleGroup.visible = true;
 
         } else if (t < ASCENT_END) {
-          // ── Phase 2: Extended Cinematic Ascent & Memorial Virtual Tour (1.2s → 16.2s) ──
-          // Slow, majestic climb up to PEAK_ALTITUDE (13.0m), passing by the glowing inscriptions
           const ascFrac = (t - IGNITION_DUR) / ASCENT_DUR;
           const curve = easeInOutCubic(ascFrac);
           ascentY = PEAK_ALTITUDE * curve;
 
-          // Camera smoothly cranes up, arriving locked on booster midpoint at apogee
           const targetBoosterCenter = PEAK_ALTITUDE + BOOSTER_MID_Y;
           targetCameraY = currentBaseCameraY + (targetBoosterCenter - currentBaseCameraY) * curve;
 
@@ -1675,9 +1544,6 @@ export default function ThreeRocketScene({
           rotZ += Math.sin(elapsed * 3.2) * 0.015 * (1 - ascFrac * 0.3);
 
         } else if (t < SEP_END) {
-          // ── Phase 3: Stage Separation with 100% Centered Booster (16.2s → 18.6s) ──
-          // Booster holds rock-solid in the DEAD CENTER of the screen at apogee.
-          // Capsule fires secondary thrusters and shoots completely out of the top of the screen!
           if (!isSeparated) {
             isSeparated = true;
             stagingFlashMat.opacity = 1.0;
@@ -1685,27 +1551,22 @@ export default function ThreeRocketScene({
           stagingFlashMat.opacity = Math.max(0, stagingFlashMat.opacity - dt * 2.0);
 
           const sepFrac = (t - ASCENT_END) / SEP_DUR;
-          // Capsule accelerates upward with clean power curve
           const capsuleRelY = Math.pow(sepFrac, 1.6) * 9.5;
 
           capsuleGroup.position.set(0, capsuleRelY, 0);
-          capsuleGroup.visible = capsuleRelY < 7.5; // Hidden once clearly off-screen
+          capsuleGroup.visible = capsuleRelY < 7.5;
           capsuleRcsLight.intensity = Math.max(0, 1.5 * (1 - sepFrac * 0.6));
 
-          // Booster holds rock-solid at peak altitude with subtle micro-gravity drift
           const apogeeFloat = Math.sin(sepFrac * Math.PI) * 0.06;
           ascentY = PEAK_ALTITUDE + apogeeFloat;
           rocketGroup.position.set(0, ascentY, 0);
           boosterGroup.position.set(0, 0, 0);
 
-          // Camera stays locked dead-center on booster: booster NEVER clips or cuts off!
           targetCameraY = ascentY + BOOSTER_MID_Y;
           engineIntensity = 0.2 * (1 - sepFrac * 0.8);
           isPadSmokeActive = false;
 
         } else if (t < BOOSTER_LAND_TIME) {
-          // ── Phase 4: Booster Retro-Landing Descent (18.6s → 24.6s) ──
-          // Capsule is in space orbit. Booster descends toward pad, camera tracking it all the way down.
           if (!capsuleExitedAtmosphere) {
             capsuleExitedAtmosphere = true;
             soundEngine.playBoosterDescent();
@@ -1721,19 +1582,19 @@ export default function ThreeRocketScene({
           rocketGroup.position.set(0, ascentY, 0);
           boosterGroup.position.set(0, 0, 0);
 
-          engineIntensity = 0.88; // Retro-thruster burn
-          isPadSmokeActive = ascentY < 1.2; // Ground cushion smoke near pad ring
+          engineIntensity = 0.88;
+          isPadSmokeActive = ascentY < 1.2;
 
-          // Camera follows booster down, smoothly blending back to pad framing as it lands
           const currentBoosterCenter = ascentY + BOOSTER_MID_Y;
           targetCameraY = currentBaseCameraY + (currentBoosterCenter - currentBaseCameraY) * (1 - descCurve);
 
         } else if (t < REDOCK_START) {
-          // ── Phase 5: Booster Touchdown on Pad (24.6s → 25.6s) ──
-          // Soft touchdown on pad ring with authentic spring compression dampening
+          // ── Phase 5: Booster Touchdown on Pad ──
           if (!boosterLanded) {
             boosterLanded = true;
             soundEngine.playBoosterTouchdown();
+            // همین که موشک روی زمین نشست، موزیک پلی‌گراند از نو پخش بشه
+            soundEngine.onMissileLaunchEnd();
           }
           const touchFrac = (t - BOOSTER_LAND_TIME) / TOUCHDOWN_DUR;
           const springDip = -Math.sin(Math.min(1, touchFrac) * Math.PI) * 0.03 * (1 - touchFrac * 0.5);
@@ -1747,13 +1608,10 @@ export default function ThreeRocketScene({
           isPadSmokeActive = touchFrac < 0.5;
 
         } else if (t < REDOCK_START + REDOCK_DUR) {
-          // ── Phase 6: Capsule Orbit Return & Re-docking (25.6s → 28.8s) ──
-          // Booster is on the pad. Capsule re-enters from space above and docks smoothly.
           if (capsuleExitedAtmosphere && boosterLanded) {
             const dockFrac = (t - REDOCK_START) / REDOCK_DUR;
             const dockCurve = easeInOutCubic(dockFrac);
             const capsuleRelY = 8.5 * (1 - dockCurve);
-            // Gentle RCS alignment sway as it approaches the docking collar
             const alignSwayX = Math.sin((1 - dockCurve) * Math.PI * 3.5) * 0.025 * (1 - dockCurve);
             capsuleGroup.position.set(alignSwayX, capsuleRelY, 0);
             capsuleGroup.visible = true;
@@ -1767,7 +1625,6 @@ export default function ThreeRocketScene({
           isPadSmokeActive = false;
 
         } else if (t < FLIGHT_DURATION) {
-          // ── Phase 7: Golden Docking Lock & Reunited Rocket Settle (28.8s → 30.0s) ──
           capsuleGroup.position.set(0, 0, 0);
           capsuleGroup.visible = true;
           boosterGroup.position.set(0, 0, 0);
@@ -1788,7 +1645,6 @@ export default function ThreeRocketScene({
           haloMat.opacity = 0.45 + Math.sin(elapsed * 2.0) * 0.15;
 
         } else {
-          // Flight complete — Rocket unified, restored majestically on launch pad
           isFlightActive = false;
           ascentY = 0;
           targetCameraY = currentBaseCameraY;
@@ -1807,13 +1663,11 @@ export default function ThreeRocketScene({
           }
         }
 
-        // ── 3D Memorial Virtual Exhibition in the Sky: 3D Approach, Fly-Past & Recede ──
         const screenAspect = camera.aspect;
-        const APPROACH_ZONE = 3.0; // 3.0m approach window below (anticipates approaching text early)
-        const RECEDE_ZONE = 2.0;   // 2.0m recede window above
+        const APPROACH_ZONE = 3.0;
+        const RECEDE_ZONE = 2.0;
 
         memorialBanners.forEach((b) => {
-          // Signed vertical delta: deltaY < 0 when camera approaches from below; deltaY > 0 when passing above
           const deltaY = camera.position.y - b.targetY;
 
           if (isFlightActive && deltaY >= -APPROACH_ZONE && deltaY <= RECEDE_ZONE) {
@@ -1825,72 +1679,40 @@ export default function ThreeRocketScene({
             let targetOpacity: number;
 
             if (deltaY <= 0) {
-              // ── 1. Approach Phase (Camera is below, ascending toward banner) ──
-              // u goes from 0.0 (far below at -APPROACH_ZONE) to 1.0 (level with banner)
               const u = 1 + deltaY / APPROACH_ZONE;
-              ease = u * u * (3 - 2 * u); // Smoothstep Hermite curve
-
-              // Gradual scale expansion: begins small & distant (0.60x) -> expands to prominent forward size (1.30x)
+              ease = u * u * (3 - 2 * u);
               currentScale = 0.60 + (1.30 - 0.60) * Math.pow(ease, 1.2);
-
-              // 3D Depth Travel (Z): emerges forward out of depth from Z = -0.5m to Z = +2.15m (brought right to foreground)
               currentZ = b.baseZ + (2.15 - b.baseZ) * Math.pow(ease, 1.25);
-
-              // Perspective Pitch (X): Tilts slightly down toward climbing camera, leveling out as camera arrives
               pitchX = -(1 - ease) * 0.14;
-
-              // Perspective Yaw (Y): Angled inward toward flight path, opening up into view
               yawY = -b.side * (0.08 - 0.04 * ease);
-
-              // Luminous Opacity & Bloom: Smooth emergence
               targetOpacity = Math.pow(ease, 1.1);
             } else {
-              // ── 2. Fly-Past & Recede Phase (Camera passes above, ascends toward stars) ──
-              // v goes from 0.0 (level with banner) to 1.0 (passed at +RECEDE_ZONE)
               const v = deltaY / RECEDE_ZONE;
-              ease = v * v * (3 - 2 * v); // Smoothstep Hermite curve
-
-              // Graceful scale reduction: gently recedes from 1.30x back down to 0.60x
+              ease = v * v * (3 - 2 * v);
               currentScale = 1.30 - (1.30 - 0.60) * Math.pow(ease, 1.1);
-
-              // 3D Depth Travel (Z): recedes back into depth from +2.15m to -0.5m
               currentZ = 2.15 + (b.baseZ - 2.15) * Math.pow(ease, 1.2);
-
-              // Perspective Pitch (X): Tilts upward as camera looks down and away from it
               pitchX = ease * 0.12;
-
-              // Perspective Yaw (Y): Returns to resting angle in the cosmos
               yawY = -b.side * (0.04 + 0.04 * ease);
-
-              // Luminous Opacity: Gracefully fades back into the starry night
               targetOpacity = 1 - Math.pow(ease, 1.3);
             }
 
-            // ── Centered Fly-Through Positioning (Hugging Center & Rocket Corridor Intimately) ──
             const distFromCam = Math.max(0.5, camera.position.z - currentZ);
             const frustumHalfH = distFromCam * Math.tan((camera.fov * 0.5 * Math.PI) / 180);
             const frustumHalfW = frustumHalfH * screenAspect;
-
             const bannerHalfW = (b.planeWidth * currentScale) * 0.5;
 
-            // Direct central positioning: slightly alternating around center (±0.16m on mobile, ±0.20m on desktop)
-            // Creating the breathtaking sensation of flying straight through the luminous calligraphy
             const centerShift = screenAspect < 0.7 ? 0.16 : 0.20;
             const maxSafeOffset = Math.max(0, frustumHalfW - bannerHalfW - 0.04);
             const safeX = Math.min(centerShift, maxSafeOffset);
 
-            // Floating celestial sway
             const floatY = b.targetY + Math.sin(elapsed * 1.8 + b.targetY) * 0.02;
             const rollZ = Math.sin(elapsed * 1.4 + b.targetY) * 0.01;
 
             b.mesh.scale.set(currentScale, currentScale, currentScale);
             b.mesh.position.set(b.side * safeX, floatY, currentZ);
             b.mesh.rotation.set(pitchX, yawY, rollZ);
-
             b.mat.opacity += (targetOpacity - b.mat.opacity) * (1 - Math.exp(-dt / 0.12));
-
           } else {
-            // Outside active interaction window: peacefully resting at baseline anchor in 3D environment
             b.mesh.scale.set(0.60, 0.60, 0.60);
             b.mesh.position.set(b.side * 0.18, b.targetY, b.baseZ);
             b.mesh.rotation.set(0, -b.side * 0.08, 0);
@@ -1898,9 +1720,10 @@ export default function ThreeRocketScene({
           }
         });
 
-        // ── Cinematic Martyr Portraits: Fade In as Rocket Approaches, Fade Out as it Passes ──
-        const PORTRAIT_APPROACH = 2.8;  // show window: 2.8 units below
-        const PORTRAIT_RECEDE   = 1.8;  // hide window: 1.8 units above
+        // ── عکس شهدا در ارتفاعات پایین‌تر، بدون کادر و با زاویه مایل ──
+        const PORTRAIT_APPROACH = 2.5;
+        const PORTRAIT_RECEDE = 1.6;
+
         martyrPortraits.forEach((p) => {
           const deltaY = camera.position.y - p.targetY;
           let targetOpacity: number;
@@ -1909,40 +1732,36 @@ export default function ThreeRocketScene({
 
           if (isFlightActive && deltaY >= -PORTRAIT_APPROACH && deltaY <= PORTRAIT_RECEDE) {
             if (deltaY <= 0) {
-              // Approaching
               const u = 1 + deltaY / PORTRAIT_APPROACH;
               const ease = u * u * (3 - 2 * u);
-              targetOpacity = Math.pow(ease, 1.2) * 0.48; // max opacity ~0.48 (cinematic semi-transparent)
+              targetOpacity = Math.pow(ease, 1.2) * 0.55;
               targetZ = p.baseZ + (2.0 - p.baseZ) * Math.pow(ease, 1.3);
               targetScale = 0.55 + 0.55 * Math.pow(ease, 1.1);
             } else {
-              // Receding
               const v = deltaY / PORTRAIT_RECEDE;
               const ease = v * v * (3 - 2 * v);
-              targetOpacity = (1 - Math.pow(ease, 1.2)) * 0.48;
+              targetOpacity = (1 - Math.pow(ease, 1.2)) * 0.55;
               targetZ = 2.0 + (p.baseZ - 2.0) * Math.pow(ease, 1.2);
               targetScale = 1.10 - 0.55 * Math.pow(ease, 1.0);
             }
             const floatOffY = Math.sin(elapsed * 1.3 + p.targetY * 0.7) * 0.018;
-            p.mesh.position.set(p.side * 0.38, p.targetY + floatOffY, targetZ);
+            p.mesh.position.set(p.side * 0.36, p.targetY + floatOffY, targetZ);
             p.mesh.scale.setScalar(targetScale);
-            p.mesh.rotation.y = -p.side * (0.10 - 0.05 * (targetScale - 0.55));
+            // زاویه مایل ملایم به چپ یا راست
+            p.mesh.rotation.set(0, p.tiltY, p.tiltZ + Math.sin(elapsed * 0.8) * 0.015);
           } else {
-            // Outside window: invisible, resting at base
             targetOpacity = 0;
-            p.mesh.position.set(p.side * 0.38, p.targetY, p.baseZ);
+            p.mesh.position.set(p.side * 0.36, p.targetY, p.baseZ);
             p.mesh.scale.setScalar(0.55);
-            p.mesh.rotation.y = -p.side * 0.10;
+            p.mesh.rotation.set(0, p.tiltY, p.tiltZ);
           }
 
           p.mat.opacity += (targetOpacity - p.mat.opacity) * (1 - Math.exp(-dt / 0.15));
         });
 
-        // ✅ Frame-rate independent camera lerp
         const camAlpha = 1 - Math.exp(-dt / CAM_SMOOTH_TAU);
         camera.position.y += (targetCameraY - camera.position.y) * camAlpha;
       } else {
-        // Stationary on pad
         const camAlpha = 1 - Math.exp(-dt / CAM_SMOOTH_TAU);
         camera.position.y += (currentBaseCameraY - camera.position.y) * camAlpha;
         boosterGroup.position.set(0, 0, 0);
@@ -1965,10 +1784,8 @@ export default function ThreeRocketScene({
         }
       }
 
-      // Orientation
       rocketGroup.rotation.set(pointer.currentY * 0.04, rotY, rotZ);
 
-      // Thruster lighting & mach cones
       if (engineIntensity > 0.01) {
         thrusterLight.intensity = 3.5 * engineIntensity + Math.sin(elapsed * 33) * 0.6;
         machConeMat.opacity = Math.min(0.7, engineIntensity * 0.65 + Math.sin(elapsed * 29) * 0.1);
@@ -1978,10 +1795,8 @@ export default function ThreeRocketScene({
         machConeMat.opacity = 0; machDiamondMat.opacity = 0;
       }
 
-      // Spawn exhaust
       spawnExhaust(engineIntensity, dt, isPadSmokeActive);
 
-      // ── Update Flame Particles (swap-remove, zero GC) ──
       for (let i = flameCount - 1; i >= 0; i--) {
         fLife[i] += dt;
         if (fLife[i] >= fMaxLife[i]) {
@@ -2006,7 +1821,6 @@ export default function ThreeRocketScene({
       flameGeo.attributes.size.needsUpdate = true;
       flameGeo.attributes.alpha.needsUpdate = true;
 
-      // ── Update Smoke Particles (swap-remove, zero GC) ──
       for (let i = smokeCount - 1; i >= 0; i--) {
         sLife[i] += dt;
         if (sLife[i] >= sMaxLife[i]) {
