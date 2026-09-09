@@ -47,7 +47,7 @@ export default function MemorialInfo({
               </p>
               <div className="flex items-center gap-1.5 text-xs text-slate-300 font-medium mt-2">
                 <Clock className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                <span>ساعت ۱۹:۰۰ (۷ شب) — همزمان با نماز مغرب و عشاء</span>
+                <span>ساعت ۱۹:۰۰ (۷ شب)</span>
               </div>
             </div>
           </div>

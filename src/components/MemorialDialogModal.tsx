@@ -282,7 +282,7 @@ export default function MemorialDialogModal({
               <div className="flex items-center gap-1.5 text-xs text-slate-300 mt-1 font-medium">
                 <Clock className="w-3.5 h-3.5 text-amber-400 shrink-0" />
                 <span>
-                  ساعت {toPersianDigits(memorialTime)} (۷ شب) — همزمان با نماز مغرب و عشاء
+                  ساعت {toPersianDigits(memorialTime)} (۷ شب)
                 </span>
               </div>
             </div>

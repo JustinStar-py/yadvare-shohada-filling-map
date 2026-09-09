@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import MartyrTulipIcon from "./ui/MartyrTulipIcon";
 
 interface Portrait {
   id: string;
@@ -37,6 +38,15 @@ function PortraitTile({ p }: { p: Portrait }) {
   const [loaded, setLoaded] = useState(false);
   return (
     <div className="relative w-full aspect-[3/4] shrink-0 rounded-xl overflow-hidden border border-white/10 bg-gradient-to-b from-slate-800/50 to-slate-950/70">
+      {/* Red tulip stand-in while the portrait streams in (glow off: 152 tiles) */}
+      <div
+        aria-hidden="true"
+        className={`absolute inset-0 flex items-center justify-center transition-opacity duration-1000 ${
+          loaded ? "opacity-0" : "opacity-70"
+        }`}
+      >
+        <MartyrTulipIcon glow={false} className="w-1/2 h-1/2" />
+      </div>
       <img
         src={p.photoUrl}
         alt=""
@@ -56,7 +66,9 @@ function PortraitTile({ p }: { p: Portrait }) {
 
 function PlaceholderTile() {
   return (
-    <div className="w-full aspect-[3/4] shrink-0 rounded-xl border border-white/[0.07] bg-gradient-to-b from-slate-800/40 to-slate-950/60 animate-pulse" />
+    <div className="w-full aspect-[3/4] shrink-0 rounded-xl border border-white/[0.07] bg-gradient-to-b from-slate-800/40 to-slate-950/60 animate-pulse flex items-center justify-center">
+      <MartyrTulipIcon glow={false} className="w-1/2 h-1/2 opacity-40" aria-hidden="true" />
+    </div>
   );
 }
 

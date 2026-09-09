@@ -8,7 +8,7 @@ import OdometerNumber from "./ui/OdometerNumber";
 import { PublicCampaignState, SalawatSubmissionResponse } from "@/types/campaign";
 import { toPersianDigits } from "@/lib/utils";
 import { useCountUp } from "@/lib/client/use-count-up";
-import { Calendar, Target, Sparkles, Rocket } from "lucide-react";
+import { Calendar, Target, Sparkles, Rocket, Mail } from "lucide-react";
 import { UserDailyMission } from "@/components/DailyMissionTourModal";
 import MemorialDialogModal from "./MemorialDialogModal";
 import { MissileModel } from "./engine/missile-catalog";
@@ -309,6 +309,25 @@ export default function HeroSection({
             disabled={isLaunching || campaignPhase === "archived"}
           />
         </div>
+
+        {/* ── Daily envelope entry: opens the personal martyr pledge ── */}
+        {onOpenMissionCard && (
+          <div className="flex justify-center">
+            <button
+              type="button"
+              onClick={onOpenMissionCard}
+              className="group inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full liquid-glass-pill hover:border-amber-400/60 text-[11px] sm:text-xs font-bold text-amber-200/90 hover:text-amber-200 cursor-pointer ios-press transition-colors"
+              title="مشاهده عهد روزانه"
+            >
+              <Mail className="w-3.5 h-3.5 text-amber-400 group-hover:scale-110 transition-transform duration-200" />
+              <span>
+                {userMission && userMission.date === mission.date
+                  ? `عهد امروز: ${userMission.martyr.name}`
+                  : "دریافت عهد امروز"}
+              </span>
+            </button>
+          </div>
+        )}
       </div>
 
       <MemorialDialogModal

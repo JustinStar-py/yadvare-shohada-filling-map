@@ -37,6 +37,10 @@ export default function HomePage() {
   // Cinematic memorial intro: once per user, preloads the main experience.
   const [showIntro, setShowIntro] = useState(false);
   const showIntroRef = useRef(false);
+  const isTourOpenRef = useRef(false);
+  useEffect(() => {
+    isTourOpenRef.current = isTourOpen;
+  }, [isTourOpen]);
   const [isLaunching, setIsLaunching] = useState(false);
   // Physical liftoff (T-0), kept separate from isLaunching (the whole
   // ceremony) so the rocket stays on its pad while the countdown runs.
@@ -196,6 +200,52 @@ export default function HomePage() {
       }
     } catch {}
   }, [loading, state, showIntro]);
+
+  // ── Daily envelope auto-present: one gentle invitation per day ──
+  // Opens the personal martyr envelope once the intro and onboarding tour
+  // are out of the way — unless the user already completed it today or a
+  // ceremony is playing. Dismissing it never re-triggers it the same day.
+  const envelopeAutoOpenedRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!state || loading) return;
+    if (showIntro || isTourOpen || showTourModal) return;
+    if (showLaunchOverlay || isLaunching) return;
+    if (!pendingMissionData) return;
+    const today = state.tehranDate;
+    if (envelopeAutoOpenedRef.current === today) return;
+    if (userMission && userMission.date === today && userMission.completedTour) return;
+    // Wait until the onboarding spotlight tour has actually been finished or
+    // skipped (not merely "not open right now") — otherwise both tours pop
+    // together on first visit. Closing the tour re-runs this effect.
+    try {
+      if (!localStorage.getItem("yadvare_tour_completed_v1")) return;
+    } catch {}
+
+    envelopeAutoOpenedRef.current = today;
+    const timer = setTimeout(() => {
+      // Re-check: the user may have reopened the tour meanwhile.
+      if (isTourOpenRef.current) {
+        envelopeAutoOpenedRef.current = null;
+        return;
+      }
+      if (pendingMissionDataRef.current) {
+        setIsTourReviewMode(false);
+        setShowTourModal(true);
+      }
+    }, 1200);
+    return () => clearTimeout(timer);
+  }, [
+    state,
+    loading,
+    showIntro,
+    isTourOpen,
+    showTourModal,
+    showLaunchOverlay,
+    isLaunching,
+    pendingMissionData,
+    userMission,
+  ]);
 
   // Sacred golden bloom when the day's target is reached (once per transition)
   useEffect(() => {
