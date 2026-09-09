@@ -52,14 +52,14 @@ export default function Header({ tehranDate, onStartTour }: HeaderProps) {
 
   return (
     <header
-      className={`w-full max-w-5xl mx-auto px-4 py-2 flex items-center justify-between z-20 relative pointer-events-auto transition-all duration-500 ${
+      className={`w-full max-w-5xl mx-auto px-4 py-2 flex items-center justify-between z-20 relative pointer-events-none transition-all duration-500 ${
         scrolled
           ? "liquid-glass sm:rounded-full mt-1 sm:mt-2 border-white/[0.12] shadow-[0_12px_36px_rgba(0,0,0,0.65)]"
           : "bg-transparent border-b border-transparent"
       }`}
     >
       {/* Brand identity */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3 pointer-events-auto">
         <YadvareLogo className="w-11 h-11 drop-shadow-[0_2px_14px_rgba(245,158,11,0.35)]" priority />
         <div>
           <h1 className="text-sm sm:text-base font-bold text-slate-100 tracking-wide drop-shadow-sm">
@@ -72,7 +72,7 @@ export default function Header({ tehranDate, onStartTour }: HeaderProps) {
       </div>
 
       {/* Actions: Stacked vertically with Tour button on top and Sound button below */}
-      <div className="flex flex-col items-center justify-center gap-1.5 shrink-0">
+      <div className="flex flex-col items-center justify-center gap-1.5 shrink-0 pointer-events-auto">
         {onStartTour && (
           <button
             type="button"

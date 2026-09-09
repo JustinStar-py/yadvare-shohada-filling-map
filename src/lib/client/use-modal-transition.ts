@@ -13,21 +13,17 @@ import { useState, useEffect } from "react";
  */
 export function useModalTransition(isOpen: boolean, exitDuration = 180) {
   const [mounted, setMounted] = useState(isOpen);
-  const [visible, setVisible] = useState(false);
+  const [visible, setVisible] = useState(isOpen);
 
   useEffect(() => {
     if (isOpen) {
       setMounted(true);
-      let innerRaf: number | null = null;
-      const outerRaf = requestAnimationFrame(() => {
-        innerRaf = requestAnimationFrame(() => {
-          setVisible(true);
-        });
-      });
+      const timer = setTimeout(() => {
+        setVisible(true);
+      }, 20);
 
       return () => {
-        cancelAnimationFrame(outerRaf);
-        if (innerRaf !== null) cancelAnimationFrame(innerRaf);
+        clearTimeout(timer);
       };
     } else {
       setVisible(false);

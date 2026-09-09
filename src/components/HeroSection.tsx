@@ -69,10 +69,10 @@ export default function HeroSection({
 
   return (
     /* First viewport: Seamless 100dvh continuous celestial canvas across all viewports */
-    <section className="relative w-full h-[100dvh] min-h-[100dvh] flex flex-col items-center justify-between px-3 pt-[max(3.75rem,calc(env(safe-area-inset-top)+3.25rem))] pb-[max(0.75rem,env(safe-area-inset-bottom))] z-10">
+    <section className="relative w-full h-[100dvh] min-h-[100dvh] flex flex-col items-center justify-between px-3 pt-[max(5.25rem,calc(env(safe-area-inset-top)+4.75rem))] pb-[max(0.75rem,env(safe-area-inset-bottom))] z-10">
       {/* ── Top: Unified Memorial Context Ribbon ── */}
       <div
-        className={`flex flex-col items-center gap-1 text-center shrink-0 z-20 transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+        className={`relative flex flex-col items-center gap-1 text-center shrink-0 z-30 pointer-events-auto transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${
           hasLiftedOff
             ? "-translate-y-20 opacity-0 pointer-events-none scale-95"
             : "translate-y-0 opacity-100 scale-100"
@@ -80,8 +80,10 @@ export default function HeroSection({
       >
         <button
           type="button"
-          onClick={() => setShowMemorialModal(true)}
-          className="group inline-flex items-center gap-2.5 px-4 sm:px-6 py-2 sm:py-2.5 rounded-full liquid-glass-pill-gold hover:border-amber-400/80 shadow-[0_8px_30px_rgba(245,158,11,0.25)] hover:shadow-[0_8px_36px_rgba(245,158,11,0.4)] cursor-pointer ios-press"
+          onClick={() => {
+            setShowMemorialModal(true);
+          }}
+          className="group inline-flex items-center gap-2.5 px-4 sm:px-6 py-2 sm:py-2.5 rounded-full liquid-glass-pill-gold hover:border-amber-400/80 shadow-[0_8px_30px_rgba(245,158,11,0.25)] hover:shadow-[0_8px_36px_rgba(245,158,11,0.4)] cursor-pointer ios-press pointer-events-auto"
           title="مشاهده اطلاعات و شمارشگر معکوس یادواره شهدا"
         >
           <Calendar className="w-4.5 h-4.5 sm:w-5 sm:h-5 text-amber-400 group-hover:scale-110 transition-transform duration-200 shrink-0" />

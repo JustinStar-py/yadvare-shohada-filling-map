@@ -149,7 +149,7 @@ export default function MemorialDialogModal({
     return `https://www.google.com/maps/search/?api=1&query=${query}`;
   }, [memorialLocation]);
 
-  if (!isModalMounted) return null;
+  if (!isModalMounted || typeof document === "undefined" || !document.body) return null;
 
   return createPortal(
     <div
@@ -171,6 +171,7 @@ export default function MemorialDialogModal({
         className={`relative w-full max-w-lg rounded-[32px] liquid-glass border border-amber-500/35 p-5 sm:p-7 shadow-[0_24px_70px_rgba(0,0,0,0.85),0_0_35px_rgba(245,158,11,0.2)] text-center my-auto overflow-hidden emil-modal-content ${
           isModalVisible ? "opacity-100 scale-100" : "emil-modal-content-hidden"
         }`}
+        onClick={(e) => e.stopPropagation()}
       >
         {/* Decorative corner Islamic floral accents */}
         <div className="absolute top-0 right-0 w-32 h-32 bg-radial from-amber-500/15 via-transparent to-transparent pointer-events-none" />
