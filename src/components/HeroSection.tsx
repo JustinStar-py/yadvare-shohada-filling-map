@@ -81,10 +81,10 @@ export default function HeroSection({
         <button
           type="button"
           onClick={() => setShowMemorialModal(true)}
-          className="group inline-flex items-center gap-2.5 px-4 sm:px-6 py-2 sm:py-2.5 rounded-full bg-slate-900/85 border border-amber-500/35 hover:border-amber-400/70 shadow-[0_4px_20px_rgba(0,0,0,0.5),0_0_12px_rgba(245,158,11,0.15)] hover:shadow-[0_4px_25px_rgba(245,158,11,0.25)] backdrop-blur-md cursor-pointer emil-btn"
+          className="group inline-flex items-center gap-2.5 px-4 sm:px-6 py-2 sm:py-2.5 rounded-full liquid-glass-pill-gold hover:border-amber-400/80 shadow-[0_8px_30px_rgba(245,158,11,0.25)] hover:shadow-[0_8px_36px_rgba(245,158,11,0.4)] cursor-pointer ios-press"
           title="مشاهده اطلاعات و شمارشگر معکوس یادواره شهدا"
         >
-          <Calendar className="w-4.5 h-4.5 sm:w-5 sm:h-5 text-amber-400 group-hover:scale-110 transition-transform duration-160 shrink-0" />
+          <Calendar className="w-4.5 h-4.5 sm:w-5 sm:h-5 text-amber-400 group-hover:scale-110 transition-transform duration-200 shrink-0" />
           <span className="text-sm sm:text-base font-bold text-slate-100">
             {campaignPhase === "memorial_day" ? (
               <strong className="text-amber-300 font-black">امروز، روز برگزاری یادواره شهدا</strong>
@@ -96,7 +96,7 @@ export default function HeroSection({
               </>
             )}
           </span>
-          <span className="text-[10px] text-amber-400/80 bg-amber-500/15 border border-amber-500/30 px-2 py-0.5 rounded-full font-medium hidden sm:inline-flex items-center gap-1 group-hover:bg-amber-500/25 transition-colors duration-160">
+          <span className="text-[10px] text-amber-300/90 bg-amber-500/20 border border-amber-400/35 px-2 py-0.5 rounded-full font-bold hidden sm:inline-flex items-center gap-1 group-hover:bg-amber-500/30 transition-colors">
             اطلاعات مراسم ↗
           </span>
         </button>
@@ -120,7 +120,7 @@ export default function HeroSection({
         />
       </div>
 
-{/* ── Mid-Stage: Mobile Vertical Framing Counters (< md) ── */}
+      {/* ── Mid-Stage: Mobile Vertical Framing Counters (< md) ── */}
       <div
         className={`md:hidden absolute inset-x-0 top-[34%] -translate-y-1/2 w-full max-w-sm mx-auto px-4 flex items-stretch justify-between pointer-events-none z-10 transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${
           hasLiftedOff
@@ -132,9 +132,9 @@ export default function HeroSection({
         {/* Left Side: Target Goal (Vertical Column Box) */}
         <div
           data-tour="target"
-          className="flex flex-col items-center justify-between px-2.5 py-2.5 rounded-2xl bg-slate-900/70 border border-slate-700/50 backdrop-blur-md shadow-[0_8px_24px_rgba(0,0,0,0.45)] w-[62px] min-h-[190px] pointer-events-auto select-none"
+          className="flex flex-col items-center justify-between px-2.5 py-2.5 rounded-2xl liquid-glass w-[64px] min-h-[192px] pointer-events-auto select-none"
         >
-          <div className="w-full flex flex-col items-center pb-1.5 border-b border-white/[0.08] text-center">
+          <div className="w-full flex flex-col items-center pb-1.5 border-b border-white/[0.12] text-center">
             <span className="text-xs font-bold text-slate-300 drop-shadow-[0_1px_4px_rgba(0,0,0,0.9)]">
               هدف
             </span>
@@ -147,9 +147,9 @@ export default function HeroSection({
         {/* Right Side: Live Salawat Counter (Vertical Column Box) */}
         <div
           data-tour="counter"
-          className="flex flex-col items-center justify-between px-2.5 py-2.5 rounded-2xl bg-slate-900/70 border border-amber-500/35 backdrop-blur-md shadow-[0_8px_28px_rgba(245,158,11,0.22),0_4px_16px_rgba(0,0,0,0.5)] w-[62px] min-h-[190px] pointer-events-auto select-none"
+          className="flex flex-col items-center justify-between px-2.5 py-2.5 rounded-2xl liquid-glass-gold w-[64px] min-h-[192px] pointer-events-auto select-none"
         >
-          <div className="w-full flex flex-col items-center pb-1.5 border-b border-amber-500/20 text-center">
+          <div className="w-full flex flex-col items-center pb-1.5 border-b border-amber-400/25 text-center">
             <span className="text-xs font-black text-amber-300 drop-shadow-[0_1px_6px_rgba(245,158,11,0.6)]">
               صلوات
             </span>
@@ -172,9 +172,9 @@ export default function HeroSection({
         {/* Right Side on Screen in RTL (Right Flank: Live Salawat Counter) */}
         <div
           data-tour="counter"
-          className="flex flex-col gap-1.5 p-3.5 lg:p-4 rounded-2xl bg-slate-900/80 border border-amber-500/35 backdrop-blur-md shadow-[0_8px_32px_rgba(245,158,11,0.18),0_4px_16px_rgba(0,0,0,0.5)] w-48 lg:w-56 pointer-events-auto select-none"
+          className="flex flex-col gap-1.5 p-3.5 lg:p-4 rounded-[26px] liquid-glass-gold w-48 lg:w-56 pointer-events-auto select-none"
         >
-          <div className="flex items-center justify-between pb-1.5 border-b border-amber-500/20">
+          <div className="flex items-center justify-between pb-1.5 border-b border-amber-400/25">
             <div className="flex items-center gap-2">
               <Sparkles className="w-4 h-4 text-amber-400 shrink-0" />
               <span className="text-xs lg:text-sm font-black text-amber-300">
@@ -204,16 +204,16 @@ export default function HeroSection({
         {/* Left Side on Screen in RTL (Left Flank: Target Goal) */}
         <div
           data-tour="target"
-          className="flex flex-col gap-1.5 p-3.5 lg:p-4 rounded-2xl bg-slate-900/80 border border-slate-700/60 backdrop-blur-md shadow-[0_8px_32px_rgba(0,0,0,0.5)] w-48 lg:w-56 pointer-events-auto select-none"
+          className="flex flex-col gap-1.5 p-3.5 lg:p-4 rounded-[26px] liquid-glass w-48 lg:w-56 pointer-events-auto select-none"
         >
-          <div className="flex items-center justify-between pb-1.5 border-b border-white/[0.08]">
+          <div className="flex items-center justify-between pb-1.5 border-b border-white/[0.12]">
             <div className="flex items-center gap-2">
               <Target className="w-4 h-4 text-slate-400 shrink-0" />
               <span className="text-xs lg:text-sm font-bold text-slate-300">
                 هدف پویش
               </span>
             </div>
-            <span className="text-[11px] text-slate-400 font-bold bg-slate-800/80 px-2 py-0.5 rounded-full">
+            <span className="text-[11px] text-slate-300 font-bold bg-white/[0.08] px-2 py-0.5 rounded-full border border-white/[0.1]">
               روز {toPersianDigits(mission.dayNumber)}
             </span>
           </div>
@@ -250,7 +250,7 @@ export default function HeroSection({
             type="button"
             disabled={isLaunching}
             onClick={onReplayLaunch}
-            className="group relative w-[76px] h-[76px] sm:w-[88px] sm:h-[88px] md:w-[96px] md:h-[96px] rounded-2xl sm:rounded-3xl bg-slate-950/90 hover:bg-slate-900 border border-amber-500/45 hover:border-amber-400 shadow-[0_8px_32px_rgba(0,0,0,0.8),0_0_24px_rgba(245,158,11,0.3)] hover:shadow-[0_8px_40px_rgba(245,158,11,0.5)] backdrop-blur-xl flex flex-col items-center justify-between p-2 sm:p-2.5 transition-all duration-200 cursor-pointer active:scale-95 emil-btn overflow-hidden select-none"
+            className="group relative w-[76px] h-[76px] sm:w-[88px] sm:h-[88px] md:w-[96px] md:h-[96px] rounded-2xl sm:rounded-3xl liquid-glass-gold hover:border-amber-300 flex flex-col items-center justify-between p-2 sm:p-2.5 cursor-pointer ios-press overflow-hidden select-none"
             title="مشاهده پرواز معنوی موشک به آسمان شهدا"
             aria-label="مشاهده پرواز"
           >

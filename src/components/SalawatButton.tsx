@@ -308,7 +308,7 @@ export default function SalawatButton({
           ))}
         </div>
 
-        {/* Main CTA Button */}
+        {/* Main CTA Button — Apple Liquid Glass interactive surface */}
         <button
           type="button"
           disabled={disabled || isLoading3D}
@@ -318,27 +318,27 @@ export default function SalawatButton({
           onMouseLeave={() => setPressScale(false)}
           onTouchStart={() => setPressScale(true)}
           onTouchEnd={() => setPressScale(false)}
-          className={`relative z-10 group overflow-hidden w-72 sm:w-84 max-w-[calc(100vw-2rem)] min-h-[48px] sm:min-h-[52px] py-2.5 sm:py-3 rounded-2xl font-bold cursor-pointer touch-manipulation focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-300/80 shadow-[0_4px_16px_rgba(245,158,11,0.25)] ${
-            pressScale ? "scale-[0.97]" : "hover:scale-[1.01] active:scale-[0.97]"
+          className={`relative z-10 group overflow-hidden w-72 sm:w-84 max-w-[calc(100vw-2rem)] min-h-[50px] sm:min-h-[54px] py-2.5 sm:py-3 rounded-2xl font-bold cursor-pointer touch-manipulation focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-300/90 ${
+            pressScale ? "scale-[0.96]" : "hover:scale-[1.01] active:scale-[0.96]"
           } ${
             isLoading3D
-              ? "bg-slate-900/85 text-amber-200/80 border border-amber-500/35 shadow-none cursor-not-allowed"
+              ? "liquid-glass text-amber-200/80 border border-amber-500/35 shadow-none cursor-not-allowed"
               : disabled
-              ? "bg-gradient-to-b from-slate-700 to-slate-800 text-slate-400 border border-slate-600/60 shadow-none cursor-not-allowed"
+              ? "bg-gradient-to-b from-slate-800 to-slate-900 text-slate-400 border border-slate-700/60 shadow-none cursor-not-allowed"
               : isCoolingDown
-              ? "bg-gradient-to-b from-amber-500/90 via-amber-600/90 to-amber-700/90 text-slate-900 border border-amber-400/60"
-              : "bg-gradient-to-b from-amber-400 via-amber-500 to-amber-600 text-slate-950 border border-amber-300/80 shadow-[inset_0_1px_0_rgba(255,255,255,0.45),inset_0_-2px_4px_rgba(180,83,9,0.3)]"
+              ? "bg-gradient-to-b from-amber-500/90 via-amber-600/90 to-amber-700/90 text-slate-950 border border-amber-400/70 shadow-[inset_0_1.5px_1px_rgba(255,255,255,0.4),0_8px_24px_rgba(245,158,11,0.3)]"
+              : "bg-gradient-to-b from-[#fef08a] via-[#f59e0b] to-[#d97706] text-slate-950 border border-white/60 shadow-[inset_0_2px_1.5px_0_rgba(255,255,255,0.75),inset_0_-2px_4px_0_rgba(180,83,9,0.45),0_10px_32px_-4px_rgba(245,158,11,0.55),0_4px_12px_rgba(0,0,0,0.35)]"
           }`}
           style={{
             transitionProperty: "transform, filter, background-color, border-color, box-shadow",
-            transitionDuration: "160ms",
-            transitionTimingFunction: "cubic-bezier(0.23, 1, 0.32, 1)",
+            transitionDuration: "240ms",
+            transitionTimingFunction: "cubic-bezier(0.34, 1.4, 0.64, 1)",
           }}
           aria-label="فرستادن صلوات و مشارکت در پویش معنوی یادواره ۷۶ شهید شهیدیه میبد"
         >
-          {/* Subtle Shimmer */}
+          {/* Subtle Liquid Optical Shimmer */}
           {!disabled && !isLoading3D && !isCoolingDown && (
-            <div className="absolute inset-0 bg-gradient-to-l from-transparent via-white/15 to-transparent translate-x-[-160%] group-hover:translate-x-[160%] transition-transform duration-1000 ease-out pointer-events-none" />
+            <div className="absolute inset-0 bg-gradient-to-l from-transparent via-white/30 to-transparent translate-x-[-160%] group-hover:translate-x-[160%] transition-transform duration-1000 ease-out pointer-events-none" />
           )}
 
           {/* 2-Second Recitation Cooldown Progress Bar */}
@@ -352,7 +352,7 @@ export default function SalawatButton({
           {ripples.map((ripple) => (
             <span
               key={ripple.id}
-              className="absolute rounded-full bg-white/35 pointer-events-none"
+              className="absolute rounded-full bg-white/40 pointer-events-none"
               style={{
                 left: ripple.x - 14,
                 top: ripple.y - 14,
@@ -373,7 +373,7 @@ export default function SalawatButton({
               </>
             ) : (
               <span
-                className={`text-sm sm:text-base font-bold tracking-wide drop-shadow-[0_1px_1px_rgba(255,255,255,0.25)] ${
+                className={`text-sm sm:text-base font-black tracking-wide drop-shadow-[0_1px_2px_rgba(255,255,255,0.35)] ${
                   disabled ? "text-slate-400" : "text-slate-950"
                 }`}
               >

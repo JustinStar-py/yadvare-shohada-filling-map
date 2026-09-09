@@ -52,18 +52,20 @@ export default function Header({ tehranDate, onStartTour }: HeaderProps) {
 
   return (
     <header
-      className={`w-full max-w-5xl mx-auto px-4 py-2.5 flex items-center justify-between z-20 relative pointer-events-auto transition-all duration-500 ${
-        scrolled ? "backdrop-blur-md bg-[#090d16]/72 border-b border-white/[0.04]" : ""
+      className={`w-full max-w-5xl mx-auto px-4 py-2 flex items-center justify-between z-20 relative pointer-events-auto transition-all duration-500 ${
+        scrolled
+          ? "liquid-glass sm:rounded-full mt-1 sm:mt-2 border-white/[0.12] shadow-[0_12px_36px_rgba(0,0,0,0.65)]"
+          : "bg-transparent border-b border-transparent"
       }`}
     >
       {/* Brand identity */}
       <div className="flex items-center gap-3">
-        <YadvareLogo className="w-11 h-11 drop-shadow-[0_2px_12px_rgba(245,158,11,0.25)]" priority />
+        <YadvareLogo className="w-11 h-11 drop-shadow-[0_2px_14px_rgba(245,158,11,0.35)]" priority />
         <div>
-          <h1 className="text-sm sm:text-base font-bold text-slate-100 tracking-wide">
+          <h1 className="text-sm sm:text-base font-bold text-slate-100 tracking-wide drop-shadow-sm">
             پویش معنوی یادواره ۷۶ شهید شهیدیه 
           </h1>
-          <p className="text-[11px] text-slate-500 hidden sm:block">
+          <p className="text-[11px] text-slate-400 hidden sm:block">
             {mounted && tehranDate ? `امروز ${formatShortJalaliDate(tehranDate)}` : "یادواره شهدای والامقام"}
           </p>
         </div>
@@ -75,25 +77,25 @@ export default function Header({ tehranDate, onStartTour }: HeaderProps) {
           <button
             type="button"
             onClick={onStartTour}
-            className="w-8.5 h-8.5 sm:w-9 sm:h-9 rounded-full bg-slate-800/80 hover:bg-slate-750 border border-slate-700/60 hover:border-amber-500/50 text-slate-300 hover:text-white flex items-center justify-center cursor-pointer transition-all shadow-sm emil-btn"
+            className="w-8.5 h-8.5 sm:w-9 sm:h-9 rounded-full liquid-glass-pill hover:border-amber-400/60 text-slate-200 hover:text-white flex items-center justify-center cursor-pointer ios-press shadow-sm group"
             title="مشاهده راهنمای پویش"
             aria-label="مشاهده راهنمای پویش"
           >
-            <HelpCircle className="w-4 h-4 text-amber-400" />
+            <HelpCircle className="w-4 h-4 text-amber-400 group-hover:scale-110 transition-transform duration-200" />
           </button>
         )}
 
         <button
           type="button"
           onClick={handleToggleAudio}
-          className="w-8.5 h-8.5 sm:w-9 sm:h-9 rounded-full bg-slate-800/80 hover:bg-slate-750 border border-slate-700/60 hover:border-slate-500 text-slate-300 hover:text-white flex items-center justify-center cursor-pointer transition-all shadow-sm emil-btn"
+          className="w-8.5 h-8.5 sm:w-9 sm:h-9 rounded-full liquid-glass-pill hover:border-amber-400/50 text-slate-300 hover:text-white flex items-center justify-center cursor-pointer ios-press shadow-sm group"
           title={isMuted ? "روشن کردن صدای محیطی" : "قطع صدای محیطی"}
           aria-label={isMuted ? "روشن کردن صدای محیطی" : "قطع صدای محیطی"}
         >
           {isMuted ? (
-            <VolumeX className="w-4 h-4 text-slate-400" />
+            <VolumeX className="w-4 h-4 text-slate-400 group-hover:text-slate-200 transition-colors" />
           ) : (
-            <Volume2 className="w-4 h-4 text-amber-400 animate-pulse" />
+            <Volume2 className="w-4 h-4 text-amber-400 animate-pulse group-hover:scale-110 transition-transform duration-200" />
           )}
         </button>
       </div>

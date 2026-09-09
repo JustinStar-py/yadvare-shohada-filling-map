@@ -28,20 +28,20 @@ export default function DedicationCard({ martyr, martyrs }: DedicationCardProps)
 
   return (
     <section data-tour="dedication" className="w-full max-w-2xl sm:max-w-3xl mx-auto px-3 sm:px-4 py-8 relative z-10" style={{ direction: "rtl" }}>
-      <div className="relative overflow-hidden glass-panel rounded-3xl p-3.5 sm:p-6 md:p-8 border border-amber-500/20 shadow-[0_12px_40px_rgba(0,0,0,0.55)]">
+      <div className="relative overflow-hidden glass-panel rounded-[32px] p-4 sm:p-6 md:p-8 border border-amber-500/25 shadow-[0_16px_50px_rgba(0,0,0,0.65)]">
         {/* Ambient celestial glows */}
-        <div className="absolute -top-24 -right-24 w-72 h-72 bg-amber-500/[0.08] rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-32 -left-24 w-72 h-72 bg-blue-500/[0.05] rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -top-24 -right-24 w-72 h-72 bg-amber-500/[0.1] rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-32 -left-24 w-72 h-72 bg-blue-500/[0.06] rounded-full blur-3xl pointer-events-none" />
 
         {/* Header: Clean & direct */}
         <div className="text-center mb-6 sm:mb-8">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/25 text-amber-300 text-[11px] sm:text-xs font-bold mb-2.5">
-            <Sparkles className="w-3.5 h-3.5" />
+          <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full liquid-glass-pill-gold text-amber-300 text-[11px] sm:text-xs font-bold mb-2.5">
+            <Sparkles className="w-3.5 h-3.5 text-amber-400" />
             <span>پویش معنوی یادواره شهدای شهیدیه میبد</span>
           </div>
           <h2 className="text-lg sm:text-2xl font-black text-slate-100 flex items-center justify-center gap-1.5 drop-shadow-md">
             <span>پرواز امروز به یاد</span>
-            <span className="text-amber-300 underline decoration-amber-500/40 decoration-2 underline-offset-4">
+            <span className="text-amber-300 underline decoration-amber-500/50 decoration-2 underline-offset-4">
               {toPersianDigits(count)} شهید والامقام
             </span>
             <span>:</span>
@@ -58,13 +58,13 @@ export default function DedicationCard({ martyr, martyrs }: DedicationCardProps)
                 key={m.id || idx}
                 type="button"
                 onClick={() => setSelectedMartyr(m)}
-                className={`flex flex-col items-center justify-between h-full px-1.5 py-2.5 sm:px-2.5 sm:py-3.5 rounded-2xl bg-slate-900/70 hover:bg-slate-850 border border-amber-500/20 hover:border-amber-400/50 shadow-sm hover:shadow-[0_0_18px_rgba(245,158,11,0.25)] transition-all duration-300 cursor-pointer group select-none ${
+                className={`flex flex-col items-center justify-between h-full px-1.5 py-2.5 sm:px-2.5 sm:py-3.5 rounded-2xl liquid-glass hover:border-amber-400/60 shadow-sm hover:shadow-[0_0_22px_rgba(245,158,11,0.3)] cursor-pointer ios-press group select-none ${
                   isTenthInTen ? "col-start-2" : ""
                 }`}
                 title="مشاهده مشخصات و زندگی‌نامه"
               >
                 {/* Photo */}
-                <div className="w-14 h-14 sm:w-18 sm:h-18 md:w-20 md:h-20 rounded-2xl overflow-hidden bg-slate-800 border border-amber-500/35 shadow-[0_2px_10px_rgba(0,0,0,0.6)] group-hover:scale-105 transition-transform duration-300 shrink-0 relative">
+                <div className="w-14 h-14 sm:w-18 sm:h-18 md:w-20 md:h-20 rounded-2xl overflow-hidden bg-slate-900 border border-amber-500/40 shadow-[0_4px_14px_rgba(0,0,0,0.65)] group-hover:scale-105 transition-transform duration-300 shrink-0 relative">
                   {m.photoUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
@@ -74,7 +74,7 @@ export default function DedicationCard({ martyr, martyrs }: DedicationCardProps)
                       loading="lazy"
                     />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-amber-400/60 bg-gradient-to-tr from-slate-900 to-slate-800">
+                    <div className="w-full h-full flex items-center justify-center text-amber-400/70 bg-gradient-to-tr from-slate-900 to-slate-800">
                       <Award className="w-8 h-8" />
                     </div>
                   )}
@@ -83,7 +83,7 @@ export default function DedicationCard({ martyr, martyrs }: DedicationCardProps)
 
                 {/* Name: 100% visible, no ellipsis, comfortable font size & spacing */}
                 <div className="w-full mt-2 min-h-[2.4rem] sm:min-h-[2.75rem] flex items-center justify-center">
-                  <span className="text-[10px] sm:text-[11px] md:text-xs font-bold text-slate-200 group-hover:text-amber-300 text-center leading-[1.35] break-words drop-shadow-xs transition-colors">
+                  <span className="text-[10px] sm:text-[11px] md:text-xs font-bold text-slate-100 group-hover:text-amber-300 text-center leading-[1.35] break-words drop-shadow-xs transition-colors">
                     {m.name}
                   </span>
                 </div>
@@ -96,11 +96,11 @@ export default function DedicationCard({ martyr, martyrs }: DedicationCardProps)
       {/* Lightweight modal when a martyr is clicked to read their bio */}
       {selectedMartyr && (
         <div
-          className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in"
+          className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-xl animate-fade-in"
           onClick={() => setSelectedMartyr(null)}
         >
           <div
-            className="relative w-full max-w-lg glass-panel rounded-3xl p-6 sm:p-7 border border-amber-500/30 shadow-[0_16px_50px_rgba(0,0,0,0.8)] text-right"
+            className="relative w-full max-w-lg liquid-glass rounded-[32px] p-6 sm:p-8 border border-amber-500/35 shadow-[0_20px_60px_rgba(0,0,0,0.85)] text-right"
             onClick={(e) => e.stopPropagation()}
             style={{ direction: "rtl" }}
           >
@@ -108,7 +108,7 @@ export default function DedicationCard({ martyr, martyrs }: DedicationCardProps)
             <button
               type="button"
               onClick={() => setSelectedMartyr(null)}
-              className="absolute top-4 left-4 w-8 h-8 rounded-full bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+              className="absolute top-4 left-4 w-8.5 h-8.5 rounded-full liquid-glass-pill text-slate-300 hover:text-white flex items-center justify-center cursor-pointer ios-press"
             >
               <X className="w-4 h-4" />
             </button>

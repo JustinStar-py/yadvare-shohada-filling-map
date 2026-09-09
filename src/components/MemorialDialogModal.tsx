@@ -168,7 +168,7 @@ export default function MemorialDialogModal({
       <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] h-[350px] bg-emerald-500/[0.06] rounded-full blur-[90px] pointer-events-none" />
 
       <div
-        className={`relative w-full max-w-lg rounded-3xl bg-gradient-to-b from-[#0e1628]/95 via-[#0a101d]/95 to-[#060a12]/98 border border-amber-500/30 p-5 sm:p-7 shadow-[0_16px_60px_rgba(0,0,0,0.8),0_0_35px_rgba(245,158,11,0.15)] text-center my-auto overflow-hidden emil-modal-content ${
+        className={`relative w-full max-w-lg rounded-[32px] liquid-glass border border-amber-500/35 p-5 sm:p-7 shadow-[0_24px_70px_rgba(0,0,0,0.85),0_0_35px_rgba(245,158,11,0.2)] text-center my-auto overflow-hidden emil-modal-content ${
           isModalVisible ? "opacity-100 scale-100" : "emil-modal-content-hidden"
         }`}
       >
@@ -180,7 +180,7 @@ export default function MemorialDialogModal({
         <button
           type="button"
           onClick={onClose}
-          className="absolute top-4 left-4 sm:top-5 sm:left-5 w-9 h-9 rounded-full bg-slate-800/90 hover:bg-slate-700 border border-slate-700/70 hover:border-amber-500/50 text-slate-300 hover:text-white flex items-center justify-center transition-all cursor-pointer z-30 shadow-lg emil-btn"
+          className="absolute top-4 left-4 sm:top-5 sm:left-5 w-9 h-9 rounded-full liquid-glass-pill text-slate-300 hover:text-white flex items-center justify-center cursor-pointer z-30 shadow-lg ios-press"
           aria-label="بستن پنجره"
         >
           <X className="w-5 h-5" />
@@ -193,7 +193,7 @@ export default function MemorialDialogModal({
             <YadvareLogo className="w-14 h-14 sm:w-16 sm:h-16 drop-shadow-[0_4px_16px_rgba(245,158,11,0.35)] z-10" />
           </div>
 
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/25 text-amber-300 text-[11px] font-bold mb-2">
+          <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full liquid-glass-pill-gold text-amber-300 text-[11px] font-bold mb-2">
             <Sparkles className="w-3 h-3 text-amber-400" />
             <span>اطلاعیه رسمی برگزاری مراسم یادواره شهدا</span>
           </div>
@@ -220,41 +220,41 @@ export default function MemorialDialogModal({
           </div>
 
           {timeParts.isPast || campaignPhase === "archived" ? (
-            <div className="p-4 rounded-2xl bg-slate-900/80 border border-slate-700/70 text-slate-300 text-xs sm:text-sm">
+            <div className="p-4 rounded-2xl liquid-glass text-slate-300 text-xs sm:text-sm">
               مراسم یادواره شهدای والامقام برگزار گردیده است. یادشان جاودان و راهشان پر رهرو باد.
             </div>
           ) : (
             <div className="grid grid-cols-4 gap-2 sm:gap-3 max-w-md mx-auto" dir="rtl">
               {/* روز */}
-              <div className="flex flex-col items-center justify-center py-2.5 sm:py-3.5 px-2 rounded-2xl bg-slate-900/80 border border-amber-500/30 shadow-[0_4px_16px_rgba(0,0,0,0.5)] emil-stagger-1">
+              <div className="flex flex-col items-center justify-center py-2.5 sm:py-3.5 px-2 rounded-2xl liquid-glass-gold shadow-[0_4px_16px_rgba(0,0,0,0.5)] emil-stagger-1">
                 <span className="text-2xl sm:text-3xl font-black text-amber-300 tabular-nums">
                   {mounted ? toPersianDigits(timeParts.days) : toPersianDigits(daysRemaining)}
                 </span>
-                <span className="text-[10px] sm:text-xs text-slate-400 font-medium mt-0.5">روز</span>
+                <span className="text-[10px] sm:text-xs text-amber-200/80 font-bold mt-0.5">روز</span>
               </div>
 
               {/* ساعت */}
-              <div className="flex flex-col items-center justify-center py-2.5 sm:py-3.5 px-2 rounded-2xl bg-slate-900/80 border border-amber-500/30 shadow-[0_4px_16px_rgba(0,0,0,0.5)] emil-stagger-2">
-                <span className="text-2xl sm:text-3xl font-black text-amber-300 tabular-nums">
+              <div className="flex flex-col items-center justify-center py-2.5 sm:py-3.5 px-2 rounded-2xl liquid-glass shadow-[0_4px_16px_rgba(0,0,0,0.5)] emil-stagger-2">
+                <span className="text-2xl sm:text-3xl font-black text-slate-100 tabular-nums">
                   {mounted ? toPersianDigits(String(timeParts.hours).padStart(2, "0")) : "۰۰"}
                 </span>
                 <span className="text-[10px] sm:text-xs text-slate-400 font-medium mt-0.5">ساعت</span>
               </div>
 
               {/* دقیقه */}
-              <div className="flex flex-col items-center justify-center py-2.5 sm:py-3.5 px-2 rounded-2xl bg-slate-900/80 border border-amber-500/30 shadow-[0_4px_16px_rgba(0,0,0,0.5)] emil-stagger-3">
-                <span className="text-2xl sm:text-3xl font-black text-amber-300 tabular-nums">
+              <div className="flex flex-col items-center justify-center py-2.5 sm:py-3.5 px-2 rounded-2xl liquid-glass shadow-[0_4px_16px_rgba(0,0,0,0.5)] emil-stagger-3">
+                <span className="text-2xl sm:text-3xl font-black text-slate-100 tabular-nums">
                   {mounted ? toPersianDigits(String(timeParts.minutes).padStart(2, "0")) : "۰۰"}
                 </span>
                 <span className="text-[10px] sm:text-xs text-slate-400 font-medium mt-0.5">دقیقه</span>
               </div>
 
               {/* ثانیه */}
-              <div className="flex flex-col items-center justify-center py-2.5 sm:py-3.5 px-2 rounded-2xl bg-slate-900/80 border border-rose-500/40 shadow-[0_4px_16px_rgba(244,63,94,0.15)] emil-stagger-4">
+              <div className="flex flex-col items-center justify-center py-2.5 sm:py-3.5 px-2 rounded-2xl liquid-glass border-rose-500/40 shadow-[0_4px_16px_rgba(244,63,94,0.15)] emil-stagger-4">
                 <span className="text-2xl sm:text-3xl font-black text-rose-400 tabular-nums animate-pulse">
                   {mounted ? toPersianDigits(String(timeParts.seconds).padStart(2, "0")) : "۰۰"}
                 </span>
-                <span className="text-[10px] sm:text-xs text-slate-400 font-medium mt-0.5">ثانیه</span>
+                <span className="text-[10px] sm:text-xs text-rose-300/80 font-medium mt-0.5">ثانیه</span>
               </div>
             </div>
           )}
@@ -306,7 +306,7 @@ export default function MemorialDialogModal({
             href={googleCalendarUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex-1 min-w-[140px] inline-flex items-center justify-center gap-1.5 py-2.5 px-3.5 rounded-xl bg-slate-800/80 border border-slate-700 text-xs font-semibold text-slate-200 hover:bg-slate-700 hover:text-white cursor-pointer shadow-sm emil-btn"
+            className="flex-1 min-w-[140px] inline-flex items-center justify-center gap-1.5 py-2.5 px-3.5 rounded-2xl liquid-glass text-xs font-bold text-slate-200 hover:text-white cursor-pointer shadow-sm ios-press"
             title="افزودن این مراسم به تقویم گوگل"
           >
             <CalendarPlus className="w-4 h-4 text-amber-400" />
@@ -318,7 +318,7 @@ export default function MemorialDialogModal({
             href={mapUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex-1 min-w-[140px] inline-flex items-center justify-center gap-1.5 py-2.5 px-3.5 rounded-xl bg-slate-800/80 border border-slate-700 text-xs font-semibold text-slate-200 hover:bg-slate-700 hover:text-white cursor-pointer shadow-sm emil-btn"
+            className="flex-1 min-w-[140px] inline-flex items-center justify-center gap-1.5 py-2.5 px-3.5 rounded-2xl liquid-glass text-xs font-bold text-slate-200 hover:text-white cursor-pointer shadow-sm ios-press"
             title="مسیریابی محل مراسم روی نقشه"
           >
             <Navigation className="w-4 h-4 text-cyan-400" />
@@ -329,7 +329,7 @@ export default function MemorialDialogModal({
           <button
             type="button"
             onClick={handleCopyInvite}
-            className="w-full inline-flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-slate-950 font-bold text-xs hover:brightness-110 shadow-[0_4px_18px_rgba(245,158,11,0.3)] cursor-pointer emil-btn"
+            className="w-full inline-flex items-center justify-center gap-2 py-3 px-4 rounded-2xl bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-slate-950 font-black text-xs hover:brightness-110 shadow-[0_6px_24px_rgba(245,158,11,0.35),inset_0_1.5px_1px_rgba(255,255,255,0.6)] cursor-pointer ios-press"
             title="کپی متن دعوت‌نامه برای ارسال به دوستان و بستگان"
           >
             <span className="inline-flex items-center gap-1.5 transition-opacity duration-150">
@@ -351,7 +351,7 @@ export default function MemorialDialogModal({
           <button
             type="button"
             onClick={onClose}
-            className="w-full py-2.5 px-4 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-700/60 hover:border-slate-600 text-slate-400 hover:text-slate-200 font-bold text-xs transition-colors cursor-pointer emil-btn"
+            className="w-full py-2.5 px-4 rounded-2xl liquid-glass-pill text-slate-400 hover:text-slate-200 font-bold text-xs transition-colors cursor-pointer ios-press"
           >
             بستن پنجره
           </button>

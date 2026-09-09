@@ -29,14 +29,14 @@ export default function CommunityProgress({
       {(isLaunched || isReady) && (
         <div className="flex flex-wrap items-center justify-center gap-2 text-[11px] text-slate-400 min-h-[18px] mb-0.5">
           {isLaunched ? (
-            <div className="flex items-center justify-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/25 shadow-sm">
+            <div className="flex items-center justify-center gap-1.5 px-3.5 py-1 rounded-full bg-emerald-500/15 border border-emerald-400/35 shadow-[0_4px_16px_rgba(16,185,129,0.2),inset_0_1px_1px_rgba(255,255,255,0.3)] backdrop-blur-md">
               <CheckCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-400 shrink-0" />
               <span className="text-emerald-300 font-bold text-[11px] sm:text-xs leading-relaxed text-center">
                  سوخت پرواز امروز با صلوات‌های پرمهرتان تأمین شد؛ سپاسگزاریم  
               </span>
             </div>
           ) : (
-            <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/25">
+            <div className="flex items-center gap-1.5 px-3.5 py-1 rounded-full liquid-glass-pill-gold">
               <Sparkles className="w-3.5 h-3.5 text-amber-400" />
               <span className="text-amber-200 font-bold text-xs">آماده پرواز</span>
             </div>
@@ -46,7 +46,7 @@ export default function CommunityProgress({
 
       {/* Progress track — identical width to SalawatButton (Placed below status line) */}
       <div className="w-72 sm:w-84 max-w-[calc(100vw-2rem)] relative h-5 sm:h-6 py-0.5 sm:py-1">
-        <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-3.5 sm:h-4.5 rounded-full bg-slate-950/80 border border-amber-500/25 shadow-[inset_0_2px_4px_rgba(0,0,0,0.85)] overflow-hidden" />
+        <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-3.5 sm:h-4.5 rounded-full bg-slate-950/90 border border-white/[0.14] shadow-[inset_0_2px_5px_rgba(0,0,0,0.95),0_1px_2px_rgba(255,255,255,0.08)] overflow-hidden" />
 
         <div
           className="absolute top-1/2 -translate-y-1/2 right-0 h-3.5 sm:h-4.5 rounded-full"
@@ -54,9 +54,9 @@ export default function CommunityProgress({
             width: `${percentage}%`,
             background: "linear-gradient(to left, #d97706, #f59e0b 35%, #fbbf24 70%, #fef08a)",
             boxShadow: isReady
-              ? "0 0 20px rgba(245,158,11,0.85), inset 0 1px 2px rgba(255,255,255,0.6)"
-              : "0 0 12px rgba(245,158,11,0.5), inset 0 1px 2px rgba(255,255,255,0.45)",
-            transition: "width 0.2s ease-out",
+              ? "0 0 24px rgba(245,158,11,0.9), inset 0 1.5px 2px rgba(255,255,255,0.75)"
+              : "0 0 14px rgba(245,158,11,0.55), inset 0 1.5px 2px rgba(255,255,255,0.55)",
+            transition: "width 0.25s cubic-bezier(0.16, 1, 0.3, 1)",
           }}
         />
 
