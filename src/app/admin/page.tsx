@@ -26,6 +26,7 @@ import {
   Square,
   Zap,
   LogOut,
+  Share2,
 } from "lucide-react";
 import {
   CampaignSettings,
@@ -33,6 +34,7 @@ import {
   MartyrProfile,
   ConstellationStar,
   AdminAuditLog,
+  DEFAULT_SHARE_MESSAGE,
 } from "@/types/campaign";
 import { MISSILE_MODELS, MissileModel } from "@/components/engine/missile-catalog";
 import { formatPersianNumber, toPersianDigits, formatTehranTime, formatJalaliDate } from "@/lib/utils";
@@ -1255,6 +1257,33 @@ export default function AdminPage() {
                 onChange={(e) => setSettings({ ...settings, memorialLocation: e.target.value })}
                 className="w-full py-2 px-3 rounded-xl bg-slate-950 border border-slate-700 text-slate-100 text-xs"
               />
+            </div>
+
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="text-xs text-slate-200 font-bold flex items-center gap-1.5">
+                  <Share2 className="w-3.5 h-3.5 text-amber-400" />
+                  <span>متن پیام اشتراک‌گذاری و دعوت‌نامه عمومی</span>
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setSettings({ ...settings, shareMessage: DEFAULT_SHARE_MESSAGE })}
+                  className="text-[11px] text-amber-400 hover:text-amber-300 underline underline-offset-2 transition-colors cursor-pointer"
+                >
+                  بازنشانی به متن پیش‌فرض
+                </button>
+              </div>
+              <textarea
+                rows={11}
+                value={settings.shareMessage ?? DEFAULT_SHARE_MESSAGE}
+                onChange={(e) => setSettings({ ...settings, shareMessage: e.target.value })}
+                className="w-full py-2.5 px-3.5 rounded-xl bg-slate-950 border border-slate-700 text-slate-100 text-xs leading-relaxed font-sans focus:outline-none focus:border-amber-400/80 transition-colors"
+                style={{ direction: "rtl" }}
+                placeholder="متن پیام اشتراک‌گذاری را وارد فرمایید..."
+              />
+              <p className="text-[11px] text-slate-400 mt-1 leading-normal">
+                این پیام هنگام کلیک کاربران روی دکمه «اشتراک‌گذاری» و دکمه «کپی متن دعوت‌نامه» برای انتشار در پیام‌رسان‌ها (ایتا، بله، تلگرام، شاد و واتساپ) کپی و ارسال می‌شود.
+              </p>
             </div>
 
             <div>

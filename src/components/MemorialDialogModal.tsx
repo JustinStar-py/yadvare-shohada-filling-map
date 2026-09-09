@@ -18,6 +18,7 @@ import {
 import YadvareLogo from "@/components/ui/YadvareLogo";
 import { formatJalaliDate, toPersianDigits } from "@/lib/utils";
 import { useModalTransition } from "@/lib/client/use-modal-transition";
+import { DEFAULT_SHARE_MESSAGE } from "@/types/campaign";
 
 interface MemorialDialogModalProps {
   isOpen: boolean;
@@ -29,6 +30,7 @@ interface MemorialDialogModalProps {
   daysRemaining: number;
   dayNumber?: number;
   campaignPhase?: string;
+  customShareMessage?: string;
 }
 
 interface TimeParts {
@@ -66,6 +68,7 @@ export default function MemorialDialogModal({
   daysRemaining,
   dayNumber,
   campaignPhase,
+  customShareMessage,
 }: MemorialDialogModalProps) {
   const [copied, setCopied] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -109,22 +112,10 @@ export default function MemorialDialogModal({
 
   // Copy invitation details
   const handleCopyInvite = useCallback(async () => {
-    const text = `«پویش معنوی یادواره ۷۶ شهید شهیدیه میبد»
-🕊️ هر صلوات، یک قدم تا پرواز
-
-در این پویش معنوی، هر صلوات شما انرژی سوخت پرواز نمادین موشک هر روز را تأمین کرده و پس از اوج‌گیری، ستاره‌ای ماندگار به یاد شهدای والامقام در آسمان روشن می‌کند.
-
-📌 دعوتنامه حضور در مراسم یادواره شهدای والامقام:
-📅 زمان: ${formattedDate} - ساعت ${toPersianDigits(
-      memorialTime
-    )} (همزمان با نماز مغرب و عشاء)
-📍 مکان: ${memorialLocation || "یزد، میبد، شهیدیه، مسجد امام (عج)"}
-📡 همراه با پخش زنده مراسم
-
-🔗 برای همراهی در پویش و ثبت صلوات روزانه وارد شوید:
-👉 https://yar67.ir
-
-«اللّهُمَّ صَلِّ عَلی مُحَمَّدٍ وَ آلِ مُحَمَّدٍ وَ عَجِّل فَرَجَهُم»`;
+    const text =
+      customShareMessage && customShareMessage.trim().length > 0
+        ? customShareMessage
+        : DEFAULT_SHARE_MESSAGE;
 
     try {
       if (navigator.clipboard) {
@@ -133,7 +124,7 @@ export default function MemorialDialogModal({
         setTimeout(() => setCopied(false), 2500);
       }
     } catch {}
-  }, [formattedDate, memorialTime, memorialLocation]);
+  }, [customShareMessage]);
 
   // Google Calendar quick link
   const googleCalendarUrl = useMemo(() => {

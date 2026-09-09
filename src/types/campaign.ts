@@ -42,6 +42,21 @@ export interface ConstellationStar {
 
 export type MissileModel = "kheibar" | "fattah" | "sejjil" | "khorramshahr";
 
+export const DEFAULT_SHARE_MESSAGE = `«پویش معنوی یادواره ۷۶ شهید شهیدیه میبد»
+🕊️ هر صلوات، یک قدم تا پرواز
+
+در این پویش معنوی، هر صلوات شما انرژی سوخت پرواز نمادین موشک هر روز را تأمین کرده و پس از اوجگیری، ستارهای ماندگار به یاد شهدای والامقام در آسمان روشن میکند.
+
+📌 دعوتنامه حضور در مراسم یادواره شهدای والامقام:
+📅 زمان: پنجشنبه ۲۶ شهریور ۱۴۰۵ - ساعت ۱۹:۰۰ (همزمان با نماز مغرب و عشاء)
+📍 مکان: یزد، میبد، شهیدیه، مسجد امام (عج)
+📡 همراه با پخش زنده مراسم
+
+🔗 برای همراهی در پویش و ثبت صلوات روزانه وارد شوید:
+👉 https://yar67.ir
+
+«اللّهُمَّ صَلِّ عَلی مُحَمَّدٍ وَ آلِ مُحَمَّدٍ وَ عَجِّل فَرَجَهُم»`;
+
 export interface CampaignSettings {
   campaignTitle: string;
   campaignSubtitle: string;
@@ -62,6 +77,7 @@ export interface CampaignSettings {
   finalMessage: string;
   isCompleted: boolean;
   activeMissileModel?: MissileModel;
+  shareMessage?: string;
 }
 
 export interface AdminAuditLog {
@@ -96,6 +112,7 @@ export interface PublicCampaignState {
     finalMessage: string;
     isCompleted: boolean;
     activeMissileModel?: MissileModel;
+    shareMessage?: string;
   };
 }
 
@@ -153,6 +170,7 @@ export const UpdateSettingsSchema = z.object({
   finalMessage: z.string().max(500).optional(),
   adminPin: z.string().min(4).max(32).optional(),
   activeMissileModel: z.enum(["kheibar", "fattah", "sejjil", "khorramshahr"]).optional(),
+  shareMessage: z.string().max(2500).optional(),
 });
 
 export const TargetOverrideSchema = z.object({

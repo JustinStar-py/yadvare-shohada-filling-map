@@ -25,6 +25,12 @@ class SseBroadcaster {
   broadcast(event: string, data: unknown): number {
     const eventId = ++this.seq;
 
+    // Stamp the authoritative sequence into the payload at dispatch time so
+    // callers never precompute (and can never race) seq assignment.
+    if (data !== null && typeof data === "object" && !Array.isArray(data)) {
+      (data as Record<string, unknown>).seq = eventId;
+    }
+
     // Buffer in ring buffer for reconnect replay
     this.history.push({
       id: eventId,

@@ -7,6 +7,7 @@ import {
   MartyrProfile,
   ConstellationStar,
   AdminAuditLog,
+  DEFAULT_SHARE_MESSAGE,
 } from "@/types/campaign";
 import { getShahidiehMartyrProfiles } from "@/lib/data/shohada-shahidieh";
 import { getTehranDateString } from "@/lib/utils";
@@ -135,6 +136,7 @@ function getInitialData(): DatabaseSchema {
     visualPreset: "balanced",
     finalMessage: "در این مسیر نورانی، با هم هزاران صلوات تقدیم روح پرفتوح شهدا کردیم. یادشان تا ابد در دل‌ها جاودان باد.",
     isCompleted: false,
+    shareMessage: DEFAULT_SHARE_MESSAGE,
   };
 
   return {
@@ -424,7 +426,11 @@ async function persistDb(data: DatabaseSchema): Promise<void> {
     await fs.unlink(tempFile).catch(() => {});
   }
 
-  cachedDb = data;
+  // NOTE: persistDb is a pure disk write — it must never reassign cachedDb.
+  // The write-behind flush persists a snapshot while fast mutations keep
+  // landing on the live cache object; replacing cachedDb here would clobber
+  // those in-flight writes with the stale snapshot. Cache updates belong to
+  // the callers (mutateDb/writeDb), which own the slow-path semantics.
   try {
     const stat = await fs.stat(DB_FILE);
     lastDiskMtimeMs = stat.mtimeMs;
@@ -457,16 +463,9 @@ function pruneDb(data: DatabaseSchema): void {
 }
 
 let isDirty = false;
-// Monotonic generation counter: incremented on every mutation. The flusher
-// captures it before persisting and only clears isDirty when the generation
-// is unchanged afterwards — writes arriving mid-flush are never marked clean.
-let dirtyVersion = 0;
 let flushTimer: NodeJS.Timeout | null = null;
 let currentFlushPromise: Promise<void> | null = null;
-let flushFailures = 0;
 const WRITE_BEHIND_INTERVAL_MS = 500;
-const FLUSH_RETRY_BASE_MS = 1000;
-const FLUSH_RETRY_MAX_MS = 15000;
 
 function scheduleWriteBehindFlush(delayMs = WRITE_BEHIND_INTERVAL_MS): void {
   if (flushTimer !== null) return;
@@ -495,9 +494,13 @@ export async function flushDirtyState(): Promise<void> {
     try {
       await dbMutex.runExclusive(async () => {
         if (!isDirty || !cachedDb) return;
+        // Prune the LIVE cache so RAM stays bounded between flushes, then
+        // persist a snapshot. The live object is never replaced: fast writes
+        // landing on it during the await below re-mark isDirty and are picked
+        // up by the next scheduled flush.
+        pruneDb(cachedDb);
         const snapshot = structuredClone(cachedDb);
         isDirty = false;
-        pruneDb(snapshot);
         await persistDb(snapshot);
       });
     } finally {
@@ -558,6 +561,7 @@ export async function writeDb(data: DatabaseSchema): Promise<void> {
     await ensureDbInitialized();
     pruneDb(data);
     await persistDb(data);
+    cachedDb = data;
   });
 }
 
@@ -582,6 +586,7 @@ export async function mutateDb<T>(
     const { data: updatedData, result } = await mutator(workingCopy);
     pruneDb(updatedData);
     await persistDb(updatedData);
+    cachedDb = updatedData;
 
     return result;
   });

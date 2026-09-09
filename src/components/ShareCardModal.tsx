@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { formatPersianNumber, toPersianDigits, formatShortJalaliDate } from "@/lib/utils";
 import { Share2, X, Check, Copy, Send } from "lucide-react";
 import YadvareLogo from "@/components/ui/YadvareLogo";
 import { useModalTransition } from "@/lib/client/use-modal-transition";
+import { DEFAULT_SHARE_MESSAGE } from "@/types/campaign";
 
 interface ShareCardModalProps {
   isOpen: boolean;
@@ -12,6 +13,7 @@ interface ShareCardModalProps {
   salawatCount: number;
   daysRemaining: number;
   tehranDate: string;
+  customShareMessage?: string;
 }
 
 export default function ShareCardModal({
@@ -20,27 +22,17 @@ export default function ShareCardModal({
   salawatCount,
   daysRemaining,
   tehranDate,
+  customShareMessage,
 }: ShareCardModalProps) {
   const [copied, setCopied] = useState(false);
   const { mounted, visible } = useModalTransition(isOpen, 180);
 
-  const shareText = `«پویش معنوی یادواره ۷۶ شهید شهیدیه میبد»
-🕊️ هر صلوات، یک قدم تا پرواز
-
-با فرستادن صلوات در این پویش معنوی، در سوخت‌گیری پرواز نمادین موشک امروز و درخشش ستاره‌ای ماندگار در آسمان شهدا سهیم شوید.
-
-✨ صلوات‌های ثبت‌شده تا این لحظه: ${formatPersianNumber(salawatCount)} صلوات
-⏳ زمان باقی‌مانده تا یادواره بزرگ شهدا: ${toPersianDigits(daysRemaining)} روز
-
-📌 دعوتنامه حضور در مراسم یادواره شهدای والامقام:
-📅 زمان: پنجشنبه ۲۶ شهریور ۱۴۰۵ - ساعت ۱۹:۰۰ (همزمان با نماز مغرب و عشاء)
-📍 مکان: یزد، میبد، شهیدیه، مسجد امام (عج)
-📡 همراه با پخش زنده مراسم
-
-🔗 ثبت صلوات و همراهی در پویش:
-👉 https://yar67.ir
-
-«اللّهُمَّ صَلِّ عَلی مُحَمَّدٍ وَ آلِ مُحَمَّدٍ وَ عَجِّل فَرَجَهُم»`;
+  const shareText = useMemo(() => {
+    if (customShareMessage && customShareMessage.trim().length > 0) {
+      return customShareMessage;
+    }
+    return DEFAULT_SHARE_MESSAGE;
+  }, [customShareMessage]);
 
   const handleCopy = useCallback(async () => {
     try {

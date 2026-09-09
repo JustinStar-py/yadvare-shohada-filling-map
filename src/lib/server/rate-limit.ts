@@ -57,7 +57,16 @@ function globalSingleton<T>(key: string, factory: () => T): T {
 
 export function getClientIp(req: NextRequest): string {
   const forwarded = req.headers.get("x-forwarded-for");
-  if (forwarded) return forwarded.split(",")[0].trim();
+  if (forwarded) {
+    // The rightmost hop is appended by our own trusted reverse proxy and
+    // cannot be spoofed by clients; leftmost values are attacker-controllable
+    // (a client can send its own XFF header that proxies merely append to).
+    const hops = forwarded
+      .split(",")
+      .map((hop) => hop.trim())
+      .filter(Boolean);
+    if (hops.length > 0) return hops[hops.length - 1];
+  }
   return req.headers.get("x-real-ip")?.trim() || "unknown";
 }
 

@@ -23,7 +23,8 @@ export const PublicStateSchema = z.object({
     brightness: z.number().finite(), launchedAt: z.number().finite() })),
   settings: z.object({ campaignTitle: z.string(), campaignSubtitle: z.string(), memorialTitle: z.string(),
     memorialDate: z.string(), memorialLocation: z.string(), memorialTime: z.string().optional(),
-    visualPreset: z.enum(["calm", "balanced", "intense"]), finalMessage: z.string(), isCompleted: z.boolean() }),
+    visualPreset: z.enum(["calm", "balanced", "intense"]), finalMessage: z.string(), isCompleted: z.boolean(),
+    activeMissileModel: z.string().optional(), shareMessage: z.string().optional() }),
 });
 export const PersonalMissionResponseSchema = z.object({
   success: z.literal(true), martyr: MartyrProfileSchema.extend({ id: z.string() }),

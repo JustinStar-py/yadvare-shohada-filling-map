@@ -15,8 +15,9 @@
     "visualPreset": "balanced",
     "finalMessage": "در این مسیر نورانی، با هم هزاران صلوات تقدیم روح پرفتوح شهدا کردیم. یادشان تا ابد در دل‌ها جاودان باد.",
     "isCompleted": false,
-    "activeMissileModel": "kheibar",
-    "adminPinHash": "scrypt$916426ebc2ae319ade07e1ade525eb6e$80ccb1fff0f01f4d34d5e0d1053a259a391d9b8d85e3338256b523224f1258c9"
+    "activeMissileModel": "fattah",
+    "adminPinHash": "scrypt$916426ebc2ae319ade07e1ade525eb6e$80ccb1fff0f01f4d34d5e0d1053a259a391d9b8d85e3338256b523224f1258c9",
+    "shareMessage": "«پویش معنوی یادواره ۷۶ شهید شهیدیه میبد»\n🕊️ هر صلوات، یک قدم تا پرواز\n\nدر این پویش معنوی، هر صلوات شما صرف تامین سوخت پرواز نمادین موشک میشه و پس از اوجگیری، ستارهای ماندگار به یاد شهدای والامقام در آسمان روشن میکند. (هدف امروز: 1000 صلوات)\n\n🔗 برای همراهی در پویش و ثبت صلوات روزانه وارد شوید:\n\n https://yar67.ir\n\n«اللّهُمَّ صَلِّ عَلی مُحَمَّدٍ وَ آلِ مُحَمَّدٍ وَ عَجِّل فَرَجَهُم»"
   },
   "missions": {
     "2026-09-01": {
@@ -935,6 +936,20 @@
     }
   },
   "auditLogs": [
+    {
+      "id": "fe43ecfc-1a3b-4b4b-8e20-ddb31f411e6a",
+      "timestamp": 1788933355000,
+      "action": "SETTINGS_UPDATED",
+      "details": "تنظیمات کلی پویش بروزرسانی شد.",
+      "ip": "::1"
+    },
+    {
+      "id": "d52f4c41-e798-46b1-b31a-3e9c686c1d85",
+      "timestamp": 1788933344136,
+      "action": "SETTINGS_UPDATED",
+      "details": "تنظیمات کلی پویش بروزرسانی شد.",
+      "ip": "::1"
+    },
     {
       "id": "a6228476-1b34-49f6-b318-925f49ef1503",
       "timestamp": 1788906207550,

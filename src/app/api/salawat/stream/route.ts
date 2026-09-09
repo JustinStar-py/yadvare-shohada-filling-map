@@ -14,10 +14,12 @@ export async function GET(req: NextRequest) {
     start(controller) {
       const currentSeq = sseBroadcaster.getCurrentSeq();
 
-      // Send initial connection event with current seq as ID
+      // Send initial connection event with current seq as ID, plus a retry
+      // hint so the browser reconnects natively (replaying via Last-Event-ID)
+      // instead of needing a client-side reconnect timer for transient drops.
       controller.enqueue(
         encoder.encode(
-          `id: ${currentSeq}\nevent: connected\ndata: ${JSON.stringify({ status: "ok", seq: currentSeq, time: Date.now() })}\n\n`
+          `retry: 5000\nid: ${currentSeq}\nevent: connected\ndata: ${JSON.stringify({ status: "ok", seq: currentSeq, time: Date.now() })}\n\n`
         )
       );
 

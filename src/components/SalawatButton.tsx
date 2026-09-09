@@ -11,6 +11,8 @@ interface SalawatButtonProps {
   onOptimisticIncrement: (count: number) => void;
   onSubmissionSuccess?: (data: SalawatSubmissionResponse, flushedCount: number) => void;
   onSubmissionRejected?: (count: number) => void;
+  /** Inline retries exhausted — hand the batch (with its idempotency key) to the durable outbox. */
+  onSubmissionDeferred?: (idempotencyKey: string, count: number) => void;
   disabled?: boolean;
   isLoading3D?: boolean;
 }
@@ -31,18 +33,11 @@ interface Orb {
 const COOLDOWN_MS = 2000; // 2 seconds per salawat as specified
 const BATCH_SIZE = 5; // Batch of 5 salawat before network dispatch
 
-function queueOffline(idempotencyKey: string, count: number) {
-  try {
-    const queue = JSON.parse(localStorage.getItem("offline_salawat_queue") || "[]");
-    queue.push({ idempotencyKey, count, timestamp: Date.now() });
-    localStorage.setItem("offline_salawat_queue", JSON.stringify(queue.slice(-50)));
-  } catch {}
-}
-
 export default function SalawatButton({
   onOptimisticIncrement,
   onSubmissionSuccess,
   onSubmissionRejected,
+  onSubmissionDeferred,
   disabled = false,
   isLoading3D = false,
 }: SalawatButtonProps) {
@@ -87,62 +82,68 @@ export default function SalawatButton({
 
   // Flush pending batch to server with resilient soft retry on 429/network errors
   const flushBatch = useCallback(
-    (countToFlush: number, retryAttempt = 0, existingIdempotencyKey?: string) => {
+    async (countToFlush: number, existingIdempotencyKey?: string) => {
       if (countToFlush <= 0) return;
       const idempotencyKey = existingIdempotencyKey || generateUUID();
       const visitorId = getOrCreateVisitorId();
 
-      fetch("/api/salawat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ idempotencyKey, count: countToFlush, visitorId }),
-        keepalive: true,
-      })
-        .then(async (res) => {
+      for (let attempt = 0; ; attempt++) {
+        let networkError = false;
+        try {
+          const res = await fetch("/api/salawat", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ idempotencyKey, count: countToFlush, visitorId }),
+            keepalive: true,
+          });
+
           if (res.ok) {
-            const data: SalawatSubmissionResponse = await res.json().catch(() => null as any);
+            const data = (await res.json().catch(() => null)) as SalawatSubmissionResponse | null;
             if (data) {
               onSubmissionSuccess?.(data, countToFlush);
             }
             return;
           }
 
-          if (res.status === 409 || res.status === 400) {
-            // Terminal failure (day already launched or bad input) -> rollback
+          if (res.status === 400 || res.status === 409) {
+            // Terminal failure (bad input or day already launched) -> rollback
             onSubmissionRejected?.(countToFlush);
             return;
           }
+          // 429 / 5xx: transient — retry below with the SAME idempotencyKey
+        } catch {
+          networkError = true;
+        }
 
-          // 429 or 5xx: Soft retry with exponential backoff using the SAME idempotencyKey
-          if (retryAttempt < 3) {
-            const delay = Math.min(8000, 1000 * Math.pow(2, retryAttempt) + Math.random() * 400);
-            setTimeout(() => {
-              flushBatch(countToFlush, retryAttempt + 1, idempotencyKey);
-            }, delay);
-          } else {
-            queueOffline(idempotencyKey, countToFlush);
-          }
-        })
-        .catch(() => {
-          if (retryAttempt < 2) {
-            const delay = 1200 * Math.pow(2, retryAttempt) + Math.random() * 300;
-            setTimeout(() => {
-              flushBatch(countToFlush, retryAttempt + 1, idempotencyKey);
-            }, delay);
-          } else {
-            queueOffline(idempotencyKey, countToFlush);
-          }
-        });
+        const maxAttempts = networkError ? 2 : 3;
+        if (attempt >= maxAttempts) {
+          // Transient failures exhausted — defer to the durable outbox with
+          // the same key so the recitation syncs exactly once later.
+          onSubmissionDeferred?.(idempotencyKey, countToFlush);
+          return;
+        }
+
+        const delay = networkError
+          ? 1200 * Math.pow(2, attempt) + Math.random() * 300
+          : Math.min(8000, 1000 * Math.pow(2, attempt) + Math.random() * 400);
+        await new Promise((resolve) => setTimeout(resolve, delay));
+      }
     },
-    [onSubmissionRejected, onSubmissionSuccess]
+    [onSubmissionDeferred, onSubmissionRejected, onSubmissionSuccess]
   );
 
   // Flush remaining salawat on unload so no recitation is lost
   useEffect(() => {
     const handleBeforeUnload = () => {
       if (pendingBatchCountRef.current > 0) {
-        flushBatch(pendingBatchCountRef.current);
+        const idempotencyKey = generateUUID();
+        const countToFlush = pendingBatchCountRef.current;
         pendingBatchCountRef.current = 0;
+        // Best-effort immediate sync via keepalive POST, plus a durable
+        // outbox entry with the SAME key: if the POST is lost the outbox
+        // drains it on the next visit; if both land the server dedupes by key.
+        flushBatch(countToFlush, idempotencyKey);
+        onSubmissionDeferred?.(idempotencyKey, countToFlush);
       }
     };
     window.addEventListener("beforeunload", handleBeforeUnload);
@@ -152,7 +153,7 @@ export default function SalawatButton({
       if (cooldownTimerRef.current) clearTimeout(cooldownTimerRef.current);
       if (spamWarningTimerRef.current) clearTimeout(spamWarningTimerRef.current);
     };
-  }, [flushBatch]);
+  }, [flushBatch, onSubmissionDeferred]);
 
   const handleClick = useCallback(
     (e: React.MouseEvent<HTMLButtonElement> | React.TouchEvent<HTMLButtonElement>) => {

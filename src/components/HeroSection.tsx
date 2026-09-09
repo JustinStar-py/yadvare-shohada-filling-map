@@ -20,6 +20,7 @@ interface HeroSectionProps {
   onSalawatPress: (count: number) => void;
   onSalawatSuccess?: (data: SalawatSubmissionResponse, flushedCount: number) => void;
   onSalawatRejected: (count: number) => void;
+  onSalawatDeferred?: (idempotencyKey: string, count: number) => void;
   onOpenShareModal: () => void;
   onReplayLaunch?: () => void;
   onFlightComplete?: () => void;
@@ -36,6 +37,7 @@ export default function HeroSection({
   onSalawatPress,
   onSalawatSuccess,
   onSalawatRejected,
+  onSalawatDeferred,
   onReplayLaunch,
   onFlightComplete,
   energyBurstTrigger,
@@ -314,6 +316,7 @@ export default function HeroSection({
             onOptimisticIncrement={onSalawatPress}
             onSubmissionSuccess={onSalawatSuccess}
             onSubmissionRejected={onSalawatRejected}
+            onSubmissionDeferred={onSalawatDeferred}
             disabled={isLaunching || campaignPhase === "archived"}
           />
         </div>
@@ -330,6 +333,7 @@ export default function HeroSection({
         daysRemaining={daysRemaining}
         dayNumber={mission.dayNumber}
         campaignPhase={campaignPhase}
+        customShareMessage={campaignState.settings.shareMessage}
       />
     </section>
   );

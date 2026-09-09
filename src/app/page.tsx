@@ -14,10 +14,20 @@ import ShareCardModal from "@/components/ShareCardModal";
 import { PublicCampaignState, SalawatSubmissionResponse, MartyrProfile } from "@/types/campaign";
 import { soundEngine } from "@/lib/client/procedural-audio";
 import YadvareLogo from "@/components/ui/YadvareLogo";
-import { generateUUID, toPersianDigits } from "@/lib/utils";
+import { toPersianDigits } from "@/lib/utils";
 import DailyMissionTourModal, { UserDailyMission } from "@/components/DailyMissionTourModal";
 import { getOrCreateVisitorId } from "@/lib/client/visitor-id";
+import { drainOutbox, enqueueSalawat, subscribeOutbox } from "@/lib/client/salawat-outbox";
 import OnboardingTour from "@/components/OnboardingTour";
+
+// Mission-state rank used to reconcile concurrent server updates with local
+// optimistic state: a server update must never regress a locally reached state.
+const STATE_PRECEDENCE: Record<string, number> = {
+  ACTIVE: 0,
+  READY_TO_LAUNCH: 1,
+  LAUNCHING: 2,
+  LAUNCHED: 3,
+};
 
 export default function HomePage() {
   const [state, setState] = useState<PublicCampaignState | null>(null);
@@ -220,12 +230,6 @@ export default function HomePage() {
             }
 
             // State precedence: server update must never regress a locally reached READY_TO_LAUNCH
-            const STATE_PRECEDENCE: Record<string, number> = {
-              ACTIVE: 0,
-              READY_TO_LAUNCH: 1,
-              LAUNCHING: 2,
-              LAUNCHED: 3,
-            };
             const serverState = update.state || prev.mission.state;
             const localState = prev.mission.state;
             const resolvedState =
@@ -312,10 +316,15 @@ export default function HomePage() {
       });
 
       eventSource.onerror = () => {
-        eventSource?.close();
         if (disposed) return;
-        // Reconnect after 5 seconds (single pending timer — no duplicate streams)
-        reconnectTimer = setTimeout(connectSSE, 5000);
+        // The browser reconnects transient drops by itself (server sends a
+        // retry: hint and replays the gap via Last-Event-ID). Only take over
+        // manually when the browser has given up (CLOSED), e.g. a server
+        // restart briefly failing the stream request.
+        if (eventSource && eventSource.readyState === EventSource.CLOSED) {
+          eventSource.close();
+          reconnectTimer = setTimeout(connectSSE, 5000);
+        }
       };
     };
 
@@ -337,46 +346,6 @@ export default function HomePage() {
     }, 60_000);
     return () => clearInterval(interval);
   }, [loadState]);
-
-  // Flush any offline retry queue on mount in consolidated batches
-  useEffect(() => {
-    const flush = async () => {
-      try {
-        const queue: Array<{ idempotencyKey: string; count: number }> = JSON.parse(
-          localStorage.getItem("offline_salawat_queue") || "[]"
-        );
-        if (queue.length === 0) return;
-        localStorage.removeItem("offline_salawat_queue");
-
-        // Consolidate total pending counts into batches of max 25
-        let totalPending = queue.reduce((sum, item) => sum + (item.count || 1), 0);
-        while (totalPending > 0) {
-          const batchCount = Math.min(25, totalPending);
-          totalPending -= batchCount;
-          try {
-            await fetch("/api/salawat", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                idempotencyKey: generateUUID(),
-                count: batchCount,
-                visitorId: localStorage.getItem("salawat_visitor_id") || undefined,
-              }),
-            });
-          } catch {
-            // If network fails during flush, re-queue the remaining
-            const currentQueue: Array<{ idempotencyKey: string; count: number }> = JSON.parse(
-              localStorage.getItem("offline_salawat_queue") || "[]"
-            );
-            currentQueue.push({ idempotencyKey: generateUUID(), count: batchCount + totalPending });
-            localStorage.setItem("offline_salawat_queue", JSON.stringify(currentQueue.slice(-50)));
-            break;
-          }
-        }
-      } catch {}
-    };
-    flush();
-  }, []);
 
   // ── Optimistic salawat handlers ─────────────────────────────────────────
 
@@ -421,10 +390,21 @@ export default function HomePage() {
   // Server responded with authoritative state on batch success
   const handleSalawatSuccess = useCallback(
     (data: SalawatSubmissionResponse, flushedCount: number) => {
-      serverCountRef.current = data.currentCount;
-      inFlightCountRef.current = Math.max(0, inFlightCountRef.current - flushedCount);
+      const responseEpoch = data.epoch ?? 1;
+      const isEpochAdopt = responseEpoch > lastEpochRef.current;
+
+      if (isEpochAdopt) {
+        // Server epoch moved forward (admin reset / rollover): adopt wholesale.
+        lastEpochRef.current = responseEpoch;
+        serverCountRef.current = data.currentCount;
+        inFlightCountRef.current = 0;
+      } else {
+        // Monotonic re-anchor: never regress below a count an SSE update
+        // already delivered while this POST was in flight.
+        serverCountRef.current = Math.max(serverCountRef.current, data.currentCount);
+        inFlightCountRef.current = Math.max(0, inFlightCountRef.current - flushedCount);
+      }
       displayedCountRef.current = serverCountRef.current + inFlightCountRef.current;
-      lastEpochRef.current = data.epoch ?? lastEpochRef.current;
 
       setState((prev) => {
         if (!prev) return prev;
@@ -433,6 +413,13 @@ export default function HomePage() {
           (newCount >= data.target || data.missionState === "READY_TO_LAUNCH") &&
           prev.mission.state === "ACTIVE";
 
+        // A stale POST response must never regress a locally reached state.
+        const resolvedState = willBeReady
+          ? "READY_TO_LAUNCH"
+          : (STATE_PRECEDENCE[data.missionState] ?? 0) >= (STATE_PRECEDENCE[prev.mission.state] ?? 0)
+            ? data.missionState
+            : prev.mission.state;
+
         return {
           ...prev,
           totalCampaignSalawat: data.totalCampaignSalawat ?? prev.totalCampaignSalawat,
@@ -440,9 +427,12 @@ export default function HomePage() {
             ...prev.mission,
             currentCount: newCount,
             target: data.target,
-            state: willBeReady ? "READY_TO_LAUNCH" : data.missionState,
-            participantsCount: Math.max(prev.mission.participantsCount, data.participantsCount),
-            epoch: data.epoch,
+            state: resolvedState,
+            participantsCount: Math.max(
+              isEpochAdopt ? 0 : prev.mission.participantsCount,
+              data.participantsCount
+            ),
+            epoch: responseEpoch,
           },
         };
       });
@@ -492,6 +482,82 @@ export default function HomePage() {
       return updated;
     });
   }, []);
+
+  // Inline retries in the button exhausted — persist the batch to the durable
+  // outbox under its ORIGINAL idempotency key so it syncs exactly once when
+  // the outbox drains (server-side idempotency dedupes any overlap).
+  const handleSalawatDeferred = useCallback((idempotencyKey: string, count: number) => {
+    const snapshot = stateRef.current;
+    if (!snapshot) return;
+    try {
+      enqueueSalawat({
+        idempotencyKey,
+        visitorId: getOrCreateVisitorId(),
+        count,
+        missionDate: snapshot.tehranDate,
+        clientEpoch: lastEpochRef.current,
+        clientTimestamp: Date.now(),
+      });
+    } catch {
+      // Outbox full or storage unavailable — nothing further we can do here.
+    }
+  }, []);
+
+  // Durable outbox worker: drain deferred submissions until the server
+  // confirms them, retrying with backoff on 429/5xx/network errors.
+  useEffect(() => {
+    const date = state?.tehranDate;
+    if (!date) return;
+
+    // One-time migration: carry over pending legacy-queue entries, preserving
+    // their original idempotency keys (the legacy flush re-keyed batches,
+    // risking double counts, and dropped recitations on non-OK responses).
+    try {
+      const legacy: Array<{ idempotencyKey?: string; count?: number }> = JSON.parse(
+        localStorage.getItem("offline_salawat_queue") || "[]"
+      );
+      if (legacy.length > 0) {
+        localStorage.removeItem("offline_salawat_queue");
+        const visitorId = getOrCreateVisitorId();
+        for (const item of legacy) {
+          if (!item?.idempotencyKey || typeof item.count !== "number") continue;
+          try {
+            enqueueSalawat({
+              idempotencyKey: item.idempotencyKey,
+              visitorId,
+              count: Math.min(50, Math.max(1, Math.round(item.count))),
+              missionDate: date,
+              clientEpoch: lastEpochRef.current,
+              clientTimestamp: Date.now(),
+            });
+          } catch {}
+        }
+      }
+    } catch {}
+
+    const drain = () => {
+      const snapshot = stateRef.current;
+      if (!snapshot) return;
+      drainOutbox(snapshot.tehranDate, lastEpochRef.current, getOrCreateVisitorId());
+    };
+
+    drain();
+    const unsubscribe = subscribeOutbox((event) => {
+      if (event.type === "success") {
+        handleSalawatSuccess(event.data, event.entry.count);
+      } else if (event.type === "rejected") {
+        handleSalawatRejected(event.entry.count);
+      }
+    });
+    window.addEventListener("online", drain);
+    const retryInterval = setInterval(drain, 30_000);
+
+    return () => {
+      unsubscribe();
+      window.removeEventListener("online", drain);
+      clearInterval(retryInterval);
+    };
+  }, [state?.tehranDate, handleSalawatSuccess, handleSalawatRejected]);
 
   // ── Auto launch for every user when they open the page if fuel is full ──
   const autoLaunchedDateRef = useRef<string | null>(null);
@@ -663,6 +729,7 @@ export default function HomePage() {
           onSalawatPress={handleSalawatPress}
           onSalawatSuccess={handleSalawatSuccess}
           onSalawatRejected={handleSalawatRejected}
+          onSalawatDeferred={handleSalawatDeferred}
           onOpenShareModal={() => setShowShareModal(true)}
           onReplayLaunch={handleReplayLaunch}
           onFlightComplete={handleFlightComplete}
@@ -732,6 +799,7 @@ export default function HomePage() {
         salawatCount={state.mission.currentCount}
         daysRemaining={state.daysRemaining}
         tehranDate={state.tehranDate}
+        customShareMessage={state.settings.shareMessage}
       />
 
       {/* Daily Memorial Mission 3D Cinematic Tour Modal */}

@@ -201,6 +201,7 @@ export class CampaignService {
         finalMessage: db.settings.finalMessage,
         isCompleted: db.settings.isCompleted,
         activeMissileModel: db.settings.activeMissileModel || "kheibar",
+        shareMessage: db.settings.shareMessage,
       },
     };
   }
@@ -286,11 +287,10 @@ export class CampaignService {
         count,
       };
 
-      const nextSeq = sseBroadcaster.getCurrentSeq() + 1;
-
-      // Broadcast realtime update to all subscribers
+      // Broadcast realtime update to all subscribers (RAM-first by design:
+      // the write-behind flusher persists within ~500ms and the broadcaster
+      // stamps the authoritative seq into the payload itself)
       const assignedSeq = sseBroadcaster.broadcast("salawat_update", {
-        seq: nextSeq,
         epoch,
         date: today,
         currentCount: mission.currentCount,
@@ -333,11 +333,15 @@ export class CampaignService {
   }> {
     const requireTargetReached = options.requireTargetReached ?? false;
 
-    return mutateDb<{
+    const outcome = await mutateDb<{
       success: boolean;
       message: string;
       mission: DailyMission;
       newStar?: ConstellationStar;
+      pendingBroadcast?: {
+        event: "launch_event";
+        payload: { mission: DailyMission; newStar: ConstellationStar };
+      };
     }>(async (db) => {
       const today = getTehranDateString(new Date(), db.settings.dailyResetHour ?? 0);
       const mission = this.ensureMissionForDate(db, today);
@@ -405,12 +409,6 @@ export class CampaignService {
         ip,
       });
 
-      // Broadcast launch event to all connected clients
-      sseBroadcaster.broadcast("launch_event", {
-        mission,
-        newStar,
-      });
-
       return {
         data: db,
         result: {
@@ -418,9 +416,23 @@ export class CampaignService {
           message: "پرتاب راکت با موفقیت ثبت شد و ستاره جدید در آسمان پویش روشن گردید.",
           mission,
           newStar,
+          pendingBroadcast: { event: "launch_event", payload: { mission, newStar } },
         },
       };
     });
+
+    // Persist-then-broadcast: the launch is announced only once it is durable
+    // on disk, so a crash can never advertise a launch that never happened.
+    if (outcome.pendingBroadcast) {
+      sseBroadcaster.broadcast(outcome.pendingBroadcast.event, outcome.pendingBroadcast.payload);
+    }
+
+    return {
+      success: outcome.success,
+      message: outcome.message,
+      mission: outcome.mission,
+      newStar: outcome.newStar,
+    };
   }
 
   /**
@@ -432,7 +444,12 @@ export class CampaignService {
     message: string;
     mission: DailyMission;
   }> {
-    return mutateDb(async (db) => {
+    const outcome = await mutateDb<{
+      success: boolean;
+      message: string;
+      mission: DailyMission;
+      pendingBroadcast?: { event: "salawat_update"; payload: Record<string, unknown> };
+    }>(async (db) => {
       const today = getTehranDateString(new Date(), db.settings.dailyResetHour ?? 0);
       const mission = this.ensureMissionForDate(db, today);
 
@@ -450,27 +467,33 @@ export class CampaignService {
         ip,
       });
 
-      const nextSeqLaunch = sseBroadcaster.getCurrentSeq() + 1;
-      sseBroadcaster.broadcast("salawat_update", {
-        seq: nextSeqLaunch,
-        epoch: mission.epoch,
-        date: today,
-        currentCount: mission.currentCount,
-        target: mission.target,
-        totalCampaignSalawat: db.totalCampaignSalawat ?? 0,
-        state: mission.state,
-        participantsCount: mission.participantsCount,
-      });
-
       return {
         data: db,
         result: {
           success: true,
           message: "وضعیت پرتاب راکت امروز با موفقیت بازنشانی گردید و امکان پرتاب دوباره فعال شد.",
           mission,
+          pendingBroadcast: {
+            event: "salawat_update",
+            payload: {
+              epoch: mission.epoch,
+              date: today,
+              currentCount: mission.currentCount,
+              target: mission.target,
+              totalCampaignSalawat: db.totalCampaignSalawat ?? 0,
+              state: mission.state,
+              participantsCount: mission.participantsCount,
+            },
+          },
         },
       };
     });
+
+    if (outcome.pendingBroadcast) {
+      sseBroadcaster.broadcast(outcome.pendingBroadcast.event, outcome.pendingBroadcast.payload);
+    }
+
+    return { success: outcome.success, message: outcome.message, mission: outcome.mission };
   }
 
   /**
@@ -481,7 +504,12 @@ export class CampaignService {
     message: string;
     mission: DailyMission;
   }> {
-    return mutateDb(async (db) => {
+    const outcome = await mutateDb<{
+      success: boolean;
+      message: string;
+      mission: DailyMission;
+      pendingBroadcast?: { event: "salawat_update"; payload: Record<string, unknown> };
+    }>(async (db) => {
       const today = getTehranDateString(new Date(), db.settings.dailyResetHour ?? 0);
       const mission = this.ensureMissionForDate(db, today);
 
@@ -510,27 +538,33 @@ export class CampaignService {
         ip,
       });
 
-      const nextSeqReset = sseBroadcaster.getCurrentSeq() + 1;
-      sseBroadcaster.broadcast("salawat_update", {
-        seq: nextSeqReset,
-        epoch: mission.epoch,
-        date: today,
-        currentCount: 0,
-        target: mission.target,
-        totalCampaignSalawat: db.totalCampaignSalawat,
-        state: mission.state,
-        participantsCount: 0,
-      });
-
       return {
         data: db,
         result: {
           success: true,
           message: "صلوات‌های امروز صفر شدند و وضعیت مأموریت بازنشانی گردید.",
           mission,
+          pendingBroadcast: {
+            event: "salawat_update",
+            payload: {
+              epoch: mission.epoch,
+              date: today,
+              currentCount: 0,
+              target: mission.target,
+              totalCampaignSalawat: db.totalCampaignSalawat,
+              state: mission.state,
+              participantsCount: 0,
+            },
+          },
         },
       };
     });
+
+    if (outcome.pendingBroadcast) {
+      sseBroadcaster.broadcast(outcome.pendingBroadcast.event, outcome.pendingBroadcast.payload);
+    }
+
+    return { success: outcome.success, message: outcome.message, mission: outcome.mission };
   }
 
   /**
@@ -540,7 +574,7 @@ export class CampaignService {
     settingsUpdate: Partial<CampaignSettings>,
     ip?: string
   ): Promise<CampaignSettings> {
-    return mutateDb(async (db) => {
+    const settings = await mutateDb<CampaignSettings>(async (db) => {
       const { adminPin, ...rest } = settingsUpdate;
 
       // Never persist a new PIN as plaintext — hash it instead
@@ -569,26 +603,28 @@ export class CampaignService {
         ip,
       });
 
-      const nextSeq = sseBroadcaster.getCurrentSeq() + 1;
-      sseBroadcaster.broadcast("settings_update", {
-        seq: nextSeq,
-        settings: {
-          activeMissileModel: db.settings.activeMissileModel || "kheibar",
-          visualPreset: db.settings.visualPreset,
-          campaignTitle: db.settings.campaignTitle,
-          campaignSubtitle: db.settings.campaignSubtitle,
-          memorialTitle: db.settings.memorialTitle,
-          memorialDate: db.settings.memorialDate,
-          memorialLocation: db.settings.memorialLocation,
-          memorialTime: db.settings.memorialTime || "19:00",
-        },
-      });
-
       return {
         data: db,
         result: db.settings,
       };
     });
+
+    // Persist-then-broadcast: announce settings only once they are durable.
+    sseBroadcaster.broadcast("settings_update", {
+      settings: {
+        activeMissileModel: settings.activeMissileModel || "kheibar",
+        visualPreset: settings.visualPreset,
+        campaignTitle: settings.campaignTitle,
+        campaignSubtitle: settings.campaignSubtitle,
+        memorialTitle: settings.memorialTitle,
+        memorialDate: settings.memorialDate,
+        memorialLocation: settings.memorialLocation,
+        memorialTime: settings.memorialTime || "19:00",
+        shareMessage: settings.shareMessage,
+      },
+    });
+
+    return settings;
   }
 
   /**
@@ -706,7 +742,20 @@ export class CampaignService {
     count: number,
     ip?: string
   ): Promise<{ currentCount: number; target: number; state: DailyMission["state"] }> {
-    const res = await mutateDbFast<{ currentCount: number; target: number; state: DailyMission["state"] }>(async (db) => {
+    const res = await mutateDbFast<{
+      currentCount: number;
+      target: number;
+      state: DailyMission["state"];
+      broadcastPayload: {
+        epoch: number;
+        date: string;
+        currentCount: number;
+        target: number;
+        totalCampaignSalawat: number;
+        participantsCount: number;
+        state: DailyMission["state"];
+      };
+    }>(async (db) => {
       const today = getTehranDateString(new Date(), db.settings.dailyResetHour ?? 0);
       const mission = this.ensureMissionForDate(db, today);
 
@@ -731,31 +780,28 @@ export class CampaignService {
         ip,
       });
 
-      const nextSeq = sseBroadcaster.getCurrentSeq() + 1;
-      const epoch = mission.epoch || 1;
-
-      sseBroadcaster.broadcast("salawat_update", {
-        seq: nextSeq,
-        epoch,
-        date: today,
-        currentCount: mission.currentCount,
-        target: mission.target,
-        totalCampaignSalawat: db.totalCampaignSalawat,
-        participantsCount: mission.participantsCount,
-        state: mission.state,
-      });
-
       return {
         data: db,
         result: {
           currentCount: mission.currentCount,
           target: mission.target,
           state: mission.state,
+          broadcastPayload: {
+            epoch: mission.epoch || 1,
+            date: today,
+            currentCount: mission.currentCount,
+            target: mission.target,
+            totalCampaignSalawat: db.totalCampaignSalawat,
+            participantsCount: mission.participantsCount,
+            state: mission.state,
+          },
         },
       };
     });
     await forceFlush().catch(() => {});
-    return res;
+    // Announce only once the bulk edit is durable.
+    sseBroadcaster.broadcast("salawat_update", res.broadcastPayload);
+    return { currentCount: res.currentCount, target: res.target, state: res.state };
   }
 
   /**
