@@ -50,7 +50,7 @@ export default function ShareCardModal({
         await navigator.share({
           title: "پویش معنوی یادواره ۷۶ شهید شهیدیه میبد",
           text: shareText,
-          url: "https://yar67.ir",
+          url: "https://yar76.ir",
         });
       } else {
         handleCopy();
@@ -133,7 +133,7 @@ export default function ShareCardModal({
           <div className="relative pt-3.5 border-t border-white/[0.08] text-[11px] text-slate-400 flex items-center justify-between font-medium">
             <span>{formatShortJalaliDate(tehranDate)}</span>
             <span className="text-amber-300 font-black tracking-wider px-2.5 py-0.5 rounded-full liquid-glass text-[10px] dir-ltr">
-              yar67.ir
+              yar76.ir
             </span>
             <span className="text-amber-300 font-bold">{toPersianDigits(daysRemaining)} روز تا یادواره</span>
           </div>
