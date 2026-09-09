@@ -265,14 +265,14 @@ export default function AtmosphereCanvas({
       const low = qualityRef.current === "low";
       const layers = low
         ? [
-            { count: 55, sizeMin: 0.3, sizeMax: 0.9, alpha: 0.18, layer: 0 },
-            { count: 30, sizeMin: 0.7, sizeMax: 1.5, alpha: 0.3, layer: 1 },
-            { count: 12, sizeMin: 1.2, sizeMax: 2.2, alpha: 0.42, layer: 2 },
+            { count: 85, sizeMin: 0.3, sizeMax: 0.9, alpha: 0.22, layer: 0 },
+            { count: 48, sizeMin: 0.7, sizeMax: 1.5, alpha: 0.36, layer: 1 },
+            { count: 24, sizeMin: 1.2, sizeMax: 2.2, alpha: 0.48, layer: 2 },
           ]
         : [
-            { count: 100, sizeMin: 0.3, sizeMax: 0.9, alpha: 0.16, layer: 0 },
-            { count: 55, sizeMin: 0.7, sizeMax: 1.5, alpha: 0.3, layer: 1 },
-            { count: 22, sizeMin: 1.2, sizeMax: 2.3, alpha: 0.42, layer: 2 },
+            { count: 145, sizeMin: 0.3, sizeMax: 0.9, alpha: 0.2, layer: 0 },
+            { count: 85, sizeMin: 0.7, sizeMax: 1.6, alpha: 0.35, layer: 1 },
+            { count: 42, sizeMin: 1.2, sizeMax: 2.4, alpha: 0.52, layer: 2 },
           ];
       const stars: BgStar[] = [];
       for (const L of layers) {
@@ -281,11 +281,11 @@ export default function AtmosphereCanvas({
             x: Math.random(),
             y: Math.random(),
             size: L.sizeMin + Math.random() * (L.sizeMax - L.sizeMin),
-            baseAlpha: L.alpha + Math.random() * 0.2,
-            twinkleSpeed: 0.4 + Math.random() * 1.6,
+            baseAlpha: L.alpha + Math.random() * 0.25,
+            twinkleSpeed: 0.8 + Math.random() * 2.2,
             phase: Math.random() * Math.PI * 2,
             layer: L.layer,
-            flare: L.layer === 2 && Math.random() > 0.7,
+            flare: L.layer === 2 ? Math.random() > 0.35 : L.layer === 1 ? Math.random() > 0.7 : false,
           });
         }
       }
@@ -297,7 +297,7 @@ export default function AtmosphereCanvas({
     let w = window.innerWidth;
     let h = window.innerHeight;
     let time = 0;
-    let nextMeteorAt = performance.now() + 7000;
+    let nextMeteorAt = performance.now() + 1500;
     let liftPrev = false;
 
     // ── Nebula layer, pre-rendered offscreen; re-rendered only when fuel bucket changes ──
@@ -407,20 +407,25 @@ export default function AtmosphereCanvas({
       }
 
       // 2. Parallax starfield
+      // 2. Parallax starfield with enhanced lively twinkling
       const parallax = [0.016, 0.04, 0.075];
       for (const s of bgStarsRef.current) {
         const sy = ((s.y * h - scroll * parallax[s.layer]) % h + h) % h;
-        const tw = 0.7 + Math.sin(time * s.twinkleSpeed + s.phase) * 0.3;
+        // Natural lively twinkling pulse
+        const tw = 0.42 + Math.sin(time * s.twinkleSpeed + s.phase) * 0.58;
         const alpha = Math.max(0.04, s.baseAlpha * tw);
-        ctx.fillStyle = `rgba(226, 232, 240, ${alpha.toFixed(3)})`;
+        const starColor = s.flare
+          ? `rgba(254, 243, 199, ${alpha.toFixed(3)})`
+          : `rgba(226, 232, 240, ${alpha.toFixed(3)})`;
+        ctx.fillStyle = starColor;
         ctx.beginPath();
-        ctx.arc(s.x * w, sy, s.size, 0, Math.PI * 2);
+        ctx.arc(s.x * w, sy, s.size * (0.8 + tw * 0.35), 0, Math.PI * 2);
         ctx.fill();
 
-        if (s.flare && alpha > 0.4 && !low) {
-          ctx.strokeStyle = `rgba(226, 232, 240, ${(alpha * 0.3).toFixed(3)})`;
-          ctx.lineWidth = 0.6;
-          const fl = s.size * 4;
+        if (s.flare && alpha > 0.35 && !low) {
+          ctx.strokeStyle = `rgba(251, 191, 36, ${(alpha * 0.45).toFixed(3)})`;
+          ctx.lineWidth = 0.7;
+          const fl = s.size * 4.5 * tw;
           ctx.beginPath();
           ctx.moveTo(s.x * w - fl, sy);
           ctx.lineTo(s.x * w + fl, sy);
@@ -462,43 +467,65 @@ export default function AtmosphereCanvas({
         }
       }
 
-      // 4. Occasional shooting star (high quality only)
-      if (!reducedMotionRef.current && !low && !launching && now > nextMeteorAt) {
-        nextMeteorAt = now + 10000 + Math.random() * 16000;
-        const fromLeft = Math.random() > 0.5;
+      // 4. Frequent celestial shooting stars passing behind the rocket
+      if (!reducedMotionRef.current && !launching && now > nextMeteorAt) {
+        nextMeteorAt = now + (low ? 4200 + Math.random() * 3200 : 2500 + Math.random() * 3000);
+        const fromLeft = Math.random() > 0.45;
         meteorsRef.current.push({
-          x: fromLeft ? -40 : w + 40,
-          y: Math.random() * h * 0.4,
-          vx: (fromLeft ? 1 : -1) * (7 + Math.random() * 4),
-          vy: 2.4 + Math.random() * 1.6,
+          x: fromLeft ? -50 : w + 50,
+          y: Math.random() * h * 0.55,
+          vx: (fromLeft ? 1 : -1) * (6.5 + Math.random() * 4.5),
+          vy: 2.0 + Math.random() * 2.2,
           life: 0,
-          maxLife: 55,
-          len: 90 + Math.random() * 60,
+          maxLife: 60,
+          len: 110 + Math.random() * 90,
         });
+
+        // 35% chance of a dual trailing meteor
+        if (!low && Math.random() < 0.35) {
+          const fromLeft2 = fromLeft;
+          meteorsRef.current.push({
+            x: (fromLeft2 ? -70 : w + 70) + (Math.random() - 0.5) * 40,
+            y: Math.max(20, Math.random() * h * 0.52),
+            vx: (fromLeft2 ? 1 : -1) * (6.0 + Math.random() * 4.0),
+            vy: 2.0 + Math.random() * 2.0,
+            life: -8, // slight delay for trail succession
+            maxLife: 55,
+            len: 90 + Math.random() * 70,
+          });
+        }
       }
       for (let i = meteorsRef.current.length - 1; i >= 0; i--) {
         const m = meteorsRef.current[i];
         m.life++;
+        if (m.life < 0) continue; // pending delayed spawn
         m.x += m.vx;
         m.y += m.vy;
-        if (m.life >= m.maxLife || m.x < -120 || m.x > w + 120) {
+        if (m.life >= m.maxLife || m.x < -140 || m.x > w + 140) {
           meteorsRef.current.splice(i, 1);
           continue;
         }
         const p = m.life / m.maxLife;
-        const alpha = Math.sin(p * Math.PI) * 0.35;
+        const alpha = Math.sin(p * Math.PI) * 0.65;
         const mag = Math.hypot(m.vx, m.vy);
         const tailX = m.x - (m.vx / mag) * m.len;
         const tailY = m.y - (m.vy / mag) * m.len;
         const grad = ctx.createLinearGradient(m.x, m.y, tailX, tailY);
-        grad.addColorStop(0, `rgba(226, 232, 240, ${alpha.toFixed(3)})`);
-        grad.addColorStop(1, "rgba(226, 232, 240, 0)");
+        grad.addColorStop(0, `rgba(254, 243, 199, ${alpha.toFixed(3)})`);
+        grad.addColorStop(0.25, `rgba(251, 191, 36, ${(alpha * 0.7).toFixed(3)})`);
+        grad.addColorStop(1, "rgba(245, 158, 11, 0)");
         ctx.strokeStyle = grad;
-        ctx.lineWidth = 0.9;
+        ctx.lineWidth = 1.2;
         ctx.beginPath();
         ctx.moveTo(m.x, m.y);
         ctx.lineTo(tailX, tailY);
         ctx.stroke();
+
+        // Glowing starhead of the meteor
+        ctx.fillStyle = `rgba(255, 255, 255, ${(alpha * 1.2).toFixed(3)})`;
+        ctx.beginPath();
+        ctx.arc(m.x, m.y, 1.2, 0, Math.PI * 2);
+        ctx.fill();
       }
 
       // 5. Salawat streams — golden orbs from the button into the rocket core
