@@ -29,41 +29,37 @@ export default function DedicationCard({ martyr, martyrs }: DedicationCardProps)
   return (
     <section className="w-full max-w-2xl sm:max-w-3xl mx-auto px-3 sm:px-4 py-6 sm:py-8 relative z-10" style={{ direction: "rtl" }}>
       <div
-        data-tour="dedication"
         className="relative overflow-hidden glass-panel rounded-[32px] p-4 sm:p-6 md:p-8 border border-amber-500/25 shadow-[0_16px_50px_rgba(0,0,0,0.65)]"
       >
         {/* Ambient celestial glows */}
         <div className="absolute -top-24 -right-24 w-72 h-72 bg-amber-500/[0.1] rounded-full blur-3xl pointer-events-none" />
         <div className="absolute -bottom-32 -left-24 w-72 h-72 bg-blue-500/[0.06] rounded-full blur-3xl pointer-events-none" />
 
-        {/* Header: Clean & direct */}
-        <div className="text-center mb-6 sm:mb-8">
-          <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full liquid-glass-pill-gold text-amber-300 text-[11px] sm:text-xs font-bold mb-2.5">
-            <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-            <span>پویش معنوی یادواره شهدای شهیدیه میبد</span>
+        {/* ── Spotlight target: Header + 3 rows (9 martyrs) for ideal tour height and clearance ── */}
+        <div data-tour="dedication" className="w-full rounded-[24px]">
+          {/* Header: Clean & direct */}
+          <div className="text-center mb-5 sm:mb-7">
+            <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full liquid-glass-pill-gold text-amber-300 text-[11px] sm:text-xs font-bold mb-2.5">
+              <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+              <span>پویش معنوی یادواره شهدای شهیدیه میبد</span>
+            </div>
+            <h2 className="text-lg sm:text-2xl font-black text-slate-100 flex items-center justify-center gap-1.5 drop-shadow-md">
+              <span>پرواز امروز به یاد</span>
+              <span className="text-amber-300 underline decoration-amber-500/50 decoration-2 underline-offset-4">
+                {toPersianDigits(count)} شهید والامقام
+              </span>
+              <span>:</span>
+            </h2>
           </div>
-          <h2 className="text-lg sm:text-2xl font-black text-slate-100 flex items-center justify-center gap-1.5 drop-shadow-md">
-            <span>پرواز امروز به یاد</span>
-            <span className="text-amber-300 underline decoration-amber-500/50 decoration-2 underline-offset-4">
-              {toPersianDigits(count)} شهید والامقام
-            </span>
-            <span>:</span>
-          </h2>
-        </div>
 
-        {/* 3x3 + 1 centered grid (3 تا ردیف سه تایی با یکی ردیف یکی) */}
-        <div className="grid grid-cols-3 gap-2 sm:gap-3.5 md:gap-4.5 w-full">
-          {martyrsList.map((m, idx) => {
-            // If total is 10, the 10th item (idx === 9) sits in the center column
-            const isTenthInTen = count === 10 && idx === 9;
-            return (
+          {/* 3-column Grid for first 2 rows (6 martyrs shown in tutorial spotlight) */}
+          <div className="grid grid-cols-3 gap-2 sm:gap-3.5 md:gap-4.5 w-full">
+            {martyrsList.slice(0, 6).map((m, idx) => (
               <button
                 key={m.id || idx}
                 type="button"
                 onClick={() => setSelectedMartyr(m)}
-                className={`flex flex-col items-center justify-between h-full px-1.5 py-2.5 sm:px-2.5 sm:py-3.5 rounded-2xl liquid-glass hover:border-amber-400/60 shadow-sm hover:shadow-[0_0_22px_rgba(245,158,11,0.3)] cursor-pointer ios-press group select-none ${
-                  isTenthInTen ? "col-start-2" : ""
-                }`}
+                className="flex flex-col items-center justify-between h-full px-1.5 py-2.5 sm:px-2.5 sm:py-3.5 rounded-2xl liquid-glass hover:border-amber-400/60 shadow-sm hover:shadow-[0_0_22px_rgba(245,158,11,0.3)] cursor-pointer ios-press group select-none"
                 title="مشاهده مشخصات و زندگی‌نامه"
               >
                 {/* Photo */}
@@ -91,9 +87,55 @@ export default function DedicationCard({ martyr, martyrs }: DedicationCardProps)
                   </span>
                 </div>
               </button>
-            );
-          })}
+            ))}
+          </div>
         </div>
+
+        {/* Remaining rows (rows 3 and 4) if count > 6 */}
+        {martyrsList.length > 6 && (
+          <div className="grid grid-cols-3 gap-2 sm:gap-3.5 md:gap-4.5 w-full mt-2 sm:mt-3.5">
+            {martyrsList.slice(6).map((m, idx) => {
+              // If total is 10, the 10th item (idx === 3 in slice(6)) sits in the center column
+              const isTenthInTen = count === 10 && idx === 3;
+              return (
+                <button
+                  key={m.id || idx + 6}
+                  type="button"
+                  onClick={() => setSelectedMartyr(m)}
+                  className={`flex flex-col items-center justify-between h-full px-1.5 py-2.5 sm:px-2.5 sm:py-3.5 rounded-2xl liquid-glass hover:border-amber-400/60 shadow-sm hover:shadow-[0_0_22px_rgba(245,158,11,0.3)] cursor-pointer ios-press group select-none ${
+                    isTenthInTen ? "col-start-2" : ""
+                  }`}
+                  title="مشاهده مشخصات و زندگی‌نامه"
+                >
+                  {/* Photo */}
+                  <div className="w-14 h-14 sm:w-18 sm:h-18 md:w-20 md:h-20 rounded-2xl overflow-hidden bg-slate-900 border border-amber-500/40 shadow-[0_4px_14px_rgba(0,0,0,0.65)] group-hover:scale-105 transition-transform duration-300 shrink-0 relative">
+                    {m.photoUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={m.photoUrl}
+                        alt={m.name}
+                        className="w-full h-full object-cover"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-amber-400/70 bg-gradient-to-tr from-slate-900 to-slate-800">
+                        <Award className="w-8 h-8" />
+                      </div>
+                    )}
+                    <div className="absolute inset-x-0 bottom-0 h-6 bg-gradient-to-t from-slate-950/80 to-transparent pointer-events-none" />
+                  </div>
+
+                  {/* Name: 100% visible, no ellipsis, comfortable font size & spacing */}
+                  <div className="w-full mt-2 min-h-[2.4rem] sm:min-h-[2.75rem] flex items-center justify-center">
+                    <span className="text-[10px] sm:text-[11px] md:text-xs font-bold text-slate-100 group-hover:text-amber-300 text-center leading-[1.35] break-words drop-shadow-xs transition-colors">
+                      {m.name}
+                    </span>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* Lightweight modal when a martyr is clicked to read their bio */}

@@ -46,7 +46,7 @@ const TOUR_STEPS: TourStep[] = [
     selector: '[data-tour="dedication"]',
     title: "شهدای والامقام پرواز امروز",
     description: "پرواز هر روز به یاد و نام پاک گروهی از شهدای دیار شهیدیه تقدیم می‌شود؛ مشخصات و تصویر آن‌ها را در این بخش مشاهده فرمایید.",
-    preferredPosition: "top",
+    preferredPosition: "bottom",
   },
 ];
 
@@ -265,11 +265,11 @@ export default function OnboardingTour({ isOpen, onClose, onComplete }: Onboardi
       let top = maxY + 14;
 
       if (currentStep.preferredPosition === "top") {
-        if (spaceAbove >= tooltipHeight + 16) {
-          top = minY - tooltipHeight - 14;
+        if (spaceAbove >= tooltipHeight + 8 || spaceAbove >= spaceBelow) {
+          top = minY - tooltipHeight - 10;
           arrowSide = "bottom";
         } else {
-          top = maxY + 14;
+          top = maxY + 12;
           arrowSide = "top";
         }
       } else if (currentStep.preferredPosition === "bottom") {
@@ -315,9 +315,9 @@ export default function OnboardingTour({ isOpen, onClose, onComplete }: Onboardi
       if (els.length > 0) {
         if (targetStep.id === "dedication") {
           const rect = els[0].getBoundingClientRect();
-          // Position dedication card so there is ample room above (~150px) for the tour tooltip
-          const neededSpaceAbove = 150;
-          const targetY = window.scrollY + rect.top - neededSpaceAbove;
+          // Position the 2-row spotlight card near top of viewport (y ≈ 56px),
+          // leaving maximum free space below it for the tutorial box.
+          const targetY = window.scrollY + rect.top - 56;
           window.scrollTo({ top: Math.max(0, targetY), behavior: "smooth" });
         } else {
           const outOfView = els.find((el) => {
