@@ -46,7 +46,7 @@ const TOUR_STEPS: TourStep[] = [
     selector: '[data-tour="dedication"]',
     title: "شهدای والامقام پرواز امروز",
     description: "پرواز هر روز به یاد و نام پاک گروهی از شهدای دیار شهیدیه تقدیم می‌شود؛ مشخصات و تصویر آن‌ها را در این بخش مشاهده فرمایید.",
-    preferredPosition: "top",
+    preferredPosition: "bottom",
   },
 ];
 
@@ -257,7 +257,7 @@ export default function OnboardingTour({ isOpen, onClose, onComplete }: Onboardi
       const combinedWidth = maxX - minX;
 
       const tooltipWidth = Math.min(360, vw - 32);
-      const tooltipHeight = 190;
+      const tooltipHeight = 125;
       const spaceBelow = vh - maxY;
       const spaceAbove = minY;
 
@@ -273,7 +273,7 @@ export default function OnboardingTour({ isOpen, onClose, onComplete }: Onboardi
           arrowSide = "top";
         }
       } else if (currentStep.preferredPosition === "bottom") {
-        if (spaceBelow >= tooltipHeight + 16 || spaceBelow > spaceAbove) {
+        if (spaceBelow >= tooltipHeight + 16 || spaceBelow >= spaceAbove) {
           top = maxY + 14;
           arrowSide = "top";
         } else {
@@ -291,8 +291,8 @@ export default function OnboardingTour({ isOpen, onClose, onComplete }: Onboardi
         }
       }
 
-      // Clamp vertical position
-      top = Math.max(12, Math.min(vh - tooltipHeight - 12, top));
+      // Clamp vertical position within viewport bounds
+      top = Math.max(10, Math.min(vh - tooltipHeight - 10, top));
 
       // Horizontal centering over the combined bounding box
       let left = minX + combinedWidth / 2 - tooltipWidth / 2;
@@ -313,13 +313,24 @@ export default function OnboardingTour({ isOpen, onClose, onComplete }: Onboardi
       const els = findElements(targetStep.selector);
 
       if (els.length > 0) {
-        const outOfView = els.find((el) => {
-          const rect = el.getBoundingClientRect();
-          return rect.top < 70 || rect.bottom > window.innerHeight - 70;
-        });
+        if (targetStep.id === "dedication") {
+          const rect = els[0].getBoundingClientRect();
+          const vh = window.innerHeight;
+          const neededSpaceBelow = 150;
+          // If the element + compact tooltip fits with a comfortable header offset, use 52px.
+          // Otherwise, scroll tighter to top (16px) to maximize space below for the tooltip.
+          const topOffset = vh - rect.height >= neededSpaceBelow + 52 ? 52 : 16;
+          const targetY = window.scrollY + rect.top - topOffset;
+          window.scrollTo({ top: Math.max(0, targetY), behavior: "smooth" });
+        } else {
+          const outOfView = els.find((el) => {
+            const rect = el.getBoundingClientRect();
+            return rect.top < 70 || rect.bottom > window.innerHeight - 70;
+          });
 
-        if (outOfView) {
-          outOfView.scrollIntoView({ behavior: "smooth", block: "center" });
+          if (outOfView) {
+            outOfView.scrollIntoView({ behavior: "smooth", block: "center" });
+          }
         }
       }
     },
@@ -456,56 +467,56 @@ export default function OnboardingTour({ isOpen, onClose, onComplete }: Onboardi
       {/* ── Guided Tooltip Card — Apple iOS 18 Liquid Glass Sheet ── */}
       {tooltipPos && (
         <div
-          className="fixed pointer-events-auto z-[105] w-[calc(100vw-32px)] max-w-[360px] p-4 sm:p-5 rounded-[28px] liquid-glass border border-amber-400/40 shadow-[0_24px_70px_rgba(0,0,0,0.85),0_0_35px_rgba(245,158,11,0.25)] transition-all duration-300 ease-out text-right animate-in fade-in zoom-in-95"
+          className="fixed pointer-events-auto z-[105] w-[calc(100vw-28px)] max-w-[360px] p-3.5 sm:p-4 rounded-[26px] liquid-glass border border-amber-400/40 shadow-[0_24px_70px_rgba(0,0,0,0.85),0_0_35px_rgba(245,158,11,0.25)] transition-all duration-300 ease-out text-right animate-in fade-in zoom-in-95"
           style={{
             top: tooltipPos.top,
             left: tooltipPos.left,
           }}
         >
-          {/* Header */}
-          <div className="flex items-center justify-between pb-2 mb-2.5 border-b border-amber-400/25">
+          {/* Header: Step Pill + Apple Capsule Dots + Close X */}
+          <div className="flex items-center justify-between pb-2 mb-2 border-b border-amber-400/20">
             <div className="flex items-center gap-1.5">
-              <Sparkles className="w-4 h-4 text-amber-400 shrink-0" />
-              <span className="text-[11px] font-black text-amber-300 liquid-glass-pill-gold px-3 py-0.5 rounded-full">
+              <Sparkles className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+              <span className="text-[10px] sm:text-[11px] font-black text-amber-300 liquid-glass-pill-gold px-2.5 py-0.5 rounded-full">
                 گام {toPersianDigits(currentStepIndex + 1)} از {toPersianDigits(TOUR_STEPS.length)}
               </span>
+            </div>
+
+            {/* Pagination Dots */}
+            <div className="flex items-center gap-1">
+              {TOUR_STEPS.map((_, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => goToStep(idx)}
+                  className={`transition-all duration-300 cursor-pointer ${
+                    idx === currentStepIndex
+                      ? "w-4 h-1.5 rounded-full bg-gradient-to-r from-amber-400 to-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.8)]"
+                      : "w-1.5 h-1.5 rounded-full bg-white/25 hover:bg-white/50"
+                  }`}
+                  title={`رفتن به گام ${toPersianDigits(idx + 1)}`}
+                />
+              ))}
             </div>
 
             <button
               type="button"
               onClick={handleSkip}
-              className="w-7 h-7 rounded-full liquid-glass-pill text-slate-300 hover:text-white flex items-center justify-center cursor-pointer ios-press"
+              className="w-6.5 h-6.5 rounded-full liquid-glass-pill text-slate-300 hover:text-white flex items-center justify-center cursor-pointer ios-press"
               title="بستن تور راهنما"
             >
-              <X className="w-3.5 h-3.5" />
+              <X className="w-3 h-3" />
             </button>
           </div>
 
           {/* Title & Body */}
-          <div className="mb-4">
-            <h3 className="text-sm sm:text-base font-black text-slate-100 mb-1.5 tracking-tight">
+          <div className="mb-3">
+            <h3 className="text-xs sm:text-sm font-black text-slate-100 mb-1 tracking-tight">
               {step.title}
             </h3>
-            <p className="text-xs sm:text-[13px] text-slate-300 leading-relaxed font-medium">
+            <p className="text-[11px] sm:text-xs text-slate-300 leading-relaxed font-medium">
               {step.description}
             </p>
-          </div>
-
-          {/* Progress Indicator Dots — Apple capsule pill pagination */}
-          <div className="flex items-center justify-center gap-1.5 mb-4">
-            {TOUR_STEPS.map((_, idx) => (
-              <button
-                key={idx}
-                type="button"
-                onClick={() => goToStep(idx)}
-                className={`transition-all duration-300 cursor-pointer ${
-                  idx === currentStepIndex
-                    ? "w-6 h-2 rounded-full bg-gradient-to-r from-amber-400 to-amber-500 shadow-[0_0_12px_rgba(245,158,11,0.8),inset_0_1px_1px_rgba(255,255,255,0.7)]"
-                    : "w-2 h-2 rounded-full bg-white/20 hover:bg-white/40"
-                }`}
-                title={`رفتن به گام ${toPersianDigits(idx + 1)}`}
-              />
-            ))}
           </div>
 
           {/* Controls Footer — iOS Spring Tactile Actions */}
@@ -513,17 +524,17 @@ export default function OnboardingTour({ isOpen, onClose, onComplete }: Onboardi
             <button
               type="button"
               onClick={handleSkip}
-              className="text-[11px] sm:text-xs text-slate-400 hover:text-amber-300 transition-colors cursor-pointer font-bold"
+              className="text-[11px] text-slate-400 hover:text-amber-300 transition-colors cursor-pointer font-bold"
             >
-              رد کردن تور
+              رد کردن
             </button>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5">
               {currentStepIndex > 0 && (
                 <button
                   type="button"
                   onClick={handlePrev}
-                  className="flex items-center gap-1 px-3.5 py-1.5 rounded-xl liquid-glass text-slate-200 hover:text-white text-xs font-bold cursor-pointer ios-press"
+                  className="flex items-center gap-1 px-3 py-1.5 rounded-xl liquid-glass text-slate-200 hover:text-white text-xs font-bold cursor-pointer ios-press"
                 >
                   <ChevronRight className="w-3.5 h-3.5" />
                   <span>قبلی</span>
@@ -533,7 +544,7 @@ export default function OnboardingTour({ isOpen, onClose, onComplete }: Onboardi
               <button
                 type="button"
                 onClick={handleNext}
-                className="flex items-center gap-1.5 px-4.5 py-2 rounded-2xl bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-slate-950 font-black text-xs shadow-[0_4px_16px_rgba(245,158,11,0.4),inset_0_1.5px_1px_rgba(255,255,255,0.6)] cursor-pointer ios-press"
+                className="flex items-center gap-1.5 px-4 py-1.5 rounded-2xl bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-slate-950 font-black text-xs shadow-[0_4px_16px_rgba(245,158,11,0.4),inset_0_1.5px_1px_rgba(255,255,255,0.6)] cursor-pointer ios-press"
               >
                 <span>{currentStepIndex === TOUR_STEPS.length - 1 ? "پایان تور" : "بعدی"}</span>
                 {currentStepIndex === TOUR_STEPS.length - 1 ? (

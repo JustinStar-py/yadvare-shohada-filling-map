@@ -27,19 +27,22 @@ export default function DedicationCard({ martyr, martyrs }: DedicationCardProps)
   const count = martyrsList.length;
 
   return (
-    <section data-tour="dedication" className="w-full max-w-2xl sm:max-w-3xl mx-auto px-3 sm:px-4 py-8 relative z-10" style={{ direction: "rtl" }}>
-      <div className="relative overflow-hidden glass-panel rounded-[32px] p-4 sm:p-6 md:p-8 border border-amber-500/25 shadow-[0_16px_50px_rgba(0,0,0,0.65)]">
+    <section className="w-full max-w-2xl sm:max-w-3xl mx-auto px-3 sm:px-4 py-4 sm:py-8 relative z-10" style={{ direction: "rtl" }}>
+      <div
+        data-tour="dedication"
+        className="relative overflow-hidden glass-panel rounded-[28px] sm:rounded-[32px] p-3.5 sm:p-6 md:p-8 border border-amber-500/25 shadow-[0_16px_50px_rgba(0,0,0,0.65)]"
+      >
         {/* Ambient celestial glows */}
         <div className="absolute -top-24 -right-24 w-72 h-72 bg-amber-500/[0.1] rounded-full blur-3xl pointer-events-none" />
         <div className="absolute -bottom-32 -left-24 w-72 h-72 bg-blue-500/[0.06] rounded-full blur-3xl pointer-events-none" />
 
         {/* Header: Clean & direct */}
-        <div className="text-center mb-6 sm:mb-8">
-          <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full liquid-glass-pill-gold text-amber-300 text-[11px] sm:text-xs font-bold mb-2.5">
+        <div className="text-center mb-4 sm:mb-7">
+          <div className="inline-flex items-center gap-1.5 px-3 py-0.5 sm:px-3.5 sm:py-1 rounded-full liquid-glass-pill-gold text-amber-300 text-[10px] sm:text-xs font-bold mb-2">
             <Sparkles className="w-3.5 h-3.5 text-amber-400" />
             <span>پویش معنوی یادواره شهدای شهیدیه میبد</span>
           </div>
-          <h2 className="text-lg sm:text-2xl font-black text-slate-100 flex items-center justify-center gap-1.5 drop-shadow-md">
+          <h2 className="text-base sm:text-2xl font-black text-slate-100 flex items-center justify-center gap-1.5 drop-shadow-md">
             <span>پرواز امروز به یاد</span>
             <span className="text-amber-300 underline decoration-amber-500/50 decoration-2 underline-offset-4">
               {toPersianDigits(count)} شهید والامقام
@@ -58,13 +61,13 @@ export default function DedicationCard({ martyr, martyrs }: DedicationCardProps)
                 key={m.id || idx}
                 type="button"
                 onClick={() => setSelectedMartyr(m)}
-                className={`flex flex-col items-center justify-between h-full px-1.5 py-2.5 sm:px-2.5 sm:py-3.5 rounded-2xl liquid-glass hover:border-amber-400/60 shadow-sm hover:shadow-[0_0_22px_rgba(245,158,11,0.3)] cursor-pointer ios-press group select-none ${
+                className={`flex flex-col items-center justify-between h-full px-1 py-2 sm:px-2.5 sm:py-3.5 rounded-2xl liquid-glass hover:border-amber-400/60 shadow-sm hover:shadow-[0_0_22px_rgba(245,158,11,0.3)] cursor-pointer ios-press group select-none ${
                   isTenthInTen ? "col-start-2" : ""
                 }`}
                 title="مشاهده مشخصات و زندگی‌نامه"
               >
                 {/* Photo */}
-                <div className="w-14 h-14 sm:w-18 sm:h-18 md:w-20 md:h-20 rounded-2xl overflow-hidden bg-slate-900 border border-amber-500/40 shadow-[0_4px_14px_rgba(0,0,0,0.65)] group-hover:scale-105 transition-transform duration-300 shrink-0 relative">
+                <div className="w-13 h-13 sm:w-18 sm:h-18 md:w-20 md:h-20 rounded-2xl overflow-hidden bg-slate-900 border border-amber-500/40 shadow-[0_4px_14px_rgba(0,0,0,0.65)] group-hover:scale-105 transition-transform duration-300 shrink-0 relative">
                   {m.photoUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
@@ -82,7 +85,7 @@ export default function DedicationCard({ martyr, martyrs }: DedicationCardProps)
                 </div>
 
                 {/* Name: 100% visible, no ellipsis, comfortable font size & spacing */}
-                <div className="w-full mt-2 min-h-[2.4rem] sm:min-h-[2.75rem] flex items-center justify-center">
+                <div className="w-full mt-1.5 sm:mt-2 min-h-[2.2rem] sm:min-h-[2.75rem] flex items-center justify-center">
                   <span className="text-[10px] sm:text-[11px] md:text-xs font-bold text-slate-100 group-hover:text-amber-300 text-center leading-[1.35] break-words drop-shadow-xs transition-colors">
                     {m.name}
                   </span>
