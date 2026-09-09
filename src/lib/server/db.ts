@@ -1,4 +1,5 @@
 import fs from "fs/promises";
+import { writeFileSync, renameSync, mkdirSync, unlinkSync, statSync } from "fs";
 import path from "path";
 import {
   CampaignSettings,
@@ -19,6 +20,12 @@ export interface DatabaseSchema {
   idempotencyKeys: Record<string, { timestamp: number; count: number }>;
   auditLogs: AdminAuditLog[];
   totalCampaignSalawat?: number;
+  /**
+   * Restart-safe unique-participant tracking: Tehran date → one-way hashes of
+   * visitorIds that contributed that day. Raw device UUIDs are never stored.
+   * Pruned to the retention window on every flush (see pruneDb).
+   */
+  dailyVisitors: Record<string, string[]>;
 }
 
 const DB_DIR = path.join(process.cwd(), "data");
@@ -29,6 +36,8 @@ const STALE_TMP_MS = 60 * 60 * 1000;
 const BACKUP_INTERVAL_MS = 5 * 60 * 1000;
 const IDEMPOTENCY_TTL_MS = 48 * 60 * 60 * 1000;
 const AUDIT_LOG_CAP = 500;
+// Participant hash retention: bounds dailyVisitors growth on disk.
+const DAILY_VISITORS_RETENTION_DAYS = 14;
 
 // Asynchronous in-memory mutex to ensure atomic disk reads and writes
 class AsyncMutex {
@@ -135,6 +144,7 @@ function getInitialData(): DatabaseSchema {
     },
     martyrs: initialMartyrs,
     constellation: initialConstellation,
+    dailyVisitors: {},
     idempotencyKeys: {},
     auditLogs: [
       {
@@ -171,11 +181,22 @@ function normalizeDb(db: DatabaseSchema): DatabaseSchema {
     };
   }
 
+  // Sanitize persisted visitor sets (old files predate the field entirely)
+  const dailyVisitors: Record<string, string[]> = {};
+  if (db.dailyVisitors && typeof db.dailyVisitors === "object") {
+    for (const [date, list] of Object.entries(db.dailyVisitors)) {
+      if (Array.isArray(list)) {
+        dailyVisitors[date] = list.filter((h): h is string => typeof h === "string");
+      }
+    }
+  }
+
   return {
     settings: db.settings,
     missions,
     martyrs: Array.isArray(db.martyrs) ? db.martyrs : [],
     constellation: Array.isArray(db.constellation) ? db.constellation : [],
+    dailyVisitors,
     idempotencyKeys:
       db.idempotencyKeys && typeof db.idempotencyKeys === "object" ? db.idempotencyKeys : {},
     auditLogs: Array.isArray(db.auditLogs) ? db.auditLogs : [],
@@ -365,10 +386,17 @@ async function persistDb(data: DatabaseSchema): Promise<void> {
         }
       }
       if (!backupRenamed) {
-        await fs.writeFile(BACKUP_FILE, jsonContent, "utf-8").catch(() => {});
-        await fs.unlink(tempBackup).catch(() => {});
+        try {
+          await fs.writeFile(BACKUP_FILE, jsonContent, "utf-8");
+          await fs.unlink(tempBackup).catch(() => {});
+          backupRenamed = true;
+        } catch {
+          // Backup failed: do NOT advance lastBackupAt so the next flush retries soon
+        }
       }
-      lastBackupAt = Date.now();
+      if (backupRenamed) {
+        lastBackupAt = Date.now();
+      }
     } catch {
       // Primary file may not exist yet or locked — safe to ignore backup rotation
     }
@@ -418,21 +446,39 @@ function pruneDb(data: DatabaseSchema): void {
   if (data.auditLogs.length > AUDIT_LOG_CAP) {
     data.auditLogs.length = AUDIT_LOG_CAP;
   }
+  // Bound participant-hash growth: keep only the recent retention window.
+  // Tehran-date keys are zero-padded ISO strings, so lexicographic compare works.
+  const cutoff = new Date(now - DAILY_VISITORS_RETENTION_DAYS * 24 * 60 * 60 * 1000)
+    .toISOString()
+    .slice(0, 10);
+  for (const date of Object.keys(data.dailyVisitors)) {
+    if (date < cutoff) delete data.dailyVisitors[date];
+  }
 }
 
 let isDirty = false;
+// Monotonic generation counter: incremented on every mutation. The flusher
+// captures it before persisting and only clears isDirty when the generation
+// is unchanged afterwards — writes arriving mid-flush are never marked clean.
+let dirtyVersion = 0;
 let flushTimer: NodeJS.Timeout | null = null;
 let currentFlushPromise: Promise<void> | null = null;
+let flushFailures = 0;
 const WRITE_BEHIND_INTERVAL_MS = 500;
+const FLUSH_RETRY_BASE_MS = 1000;
+const FLUSH_RETRY_MAX_MS = 15000;
 
-function scheduleWriteBehindFlush(): void {
+function scheduleWriteBehindFlush(delayMs = WRITE_BEHIND_INTERVAL_MS): void {
   if (flushTimer !== null) return;
   flushTimer = setTimeout(async () => {
     flushTimer = null;
     await flushDirtyState().catch((err) => {
       console.error("[db] Background write-behind flush failed:", err);
     });
-  }, WRITE_BEHIND_INTERVAL_MS);
+  }, delayMs);
+  // Never hold the Node process open just for a pending debounced flush;
+  // durability on shutdown is covered by the synchronous exit handlers below.
+  (flushTimer as unknown as { unref?: () => void }).unref?.();
 }
 
 /**

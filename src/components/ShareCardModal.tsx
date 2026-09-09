@@ -24,9 +24,16 @@ export default function ShareCardModal({
   const [copied, setCopied] = useState(false);
   const { mounted, visible } = useModalTransition(isOpen, 180);
 
-  const shareText = `«هر صلوات، یک قدم تا پرواز»\nامروز مردم در پویش یادواره شهدا با هم ${formatPersianNumber(
-    salawatCount
-  )} صلوات فرستاده‌اند.\n${toPersianDigits(daysRemaining)} روز مانده تا یادواره شهدای والامقام.`;
+  const shareText = `🕊️ پویش معنوی یادواره ۷۶ شهید دیار شهیدیه میبد
+«هر صلوات، یک قدم تا پرواز»
+
+با فرستادن صلوات، در سوخت‌گیری پرواز معنوی موشک امروز و درخشش ستاره‌ای ماندگار در آسمان شهدا سهیم شوید.
+
+✨ صلوات‌های ثبت‌شده تا این لحظه: ${formatPersianNumber(salawatCount)} صلوات
+⏳ زمان باقی‌مانده تا یادواره بزرگ شهدا: ${toPersianDigits(daysRemaining)} روز
+
+🔗 شما هم سهم صلوات امروز خود را ثبت کنید:
+👉 yar67.ir`;
 
   const handleCopy = useCallback(async () => {
     try {
@@ -41,7 +48,11 @@ export default function ShareCardModal({
   const handleNativeShare = useCallback(async () => {
     try {
       if (navigator.share) {
-        await navigator.share({ title: "پویش معنوی یادواره ۷۶ شهید شهیدیه میبد", text: shareText });
+        await navigator.share({
+          title: "پویش معنوی یادواره ۷۶ شهید شهیدیه میبد",
+          text: shareText,
+          url: "https://yar67.ir",
+        });
       } else {
         handleCopy();
       }
@@ -122,6 +133,9 @@ export default function ShareCardModal({
 
           <div className="relative pt-3.5 border-t border-white/[0.08] text-[11px] text-slate-400 flex items-center justify-between font-medium">
             <span>{formatShortJalaliDate(tehranDate)}</span>
+            <span className="text-amber-300 font-black tracking-wider px-2.5 py-0.5 rounded-full liquid-glass text-[10px] dir-ltr">
+              yar67.ir
+            </span>
             <span className="text-amber-300 font-bold">{toPersianDigits(daysRemaining)} روز تا یادواره</span>
           </div>
         </div>

@@ -331,16 +331,23 @@ export default function OnboardingTour({ isOpen, onClose, onComplete }: Onboardi
     [findElements, updateGeometry]
   );
 
-  // When tour opens, ALWAYS restart from the very first step (Step 1) and scroll to top
+  const prevIsOpenRef = useRef(false);
+  const goToStepRef = useRef(goToStep);
   useEffect(() => {
-    if (isOpen) {
+    goToStepRef.current = goToStep;
+  });
+
+  // When tour opens (transition from false to true), ALWAYS restart from the very first step (Step 1) and scroll to top
+  useEffect(() => {
+    if (isOpen && !prevIsOpenRef.current) {
       setCurrentStepIndex(0);
-      goToStep(0);
+      goToStepRef.current(0);
       if (typeof window !== "undefined") {
         window.scrollTo({ top: 0, behavior: "smooth" });
       }
     }
-  }, [isOpen, goToStep]);
+    prevIsOpenRef.current = isOpen;
+  }, [isOpen]);
 
   useEffect(() => {
     if (!isOpen) return;
