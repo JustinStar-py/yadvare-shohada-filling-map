@@ -151,7 +151,7 @@ export default function DailyMissionTourModal({
         <button
           type="button"
           onClick={onClose}
-          className="fixed top-4 left-4 sm:top-6 sm:left-6 w-9 h-9 rounded-full bg-slate-900/80 hover:bg-slate-800 border border-slate-700/80 text-slate-400 hover:text-slate-100 flex items-center justify-center cursor-pointer z-50 shadow-lg backdrop-blur-md emil-btn"
+          className="fixed top-4 left-4 sm:top-6 sm:left-6 w-9 h-9 rounded-full liquid-glass-pill text-slate-300 hover:text-white flex items-center justify-center cursor-pointer z-50 ios-press"
           title="بستن"
         >
           <X className="w-4 h-4" />
@@ -163,7 +163,7 @@ export default function DailyMissionTourModal({
         className={`relative w-full max-w-sm sm:max-w-md my-auto flex flex-col items-center text-center [perspective:1200px] transition-all duration-700 ${
           isLetterActive
             ? "p-0 min-h-0 bg-transparent border-transparent shadow-none"
-            : "rounded-3xl bg-gradient-to-b from-slate-900/95 via-[#0b101d]/95 to-slate-950/98 border border-amber-500/25 p-5 sm:p-6 shadow-[0_12px_60px_rgba(0,0,0,0.7),0_0_30px_rgba(245,158,11,0.15)] min-h-[480px] sm:min-h-[510px]"
+            : "rounded-[32px] liquid-glass border border-amber-400/30 p-5 sm:p-6 shadow-[0_24px_70px_rgba(0,0,0,0.85),0_0_35px_rgba(245,158,11,0.2)] min-h-[480px] sm:min-h-[510px]"
         }`}
       >
         {/* ── Background Layer: Header Title (fades out completely when letter is revealed) ── */}
@@ -172,11 +172,11 @@ export default function DailyMissionTourModal({
             isLetterActive ? "opacity-0 blur-sm pointer-events-none scale-90 hidden" : "opacity-100"
           }`}
         >
-          <div className="relative w-12 h-12 mx-auto rounded-2xl bg-gradient-to-b from-amber-500/20 to-amber-500/10 border border-amber-500/30 flex items-center justify-center mb-2 shadow-[0_0_20px_rgba(245,158,11,0.25)] shrink-0">
+          <div className="relative w-12 h-12 mx-auto rounded-[20px] liquid-glass-gold flex items-center justify-center mb-2 shrink-0">
             <YadvareLogo className="w-8 h-8 drop-shadow-sm" />
           </div>
 
-          <span className="text-xs font-bold text-amber-400/90 mb-0.5">
+          <span className="text-xs font-black text-amber-300 mb-0.5">
             عهد معنوی امروز شما
           </span>
           <p className="text-[11px] text-slate-400 mb-1">
@@ -223,12 +223,12 @@ export default function DailyMissionTourModal({
               if (!is3DReady) return;
               handleOpenEnvelope();
             }}
-            className={`w-full max-w-xs py-3.5 px-6 rounded-2xl font-bold text-sm sm:text-base flex items-center justify-center gap-2.5 relative z-30 select-none emil-btn ${
+            className={`w-full max-w-xs py-3.5 px-6 rounded-2xl font-black text-sm sm:text-base flex items-center justify-center gap-2.5 relative z-30 select-none ${
               !is3DReady
                 ? "bg-slate-800/80 border border-slate-700 text-slate-400 cursor-not-allowed shadow-none"
                 : isOpeningEnvelope
                 ? "bg-slate-800 text-slate-400 cursor-not-allowed scale-95 shadow-none"
-                : "bg-gradient-to-l from-rose-600 via-rose-500 to-rose-600 text-white hover:brightness-110 shadow-[0_0_25px_rgba(225,29,72,0.4)] hover:shadow-[0_0_35px_rgba(225,29,72,0.6)] cursor-pointer"
+                : "bg-gradient-to-r from-rose-600 via-rose-500 to-rose-600 text-white shadow-[0_6px_24px_rgba(225,29,72,0.45),inset_0_1.5px_1px_rgba(255,255,255,0.5)] cursor-pointer ios-press"
             }`}
           >
             {!is3DReady ? (
@@ -318,7 +318,7 @@ export default function DailyMissionTourModal({
           <button
             type="button"
             onClick={startRevealed && onClose ? onClose : handleConfirmMission}
-            className="mt-4 w-full py-3.5 px-6 rounded-2xl bg-gradient-to-l from-emerald-600 via-emerald-500 to-emerald-600 text-white font-bold text-sm sm:text-base shadow-[0_0_25px_rgba(16,185,129,0.35)] hover:shadow-[0_0_35px_rgba(16,185,129,0.5)] flex items-center justify-center gap-2 cursor-pointer relative z-50 emil-btn"
+            className="mt-4 w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-emerald-600 via-emerald-500 to-emerald-600 text-white font-black text-sm sm:text-base shadow-[0_6px_24px_rgba(16,185,129,0.45),inset_0_1.5px_1px_rgba(255,255,255,0.5)] flex items-center justify-center gap-2 cursor-pointer relative z-50 ios-press"
           >
             <Check className="w-5 h-5" />
             <span>{startRevealed ? "بستن نامه" : "پذیرش عهد"}</span>

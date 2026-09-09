@@ -25,12 +25,11 @@ export default function CampaignStory() {
   return (
     <section className="w-full max-w-4xl mx-auto px-4 py-14 relative z-10">
       <div className="text-center mb-10">
-        <div className="inline-flex items-center gap-2 text-xs font-semibold text-amber-400/90 mb-3 tracking-wide">
-          <span className="w-7 h-px bg-amber-500/50" />
+        <div className="inline-flex items-center gap-2 text-xs font-black text-amber-300 mb-3 tracking-wide liquid-glass-pill-gold px-4 py-1 rounded-full">
+          <Sparkles className="w-3.5 h-3.5 text-amber-300" />
           <span>داستان پویش</span>
-          <span className="w-7 h-px bg-amber-500/50" />
         </div>
-        <h2 className="text-2xl sm:text-3xl font-bold text-slate-100 mb-3">
+        <h2 className="text-2xl sm:text-3xl font-black text-slate-100 mb-3 tracking-tight">
           داستان این پویش معنوی
         </h2>
       </div>
@@ -39,16 +38,16 @@ export default function CampaignStory() {
         {STEPS.map((step, i) => (
           <div
             key={step.title}
-            className="glass-panel rounded-2xl p-6 flex flex-col items-center text-center gap-3.5 relative overflow-hidden group hover:border-amber-500/30 transition-all duration-500 hover:-translate-y-1"
+            className="liquid-glass rounded-[28px] p-6 sm:p-7 flex flex-col items-center text-center gap-4 relative overflow-hidden group border border-white/[0.12] hover:border-amber-400/40 transition-all duration-500 hover:-translate-y-1 shadow-[0_16px_40px_rgba(0,0,0,0.6)]"
             style={{ animation: `gentleFade 0.8s cubic-bezier(0.22,0.8,0.35,1) ${i * 0.15}s both` }}
           >
-            <div className="absolute -top-16 left-1/2 -translate-x-1/2 w-40 h-40 bg-amber-500/[0.06] rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
+            <div className="absolute -top-16 left-1/2 -translate-x-1/2 w-40 h-40 bg-amber-500/[0.08] rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
 
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-b from-amber-500/15 to-amber-500/[0.04] border border-amber-500/25 flex items-center justify-center text-amber-400">
+            <div className="w-14 h-14 rounded-[20px] liquid-glass-gold flex items-center justify-center text-amber-300 shadow-[0_4px_16px_rgba(245,158,11,0.25)]">
               <step.icon className="w-6 h-6" />
             </div>
-            <h3 className="text-sm font-bold text-slate-200">{step.title}</h3>
-            <p className="text-xs text-slate-400 leading-[1.9]">{step.text}</p>
+            <h3 className="text-sm sm:text-base font-black text-slate-100">{step.title}</h3>
+            <p className="text-xs sm:text-[13px] text-slate-300/90 leading-[1.9] font-medium">{step.text}</p>
           </div>
         ))}
       </div>

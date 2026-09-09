@@ -399,21 +399,21 @@ export default function ConstellationView({ constellation }: ConstellationViewPr
   return (
     <section className="w-full max-w-4xl mx-auto px-4 py-14 relative z-10">
       <div className="text-center mb-8">
-        <div className="inline-flex items-center gap-2 text-xs font-semibold text-amber-400/90 mb-3 tracking-wide">
-          <Sparkles className="w-4 h-4" />
+        <div className="inline-flex items-center gap-2 text-xs font-black text-amber-300 mb-3 tracking-wide liquid-glass-pill-gold px-4 py-1 rounded-full">
+          <Sparkles className="w-3.5 h-3.5 text-amber-300" />
           <span>حافظه معنوی پویش</span>
         </div>
-        <h2 className="text-2xl sm:text-3xl font-bold text-slate-100 mb-3">
+        <h2 className="text-2xl sm:text-3xl font-black text-slate-100 mb-3 tracking-tight">
           صورت‌فلکی یادواره شهدا
         </h2>
-        <p className="text-xs sm:text-sm text-slate-400 max-w-lg mx-auto leading-relaxed">
+        <p className="text-xs sm:text-sm text-slate-300/90 max-w-lg mx-auto leading-relaxed font-medium">
           هر ستاره، پرتاب موفق یک روز است؛ نوری ماندگار که مردم به یاد شهدای والامقام به آسمان فرستادند.
         </p>
       </div>
 
       <div
         ref={containerRef}
-        className="relative w-full h-96 sm:h-[26rem] rounded-3xl overflow-hidden border border-amber-500/25 shadow-[0_25px_60px_-20px_rgba(0,0,0,0.9),inset_0_1px_0_rgba(255,255,255,0.05)]"
+        className="relative w-full h-96 sm:h-[26rem] rounded-[32px] overflow-hidden border border-white/[0.12] shadow-[0_25px_60px_-20px_rgba(0,0,0,0.95),inset_0_1px_1px_rgba(255,255,255,0.08)]"
       >
         <canvas
           ref={canvasRef}
@@ -451,39 +451,39 @@ export default function ConstellationView({ constellation }: ConstellationViewPr
           </div>
         )}
 
-        {/* Star count badge */}
+        {/* Star count badge — iOS Liquid Glass Pill */}
         {constellation.length > 0 && (
-          <div className="absolute top-4 right-4 glass-panel rounded-full px-4 py-1.5 text-[11px] text-amber-200/90 font-semibold flex items-center gap-1.5 pointer-events-none">
-            <Star className="w-3.5 h-3.5 text-amber-400" />
+          <div className="absolute top-4 right-4 liquid-glass-pill-gold rounded-full px-4 py-1.5 text-[11px] font-bold flex items-center gap-1.5 pointer-events-none">
+            <Star className="w-3.5 h-3.5 text-amber-300" />
             {toPersianDigits(constellation.length)} ستاره ماندگار
           </div>
         )}
 
-        {/* Selected star memorial card */}
+        {/* Selected star memorial card — Apple Liquid Glass HUD Sheet */}
         {selected && (
-          <div className="absolute bottom-4 right-4 left-4 sm:left-auto sm:w-96 glass-panel rounded-2xl p-4 animate-gentle-fade z-20">
+          <div className="absolute bottom-4 right-4 left-4 sm:left-auto sm:w-96 liquid-glass rounded-[26px] p-5 border border-amber-400/35 shadow-[0_20px_50px_rgba(0,0,0,0.85),0_0_30px_rgba(245,158,11,0.2)] animate-gentle-fade z-20">
             <div className="flex items-start justify-between gap-3 mb-2.5">
               <div>
-                <span className="text-[10px] font-bold text-amber-400 tracking-wide">
+                <span className="text-[10px] font-black text-amber-300 tracking-wide liquid-glass-pill-gold px-2.5 py-0.5 rounded-full inline-block mb-1">
                   پرواز روز {toPersianDigits(selected.dayNumber)}
                 </span>
-                <h4 className="text-base font-bold text-slate-100 mt-0.5">
+                <h4 className="text-base font-black text-slate-100 mt-1">
                   به یاد {selected.martyrName}
                 </h4>
               </div>
               <button
                 onClick={() => setSelected(null)}
-                className="text-slate-500 hover:text-slate-200 transition-colors p-1 -m-1"
+                className="w-7 h-7 rounded-full liquid-glass-pill text-slate-300 hover:text-white flex items-center justify-center cursor-pointer ios-press"
                 aria-label="بستن جزئیات ستاره"
               >
-                <X className="w-4 h-4" />
+                <X className="w-3.5 h-3.5" />
               </button>
             </div>
 
-            <div className="flex items-center justify-between text-xs text-slate-300 pt-2.5 border-t border-slate-800/80">
+            <div className="flex items-center justify-between text-xs text-slate-300 pt-3 border-t border-white/[0.08] font-medium">
               <div className="flex items-center gap-1.5">
-                <Heart className="w-3.5 h-3.5 text-amber-400" />
-                <span className="tabular-nums">{formatPersianNumber(selected.salawatCount)} صلوات</span>
+                <Heart className="w-3.5 h-3.5 text-rose-400" />
+                <span className="tabular-nums font-bold text-amber-200">{formatPersianNumber(selected.salawatCount)} صلوات</span>
               </div>
               <div className="flex items-center gap-1.5 text-slate-400 text-[11px]">
                 <Calendar className="w-3 h-3" />

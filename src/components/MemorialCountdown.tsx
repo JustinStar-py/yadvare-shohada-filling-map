@@ -105,42 +105,42 @@ export default function MemorialCountdown({
 
     return (
       <div className={`w-full flex flex-col items-center gap-4 ${className}`}>
-        <div className="flex items-center gap-2 text-xs font-semibold text-amber-400/90 tracking-wide">
-          <Clock className="w-3.5 h-3.5 text-amber-400" />
+        <div className="flex items-center gap-2 text-xs font-black text-amber-300 tracking-wide liquid-glass-pill-gold px-4 py-1 rounded-full">
+          <Clock className="w-3.5 h-3.5 text-amber-300" />
           <span>شمارش معکوس تا آغاز یادواره شهدای والامقام</span>
         </div>
 
-        <div className="grid grid-cols-4 gap-2 sm:gap-4 w-full max-w-sm sm:max-w-md mx-auto" dir="rtl">
+        <div className="grid grid-cols-4 gap-2.5 sm:gap-4 w-full max-w-sm sm:max-w-md mx-auto" dir="rtl">
           {/* روز */}
-          <div className="flex flex-col items-center justify-center p-3 sm:p-4 rounded-2xl bg-slate-900/80 border border-amber-500/25 shadow-[0_4px_20px_rgba(0,0,0,0.4)] backdrop-blur-md">
+          <div className="flex flex-col items-center justify-center p-3 sm:p-4 rounded-[24px] liquid-glass border border-white/[0.12] shadow-[0_8px_24px_rgba(0,0,0,0.5)]">
             <span className="text-xl sm:text-3xl font-black text-amber-300 tabular-nums">
               {mounted ? toPersianDigits(timeRemaining.days) : toPersianDigits(effectiveDays)}
             </span>
-            <span className="text-[10px] sm:text-xs text-slate-400 font-medium mt-1">روز</span>
+            <span className="text-[10px] sm:text-xs text-slate-400 font-semibold mt-1">روز</span>
           </div>
 
           {/* ساعت */}
-          <div className="flex flex-col items-center justify-center p-3 sm:p-4 rounded-2xl bg-slate-900/80 border border-amber-500/25 shadow-[0_4px_20px_rgba(0,0,0,0.4)] backdrop-blur-md">
+          <div className="flex flex-col items-center justify-center p-3 sm:p-4 rounded-[24px] liquid-glass border border-white/[0.12] shadow-[0_8px_24px_rgba(0,0,0,0.5)]">
             <span className="text-xl sm:text-3xl font-black text-amber-300 tabular-nums">
               {mounted ? toPersianDigits(String(timeRemaining.hours).padStart(2, "0")) : "۰۰"}
             </span>
-            <span className="text-[10px] sm:text-xs text-slate-400 font-medium mt-1">ساعت</span>
+            <span className="text-[10px] sm:text-xs text-slate-400 font-semibold mt-1">ساعت</span>
           </div>
 
           {/* دقیقه */}
-          <div className="flex flex-col items-center justify-center p-3 sm:p-4 rounded-2xl bg-slate-900/80 border border-amber-500/25 shadow-[0_4px_20px_rgba(0,0,0,0.4)] backdrop-blur-md">
+          <div className="flex flex-col items-center justify-center p-3 sm:p-4 rounded-[24px] liquid-glass border border-white/[0.12] shadow-[0_8px_24px_rgba(0,0,0,0.5)]">
             <span className="text-xl sm:text-3xl font-black text-amber-300 tabular-nums">
               {mounted ? toPersianDigits(String(timeRemaining.minutes).padStart(2, "0")) : "۰۰"}
             </span>
-            <span className="text-[10px] sm:text-xs text-slate-400 font-medium mt-1">دقیقه</span>
+            <span className="text-[10px] sm:text-xs text-slate-400 font-semibold mt-1">دقیقه</span>
           </div>
 
           {/* ثانیه */}
-          <div className="flex flex-col items-center justify-center p-3 sm:p-4 rounded-2xl bg-slate-900/80 border border-rose-500/30 shadow-[0_4px_20px_rgba(0,0,0,0.4)] backdrop-blur-md">
+          <div className="flex flex-col items-center justify-center p-3 sm:p-4 rounded-[24px] liquid-glass border border-rose-400/35 shadow-[0_8px_24px_rgba(0,0,0,0.5),0_0_20px_rgba(244,63,94,0.15)]">
             <span className="text-xl sm:text-3xl font-black text-rose-400 tabular-nums">
               {mounted ? toPersianDigits(String(timeRemaining.seconds).padStart(2, "0")) : "۰۰"}
             </span>
-            <span className="text-[10px] sm:text-xs text-slate-400 font-medium mt-1">ثانیه</span>
+            <span className="text-[10px] sm:text-xs text-slate-400 font-semibold mt-1">ثانیه</span>
           </div>
         </div>
       </div>
@@ -151,12 +151,10 @@ export default function MemorialCountdown({
   if (campaignPhase === "memorial_day" || effectiveDays === 0) {
     return (
       <div
-        className={`relative inline-flex items-center gap-2.5 px-6 py-2.5 rounded-full overflow-hidden animate-gentle-fade ${className}`}
+        className={`relative inline-flex items-center gap-2.5 px-6 py-2.5 rounded-full overflow-hidden animate-gentle-fade liquid-glass-pill-gold ${className}`}
       >
-        <div className="absolute inset-0 bg-gradient-to-l from-amber-500/25 via-amber-300/30 to-amber-500/25" />
-        <div className="absolute inset-0 rounded-full border border-amber-300/60" />
         <MoonStar className="relative w-4 h-4 text-amber-200" />
-        <span className="relative text-sm sm:text-base font-bold text-amber-100 tracking-wide">
+        <span className="relative text-sm sm:text-base font-black text-amber-100 tracking-wide">
           امروز: روز برگزاری یادواره شهدای والامقام
         </span>
       </div>
@@ -166,7 +164,7 @@ export default function MemorialCountdown({
   if (campaignPhase === "archived") {
     return (
       <div
-        className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-900/70 border border-slate-800 text-slate-400 text-xs sm:text-sm animate-gentle-fade ${className}`}
+        className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full liquid-glass-pill text-slate-400 text-xs sm:text-sm animate-gentle-fade ${className}`}
       >
         <Calendar className="w-4 h-4 text-slate-500" />
         <span>یادواره شهدا برگزار گردید • آرشیو ماندگار پویش</span>
@@ -179,41 +177,29 @@ export default function MemorialCountdown({
 
   return (
     <div
-      className={`inline-flex items-center gap-2.5 px-5 py-2 rounded-full animate-gentle-fade overflow-hidden ${
-        isCulmination
-          ? "border border-amber-400/60 shadow-[0_0_24px_rgba(245,158,11,0.28)]"
-          : isApproaching
-          ? "border border-amber-500/40 shadow-[0_0_16px_rgba(245,158,11,0.16)]"
-          : "border border-slate-700/70 shadow-sm"
+      className={`inline-flex items-center gap-2.5 px-5 py-2.5 rounded-full animate-gentle-fade overflow-hidden ${
+        isCulmination || isApproaching
+          ? "liquid-glass-pill-gold"
+          : "liquid-glass-pill text-slate-200"
       } ${className}`}
     >
-      <div
-        className={`absolute inset-0 ${
-          isCulmination
-            ? "bg-gradient-to-l from-amber-950/80 via-amber-900/50 to-amber-950/80"
-            : isApproaching
-            ? "bg-gradient-to-l from-amber-950/50 via-slate-900/80 to-amber-950/50"
-            : "bg-slate-900/70"
-        }`}
-      />
-
       {isApproaching || isCulmination ? (
         <Flame
-          className={`relative w-4 h-4 ${isCulmination ? "text-amber-300" : "text-amber-400"}`}
+          className={`w-4 h-4 ${isCulmination ? "text-amber-300" : "text-amber-400"}`}
         />
       ) : (
-        <Calendar className="relative w-4 h-4 text-amber-400/80" />
+        <Calendar className="w-4 h-4 text-amber-400/80" />
       )}
 
-      <div className="relative text-xs sm:text-sm font-semibold tracking-wide flex items-center gap-1.5">
+      <div className="text-xs sm:text-sm font-bold tracking-wide flex items-center gap-1.5">
         <span
-          className={`font-extrabold text-base sm:text-lg tabular-nums ${
+          className={`font-black text-base sm:text-lg tabular-nums ${
             isCulmination ? "text-amber-200" : "text-amber-300"
           }`}
         >
           {toPersianDigits(effectiveDays)}
         </span>
-        <span className="text-slate-200">روز مانده تا یادواره شهدا</span>
+        <span className="text-slate-100 font-semibold">روز مانده تا یادواره شهدا</span>
       </div>
     </div>
   );

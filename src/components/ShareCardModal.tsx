@@ -67,7 +67,7 @@ export default function ShareCardModal({
 
   return (
     <div
-      className={`fixed inset-0 z-50 flex items-center justify-center bg-[#02040a]/85 backdrop-blur-md p-4 emil-modal-backdrop ${
+      className={`fixed inset-0 z-50 flex items-center justify-center bg-[#02040a]/80 backdrop-blur-xl p-4 emil-modal-backdrop ${
         visible ? "opacity-100" : "emil-modal-backdrop-hidden"
       }`}
       onClick={onClose}
@@ -75,27 +75,29 @@ export default function ShareCardModal({
       aria-label="اشتراک‌گذاری سهم امروز پویش"
     >
       <div
-        className={`glass-panel rounded-3xl p-6 sm:p-7 max-w-sm w-full relative flex flex-col items-center gap-5 emil-modal-content ${
+        className={`liquid-glass rounded-[32px] p-6 sm:p-7 max-w-sm w-full relative flex flex-col items-center gap-5 border border-white/[0.14] shadow-[0_24px_70px_rgba(0,0,0,0.85),0_0_35px_rgba(245,158,11,0.15)] emil-modal-content ${
           visible ? "opacity-100 scale-100" : "emil-modal-content-hidden"
         }`}
         onClick={(e) => e.stopPropagation()}
       >
         <button
           onClick={onClose}
-          className="absolute top-4 left-4 text-slate-500 hover:text-slate-200 p-1.5 cursor-pointer emil-btn rounded-full"
+          className="absolute top-4 left-4 w-8 h-8 rounded-full liquid-glass-pill text-slate-300 hover:text-white flex items-center justify-center cursor-pointer ios-press"
           aria-label="بستن"
         >
-          <X className="w-5 h-5" />
+          <X className="w-4 h-4" />
         </button>
 
-        <h3 className="text-base font-bold text-slate-100 flex items-center gap-2 pt-1">
-          <Share2 className="w-4 h-4 text-amber-400" />
-          <span>اشتراک‌گذاری سهم امروز پویش</span>
-        </h3>
+        <div className="flex items-center gap-2 pt-1">
+          <span className="liquid-glass-pill-gold px-3.5 py-1 rounded-full text-xs font-black flex items-center gap-1.5">
+            <Share2 className="w-3.5 h-3.5 text-amber-300" />
+            <span>اشتراک‌گذاری سهم امروز پویش</span>
+          </span>
+        </div>
 
-        {/* Visual preview card */}
-        <div className="w-full rounded-2xl p-7 text-center relative overflow-hidden border border-amber-500/30 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] bg-gradient-to-b from-[#0a1120] via-[#0c1526] to-[#090d16]">
-          <div className="absolute -top-20 left-1/2 -translate-x-1/2 w-56 h-44 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
+        {/* Visual preview card — Apple Squircle with optical refraction */}
+        <div className="w-full rounded-[24px] p-7 text-center relative overflow-hidden border border-amber-400/30 shadow-[inset_0_1px_1px_rgba(255,255,255,0.1),0_12px_36px_rgba(0,0,0,0.5)] bg-gradient-to-b from-[#0a1120]/90 via-[#0c1526]/90 to-[#090d16]/90 backdrop-blur-md">
+          <div className="absolute -top-20 left-1/2 -translate-x-1/2 w-56 h-44 bg-amber-500/15 rounded-full blur-3xl pointer-events-none" />
           {/* Mini constellation dots */}
           <div className="absolute top-5 right-6 w-1.5 h-1.5 rounded-full bg-amber-300/70 shadow-[0_0_8px_rgba(251,191,36,0.8)]" />
           <div className="absolute top-10 left-8 w-1 h-1 rounded-full bg-slate-300/60" />
@@ -105,7 +107,7 @@ export default function ShareCardModal({
             <YadvareLogo className="w-12 h-12 drop-shadow-[0_2px_10px_rgba(245,158,11,0.3)]" />
           </div>
 
-          <span className="relative text-xs text-amber-400/90 font-semibold tracking-wide">
+          <span className="relative text-xs text-amber-300/90 font-bold tracking-wide">
             پویش معنوی یادواره ۷۶ شهید شهیدیه میبد
           </span>
 
@@ -113,39 +115,42 @@ export default function ShareCardModal({
             <span className="text-[44px] leading-none font-extrabold gold-text block tabular-nums">
               {formatPersianNumber(salawatCount)}
             </span>
-            <span className="text-xs text-slate-300/80 mt-2.5 block">
+            <span className="text-xs text-slate-300/90 mt-2.5 block font-medium">
               صلوات فرستاده‌شده تا این لحظه
             </span>
           </div>
 
-          <div className="relative pt-3.5 border-t border-slate-800/80 text-[11px] text-slate-400 flex items-center justify-between">
+          <div className="relative pt-3.5 border-t border-white/[0.08] text-[11px] text-slate-400 flex items-center justify-between font-medium">
             <span>{formatShortJalaliDate(tehranDate)}</span>
-            <span className="text-amber-400/80">{toPersianDigits(daysRemaining)} روز تا یادواره</span>
+            <span className="text-amber-300 font-bold">{toPersianDigits(daysRemaining)} روز تا یادواره</span>
           </div>
         </div>
 
-        {/* Actions */}
+        {/* Actions — iOS Tactile Spring Buttons */}
         <div className="flex items-center gap-3 w-full">
           <button
             onClick={handleNativeShare}
-            className="flex-1 min-h-[46px] py-2.5 px-4 rounded-xl bg-gradient-to-b from-amber-400 to-amber-600 text-xs font-bold text-slate-950 hover:brightness-110 flex items-center justify-center gap-1.5 shadow-[0_6px_18px_rgba(245,158,11,0.3)] cursor-pointer emil-btn"
+            className="flex-1 min-h-[48px] py-2.5 px-4 rounded-2xl bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-xs font-black text-slate-950 flex items-center justify-center gap-2 shadow-[0_6px_20px_rgba(245,158,11,0.4),inset_0_1.5px_1px_rgba(255,255,255,0.6)] cursor-pointer ios-press"
           >
             <Send className="w-4 h-4" />
             <span>اشتراک‌گذاری</span>
           </button>
           <button
             onClick={handleCopy}
-            className="min-h-[46px] py-2.5 px-4 rounded-xl bg-slate-800/80 border border-slate-700 text-xs font-semibold text-slate-200 hover:bg-slate-700 flex items-center justify-center gap-1.5 cursor-pointer emil-btn"
+            className="min-h-[48px] py-2.5 px-4.5 rounded-2xl liquid-glass text-xs font-bold text-slate-200 hover:text-white flex items-center justify-center gap-2 cursor-pointer ios-press"
             aria-label="کپی متن پیام"
           >
             <span className="inline-flex items-center gap-1.5 transition-opacity duration-150">
               {copied ? (
                 <>
                   <Check className="w-4 h-4 text-emerald-400" />
-                  <span className="text-emerald-400 font-bold">کپی شد!</span>
+                  <span className="text-emerald-400 font-black">کپی شد!</span>
                 </>
               ) : (
-                <Copy className="w-4 h-4" />
+                <>
+                  <Copy className="w-4 h-4" />
+                  <span>کپی</span>
+                </>
               )}
             </span>
           </button>

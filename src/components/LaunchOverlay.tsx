@@ -109,10 +109,10 @@ export default function LaunchOverlay({
       {onClose && (
         <button
           onClick={onClose}
-          className="absolute top-[max(1rem,calc(env(safe-area-inset-top)+0.5rem))] right-[max(1rem,calc(env(safe-area-inset-right)+0.5rem))] z-50 p-2 rounded-full bg-slate-900/80 border border-slate-700/70 text-slate-400 hover:text-white pointer-events-auto cursor-pointer emil-btn"
+          className="absolute top-[max(1rem,calc(env(safe-area-inset-top)+0.5rem))] right-[max(1rem,calc(env(safe-area-inset-right)+0.5rem))] z-50 w-9 h-9 rounded-full liquid-glass-pill text-slate-300 hover:text-white flex items-center justify-center pointer-events-auto cursor-pointer ios-press"
           aria-label="بستن پنجره پرواز"
         >
-          <X className="w-5 h-5" />
+          <X className="w-4 h-4" />
         </button>
       )}
 
@@ -185,7 +185,7 @@ export default function LaunchOverlay({
 
         {(phase === "completed" || phase === "fading") && (
           <div
-            className={`flex flex-col items-center gap-5 bg-slate-950/80 border border-amber-400/30 p-8 rounded-3xl shadow-[0_16px_50px_rgba(0,0,0,0.7)] backdrop-blur-md transition-[transform,opacity] duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] ${
+            className={`flex flex-col items-center gap-5 liquid-glass border border-amber-400/35 p-8 sm:p-9 rounded-[32px] shadow-[0_24px_70px_rgba(0,0,0,0.85),0_0_35px_rgba(245,158,11,0.25)] transition-[transform,opacity] duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] ${
               contentVisible ? "opacity-100 translate-y-0 scale-100" : "opacity-0 translate-y-4 scale-95"
             }`}
           >
@@ -201,13 +201,13 @@ export default function LaunchOverlay({
               </svg>
             </div>
 
-            <p className="text-base sm:text-lg text-amber-200 font-bold">
+            <p className="text-base sm:text-lg text-amber-200 font-black">
               یک ستاره جدید در آسمان پویش روشن شد
             </p>
-            <p className="text-xs text-slate-400 max-w-xs leading-relaxed">
+            <p className="text-xs sm:text-[13px] text-slate-300 max-w-xs leading-relaxed font-medium">
               ستاره امروز به یاد {martyrName || "شهدای والامقام"}، برای همیشه در صورت‌فلکی یادواره می‌درخشد.
             </p>
-            <div className="text-amber-400/90 text-sm font-medium pt-1">
+            <div className="liquid-glass-pill-gold px-4 py-1.5 rounded-full text-amber-200 text-xs sm:text-sm font-bold">
               قبول حق • صلوات‌های امروز ماندگار شد
             </div>
           </div>
