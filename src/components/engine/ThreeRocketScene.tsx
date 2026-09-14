@@ -1027,85 +1027,135 @@ export default function ThreeRocketScene({
     pistonRight.rotation.x = 0.55;
     launchRailGroup.add(pistonRight);
 
+    // ── Shahed 136 Materials ──
+    const droneShellMaterial = new THREE.MeshStandardMaterial({
+      color: "#b8b4a8",
+      metalness: 0.45,
+      roughness: 0.38,
+    });
+    const droneDarkMaterial = new THREE.MeshStandardMaterial({
+      color: "#1e293b",
+      metalness: 0.6,
+      roughness: 0.35,
+    });
+    const droneGlassMaterial = new THREE.MeshPhysicalMaterial({
+      color: "#d8f3ff",
+      transparent: true,
+      opacity: 0.28,
+      metalness: 0.05,
+      roughness: 0.15,
+      depthWrite: false,
+      side: THREE.DoubleSide,
+    });
+    const navRedMaterial = new THREE.MeshBasicMaterial({ color: "#ef4444" });
+    const navGreenMaterial = new THREE.MeshBasicMaterial({ color: "#34d399" });
+
     // Helper to build a high-fidelity Shahed 136 3D model
     const buildShahedDroneObject = (scale = 1.0) => {
       const droneRoot = new THREE.Group();
       droneRoot.scale.setScalar(scale);
 
-      // Delta Wing
+      const droneBody = new THREE.Group();
+      droneRoot.add(droneBody);
+
+      // 1. Delta Wing with rear cutout notch for pusher propeller
       const wingShape = new THREE.Shape();
-      wingShape.moveTo(0, 1.05);        // nose tip
-      wingShape.lineTo(1.22, -0.78);    // right wingtip
-      wingShape.lineTo(1.12, -0.92);    // right trailing tip
-      wingShape.lineTo(0.18, -0.75);    // right engine root
-      wingShape.lineTo(-0.18, -0.75);   // left engine root
-      wingShape.lineTo(-1.12, -0.92);   // left trailing tip
-      wingShape.lineTo(-1.22, -0.78);   // left wingtip
+      wingShape.moveTo(0, -2.7);
+      wingShape.lineTo(3.1, 1.65);
+      wingShape.lineTo(0.65, 1.25);
+      wingShape.lineTo(0, 0.8);
+      wingShape.lineTo(-0.65, 1.25);
+      wingShape.lineTo(-3.1, 1.65);
       wingShape.closePath();
 
       const wingGeom = new THREE.ExtrudeGeometry(wingShape, {
-        depth: 0.05,
+        depth: 0.1,
         bevelEnabled: true,
-        bevelThickness: 0.016,
-        bevelSize: 0.014,
+        bevelThickness: 0.04,
+        bevelSize: 0.04,
         bevelSegments: 2,
+        steps: 1,
       });
-      wingGeom.center();
-      const wingMesh = new THREE.Mesh(wingGeom, hullMaterial);
-      droneRoot.add(wingMesh);
+      const wingMesh = new THREE.Mesh(wingGeom, droneShellMaterial);
+      wingMesh.position.set(0, -0.12, 0);
+      wingMesh.rotation.x = Math.PI / 2;
+      droneBody.add(wingMesh);
 
-      // Fuselage tube
-      const fuseGeom = new THREE.CylinderGeometry(0.145, 0.17, 1.55, 24);
-      const fuseMesh = new THREE.Mesh(fuseGeom, hullMaterial);
-      fuseMesh.position.y = 0.05;
-      droneRoot.add(fuseMesh);
+      // 2. Transparent aerodynamic canopy along the spine
+      const glassCanopy = new THREE.Mesh(new THREE.SphereGeometry(1, 32, 18), droneGlassMaterial);
+      glassCanopy.scale.set(0.53, 0.48, 2.3);
+      glassCanopy.position.set(0, 0.3, -0.35);
+      glassCanopy.renderOrder = 2;
+      droneBody.add(glassCanopy);
 
-      // Nose warhead dome
-      const domeGeom = new THREE.SphereGeometry(0.145, 16, 14);
-      const domeMesh = new THREE.Mesh(domeGeom, goldMaterial);
-      domeMesh.position.y = 0.82;
-      droneRoot.add(domeMesh);
+      // 3. Tank chassis bed & internal fuel cell
+      const chassisMesh = new THREE.Mesh(new THREE.BoxGeometry(0.58, 0.06, 2.55), droneDarkMaterial);
+      chassisMesh.position.set(0, 0.04, -0.3);
+      droneBody.add(chassisMesh);
 
-      // Wingtip vertical stabilizers
-      const finShape = new THREE.Shape();
-      finShape.moveTo(0, 0.40);
-      finShape.lineTo(0.06, -0.28);
-      finShape.lineTo(-0.30, -0.28);
-      finShape.lineTo(-0.20, 0.20);
-      finShape.closePath();
-      const finGeom = new THREE.ExtrudeGeometry(finShape, { depth: 0.016, bevelEnabled: false });
+      const droneFuelMesh = new THREE.Mesh(new THREE.BoxGeometry(0.48, 0.48, 2.4), fuelMaterial);
+      droneFuelMesh.position.set(0, 0.07, -0.3);
+      droneBody.add(droneFuelMesh);
 
-      const finL = new THREE.Mesh(finGeom, hullMaterial);
-      finL.rotation.y = Math.PI / 2;
-      finL.position.set(-1.14, -0.05, 0);
-      droneRoot.add(finL);
+      // 4. Reinforcing torus frame rings
+      for (const z of [-1.48, -0.3, 0.88]) {
+        const ring = new THREE.Mesh(new THREE.TorusGeometry(0.4, 0.025, 8, 36), droneShellMaterial);
+        ring.position.set(0, 0.28, z);
+        ring.scale.set(1, 0.85, 1);
+        droneBody.add(ring);
+      }
 
-      const finR = new THREE.Mesh(finGeom, hullMaterial);
-      finR.rotation.y = Math.PI / 2;
-      finR.position.set(1.14, -0.05, 0);
-      droneRoot.add(finR);
+      // 5. Twin vertical stabilizers (fins) with green and red navigation lights
+      for (const side of [-1, 1]) {
+        const finShape = new THREE.Shape();
+        finShape.moveTo(-0.5, 0);
+        finShape.lineTo(0.45, 0);
+        finShape.lineTo(0.2, 0.85);
+        finShape.closePath();
 
-      // Rear engine housing
-      const engineMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.085, 0.10, 0.24, 16), nozzleMaterial);
-      engineMesh.position.y = -0.78;
-      droneRoot.add(engineMesh);
+        const finGeom = new THREE.ExtrudeGeometry(finShape, { depth: 0.06, bevelEnabled: false });
+        const fin = new THREE.Mesh(finGeom, droneShellMaterial);
+        fin.position.set(side * 2.85, -0.05, 1.15);
+        fin.rotation.y = Math.PI / 2;
+        droneBody.add(fin);
 
-      // Pusher propeller hub & blades
-      const propHub = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.06, 12), goldMaterial);
-      propHub.rotation.x = Math.PI / 2;
-      propHub.position.y = -0.92;
-      droneRoot.add(propHub);
+        const navLight = new THREE.Mesh(
+          new THREE.SphereGeometry(0.065, 12, 8),
+          side < 0 ? navRedMaterial : navGreenMaterial
+        );
+        navLight.position.set(side * 3.0, 0.04, 1.58);
+        navLight.scale.y = 0.7;
+        droneBody.add(navLight);
+      }
 
-      const propBlade = new THREE.Mesh(new THREE.BoxGeometry(0.62, 0.048, 0.012), nozzleMaterial);
-      propHub.add(propBlade);
+      // 6. Rear pusher propeller assembly with spherical hub and cross blades
+      const propellerGroup = new THREE.Group();
+      propellerGroup.position.set(0, 0.3, 2.05);
+      droneBody.add(propellerGroup);
 
-      // Glowing radar/fuel telemetry ring
-      const fuelRing = new THREE.Mesh(new THREE.TorusGeometry(0.15, 0.018, 10, 32), fuelMaterial);
-      fuelRing.rotation.x = Math.PI / 2;
-      fuelRing.position.y = 0.2;
-      droneRoot.add(fuelRing);
+      const propHub = new THREE.Mesh(new THREE.SphereGeometry(0.15, 16, 12), droneDarkMaterial);
+      propellerGroup.add(propHub);
 
-      return { root: droneRoot, propBlade, fuelRing, wingGeom, fuseGeom, domeGeom, finGeom };
+      const propBlades = new THREE.Group();
+      propellerGroup.add(propBlades);
+
+      for (let i = 0; i < 2; i++) {
+        const blade = new THREE.Mesh(new THREE.BoxGeometry(1.45, 0.09, 0.05), droneDarkMaterial);
+        blade.rotation.z = i * Math.PI / 2;
+        propBlades.add(blade);
+      }
+
+      // Orient drone body:
+      // Nose at -Z -> rotate around X by Math.PI / 2 so nose is +Y, dorsal canopy is +Z, rear is -Y
+      droneBody.rotation.x = Math.PI / 2;
+      droneBody.scale.setScalar(0.40);
+
+      return {
+        root: droneRoot,
+        propBlade: propBlades,
+        droneFuelMesh,
+        droneBody,
+      };
     };
 
     // ── Scenario 2 Drone (Cinematic Flight & Kamikaze Explosion) ──
@@ -1141,7 +1191,7 @@ export default function ThreeRocketScene({
     interface FlyingDroneProjectile {
       group: THREE.Group;
       vel: THREE.Vector3;
-      propBlade: THREE.Mesh;
+      propBlade: THREE.Object3D;
       life: number;
       maxLife: number;
     }
@@ -1739,6 +1789,10 @@ export default function ThreeRocketScene({
       emadFinGroup.visible = model === "emad";
 
       const isShahed = model === "shahed136";
+      if (isShahed) {
+        droneShellMaterial.color.set(new THREE.Color("#b8b4a8").lerp(new THREE.Color(cfg.colorHex), 0.35));
+        droneShellMaterial.needsUpdate = true;
+      }
       boosterGroup.visible = !isShahed;
       capsuleGroup.visible = !isShahed;
       padRing.visible = !isShahed;
@@ -1898,6 +1952,12 @@ export default function ThreeRocketScene({
             boosterGroup.visible = false;
             capsuleGroup.visible = false;
             singleShahedDrone.propBlade.rotation.z += 0.85;
+            if (singleShahedDrone.droneFuelMesh) {
+              const displayedFuel = Math.max(0.001, currentFuelProgress);
+              singleShahedDrone.droneFuelMesh.visible = displayedFuel > 0.001;
+              singleShahedDrone.droneFuelMesh.scale.y = displayedFuel;
+              singleShahedDrone.droneFuelMesh.position.y = 0.07 + displayedFuel * 0.24;
+            }
 
             // Trigger kamikaze detonation near apogee in Scenario 2
             if (droneModeRef.current === "cinematic_explosion" && ascentY >= PEAK_ALTITUDE - 0.7 && !hasDetonated) {
@@ -2164,6 +2224,12 @@ export default function ThreeRocketScene({
           capsuleGroup.visible = false;
           padRing.visible = false;
           singleShahedDrone.propBlade.rotation.z += 0.22;
+          if (singleShahedDrone.droneFuelMesh) {
+            const displayedFuel = Math.max(0.001, currentFuelProgress);
+            singleShahedDrone.droneFuelMesh.visible = displayedFuel > 0.001;
+            singleShahedDrone.droneFuelMesh.scale.y = displayedFuel;
+            singleShahedDrone.droneFuelMesh.position.y = 0.07 + displayedFuel * 0.24;
+          }
           swarmDrones.forEach((d) => {
             d.propBlade.rotation.z += 0.22;
           });
