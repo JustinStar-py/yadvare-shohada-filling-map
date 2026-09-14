@@ -128,10 +128,87 @@ export default function Missile3DThumbnail({
           side: THREE.DoubleSide,
         });
 
-    // ── 4. Rocket Group Hierarchy ──
+    // ── 4. Rocket / Drone Group Hierarchy ──
     const rocketGroup = new THREE.Group();
     scene.add(rocketGroup);
 
+    let propMesh: THREE.Object3D | null = null;
+    let decalTex: THREE.CanvasTexture | null = null;
+
+    if (model === "shahed136") {
+      // ── Shahed 136 Delta Wing Drone ──
+      const wingShape = new THREE.Shape();
+      wingShape.moveTo(0, 0.95);      // nose apex
+      wingShape.lineTo(1.15, -0.75);   // right wingtip
+      wingShape.lineTo(1.05, -0.88);   // right trailing outer
+      wingShape.lineTo(0.16, -0.72);   // right engine root
+      wingShape.lineTo(-0.16, -0.72);  // left engine root
+      wingShape.lineTo(-1.05, -0.88);  // left trailing outer
+      wingShape.lineTo(-1.15, -0.75);  // left wingtip
+      wingShape.closePath();
+
+      const wingGeo = new THREE.ExtrudeGeometry(wingShape, {
+        depth: 0.045,
+        bevelEnabled: true,
+        bevelThickness: 0.015,
+        bevelSize: 0.012,
+        bevelSegments: 2,
+      });
+      wingGeo.center();
+      const wingMesh = new THREE.Mesh(wingGeo, hullMaterial);
+      rocketGroup.add(wingMesh);
+
+      // Central cylindrical fuselage tube
+      const fuseGeo = new THREE.CylinderGeometry(0.14, 0.16, 1.48, 24);
+      const fuseMesh = new THREE.Mesh(fuseGeo, hullMaterial);
+      fuseMesh.position.y = 0.02;
+      rocketGroup.add(fuseMesh);
+
+      // Rounded nose warhead dome
+      const noseDome = new THREE.Mesh(new THREE.SphereGeometry(0.14, 16, 14), goldMaterial);
+      noseDome.position.y = 0.76;
+      rocketGroup.add(noseDome);
+
+      // Twin vertical winglet stabilizers (fins) at wingtips
+      const finShape = new THREE.Shape();
+      finShape.moveTo(0, 0.38);
+      finShape.lineTo(0.06, -0.26);
+      finShape.lineTo(-0.28, -0.26);
+      finShape.lineTo(-0.18, 0.18);
+      finShape.closePath();
+      const finGeo = new THREE.ExtrudeGeometry(finShape, { depth: 0.014, bevelEnabled: false });
+
+      const leftFin = new THREE.Mesh(finGeo, hullMaterial);
+      leftFin.rotation.y = Math.PI / 2;
+      leftFin.position.set(-1.08, -0.05, 0);
+      rocketGroup.add(leftFin);
+
+      const rightFin = new THREE.Mesh(finGeo, hullMaterial);
+      rightFin.rotation.y = Math.PI / 2;
+      rightFin.position.set(1.08, -0.05, 0);
+      rocketGroup.add(rightFin);
+
+      // Rear pusher engine housing
+      const engineMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.095, 0.22, 16), nozzleMaterial);
+      engineMesh.position.y = -0.74;
+      rocketGroup.add(engineMesh);
+
+      // Spinning 2-blade pusher propeller
+      const propHub = new THREE.Mesh(new THREE.CylinderGeometry(0.038, 0.038, 0.06, 12), goldMaterial);
+      propHub.rotation.x = Math.PI / 2;
+      propHub.position.y = -0.87;
+      rocketGroup.add(propHub);
+
+      const propBlade = new THREE.Mesh(new THREE.BoxGeometry(0.58, 0.045, 0.012), nozzleMaterial);
+      propHub.add(propBlade);
+      propMesh = propBlade;
+
+      // Glowing emerald radar ring
+      const radarRing = new THREE.Mesh(new THREE.TorusGeometry(0.145, 0.016, 10, 32), fuelMaterial);
+      radarRing.rotation.x = Math.PI / 2;
+      radarRing.position.y = 0.15;
+      rocketGroup.add(radarRing);
+    } else {
     const baseR = 0.32;
     const noseStart = 0.55;
     const CHAMBER_H = 1.1;
@@ -362,7 +439,7 @@ export default function Missile3DThumbnail({
       }
       decalCtx.restore();
     }
-    const decalTex = new THREE.CanvasTexture(decalCanvas);
+    decalTex = new THREE.CanvasTexture(decalCanvas);
     decalTex.colorSpace = THREE.SRGBColorSpace;
     const decalMat = new THREE.MeshBasicMaterial({
       map: decalTex,
@@ -458,6 +535,7 @@ export default function Missile3DThumbnail({
       arm.add(fin);
       rocketGroup.add(arm);
     }
+    } // End of else (cylinder rocket)
 
     // F) Active Golden Halo Base Pad if selected
     let haloMesh: THREE.Mesh | null = null;
@@ -494,6 +572,9 @@ export default function Missile3DThumbnail({
 
       angle += 0.014;
       rocketGroup.rotation.y = angle;
+      if (propMesh) {
+        propMesh.rotation.z += 0.35;
+      }
 
       if (haloMesh) {
         (haloMesh.material as THREE.MeshBasicMaterial).opacity = 0.5 + Math.sin(angle * 2) * 0.25;
@@ -526,7 +607,7 @@ export default function Missile3DThumbnail({
         if (Array.isArray(mat)) mat.forEach((m) => m.dispose());
         else if (mat) mat.dispose();
       });
-      decalTex.dispose();
+      decalTex?.dispose();
       renderer.dispose();
       scene.clear();
     };

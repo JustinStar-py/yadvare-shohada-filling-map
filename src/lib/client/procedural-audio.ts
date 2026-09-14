@@ -836,6 +836,149 @@ class ProceduralAudioEngine {
   }
 
   /**
+   * Shahed-136 Drone Rail Launch Sound:
+   * JATO booster ignition burst + rapid 2-stroke buzzing propeller acceleration (MD-550 lawnmower buzz).
+   */
+  public playDroneLaunch() {
+    if (this.isMuted) return;
+    this.initContext();
+    if (!this.ctx || !this.masterGain) return;
+    const ctx = this.ctx;
+    const now = ctx.currentTime;
+
+    // 1. JATO Rocket Booster Flash / Puff (white noise burst)
+    const noiseBuffer = this.getNoiseBuffer();
+    if (noiseBuffer) {
+      const puff = ctx.createBufferSource();
+      const puffGain = ctx.createGain();
+      const puffFilter = ctx.createBiquadFilter();
+
+      puff.buffer = noiseBuffer;
+      puffFilter.type = "bandpass";
+      puffFilter.frequency.setValueAtTime(600, now);
+      puffFilter.frequency.exponentialRampToValueAtTime(1400, now + 0.25);
+      puffFilter.Q.setValueAtTime(1.5, now);
+
+      puffGain.gain.setValueAtTime(0.35, now);
+      puffGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.55);
+
+      puff.connect(puffFilter);
+      puffFilter.connect(puffGain);
+      puffGain.connect(this.masterGain);
+      puff.start(now);
+      puff.stop(now + 0.6);
+      this.launchNodes.push(puff, puffGain);
+    }
+
+    // 2. High-speed 2-stroke piston propeller buzz (distinct Shahed engine sound)
+    const buzz = ctx.createOscillator();
+    const buzzGain = ctx.createGain();
+    buzz.type = "sawtooth";
+    buzz.frequency.setValueAtTime(120, now);
+    buzz.frequency.exponentialRampToValueAtTime(260, now + 0.4);
+    buzz.frequency.exponentialRampToValueAtTime(340, now + 1.8);
+
+    buzzGain.gain.setValueAtTime(0.001, now);
+    buzzGain.gain.linearRampToValueAtTime(0.18, now + 0.12);
+    buzzGain.gain.linearRampToValueAtTime(0.15, now + 0.8);
+    buzzGain.gain.exponentialRampToValueAtTime(0.0001, now + 2.2);
+
+    // Filter to give that metallic raspy engine quality
+    const buzzFilter = ctx.createBiquadFilter();
+    buzzFilter.type = "lowpass";
+    buzzFilter.frequency.setValueAtTime(1200, now);
+    buzzFilter.frequency.exponentialRampToValueAtTime(2800, now + 1.2);
+
+    buzz.connect(buzzFilter);
+    buzzFilter.connect(buzzGain);
+    buzzGain.connect(this.masterGain);
+    buzz.start(now);
+    buzz.stop(now + 2.3);
+    this.launchNodes.push(buzz, buzzGain);
+  }
+
+  /**
+   * Shahed-136 Kamikaze Detonation Sound:
+   * Dive whine + massive sub-bass shockwave + explosive fireball crackle + celestial martyr resonance.
+   */
+  public playDroneKamikazeExplosion() {
+    if (this.isMuted) return;
+    this.initContext();
+    if (!this.ctx || !this.masterGain) return;
+    const ctx = this.ctx;
+    const now = ctx.currentTime;
+
+    // 1. Massive Sub-bass shockwave impact
+    const sub = ctx.createOscillator();
+    const subGain = ctx.createGain();
+    sub.type = "sine";
+    sub.frequency.setValueAtTime(145, now);
+    sub.frequency.exponentialRampToValueAtTime(24, now + 0.85);
+
+    subGain.gain.setValueAtTime(0.65, now);
+    subGain.gain.exponentialRampToValueAtTime(0.0001, now + 1.2);
+
+    sub.connect(subGain);
+    subGain.connect(this.masterGain);
+    sub.start(now);
+    sub.stop(now + 1.3);
+    this.launchNodes.push(sub, subGain);
+
+    // 2. High-energy explosion fireball blast
+    const noiseBuffer = this.getNoiseBuffer();
+    if (noiseBuffer) {
+      const blast = ctx.createBufferSource();
+      const blastGain = ctx.createGain();
+      const blastFilter = ctx.createBiquadFilter();
+
+      blast.buffer = noiseBuffer;
+      blastFilter.type = "lowpass";
+      blastFilter.frequency.setValueAtTime(1200, now);
+      blastFilter.frequency.exponentialRampToValueAtTime(180, now + 1.5);
+      blastFilter.Q.setValueAtTime(2.2, now);
+
+      blastGain.gain.setValueAtTime(0.48, now);
+      blastGain.gain.exponentialRampToValueAtTime(0.0001, now + 1.6);
+
+      blast.connect(blastFilter);
+      blastFilter.connect(blastGain);
+      blastGain.connect(this.masterGain);
+      blast.start(now);
+      blast.stop(now + 1.7);
+      this.launchNodes.push(blast, blastGain);
+
+      // 3. Crackling hot shrapnel & debris fallout
+      const crackle = ctx.createBufferSource();
+      const crackleGain = ctx.createGain();
+      const crackleFilter = ctx.createBiquadFilter();
+
+      crackle.buffer = noiseBuffer;
+      crackleFilter.type = "highpass";
+      crackleFilter.frequency.setValueAtTime(2200, now);
+
+      crackleGain.gain.setValueAtTime(0.001, now);
+      crackleGain.gain.linearRampToValueAtTime(0.16, now + 0.1);
+      crackleGain.gain.exponentialRampToValueAtTime(0.0001, now + 1.8);
+
+      crackle.connect(crackleFilter);
+      crackleFilter.connect(crackleGain);
+      crackleGain.connect(this.masterGain);
+      crackle.start(now);
+      crackle.stop(now + 1.9);
+      this.launchNodes.push(crackle, crackleGain);
+    }
+
+    // 4. Sacred celestial golden harmonic ring (martyr's memory light)
+    [528, 660, 792].forEach((freq, i) => {
+      setTimeout(() => {
+        if (!this.isMuted) {
+          this.playBell({ freq, gain: 0.12 - i * 0.025, decay: 3.2, type: "sine" });
+        }
+      }, 180 + i * 80);
+    });
+  }
+
+  /**
    * Deep, slow ambient drone — the hum of the night sky.
    */
   private startAmbient() {

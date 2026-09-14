@@ -78,6 +78,19 @@ export const MISSILE_MODELS = [
     fuelName: "صورتی جادویی درخشان",
     caption: "طرح اختصاصی ریحانه · رنگ صورتی شاد با برچسب‌های قلبی، پروانه و گل‌های کارتونی",
   },
+  {
+    id: "shahed136",
+    label: "پهپاد شاهد ۱۳۶",
+    colorName: "طوسی تاکتیکی مات دلتا",
+    colorHex: "#3f4756",
+    metalness: 0.28,
+    roughness: 0.68,
+    textColor: "#f8fafc",
+    fuelColor: "#10b981",
+    fuelEmissive: "#059669",
+    fuelName: "سبز راداری زمردی",
+    caption: "پهپاد بال دلتا انتحاری · پشتیبانی از پرتاب رگباری صلواتی یا سوخت‌گیری و انفجار نهایی",
+  },
 ] as const;
 
 export type MissileModel = (typeof MISSILE_MODELS)[number]["id"];

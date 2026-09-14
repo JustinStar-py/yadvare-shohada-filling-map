@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef } from "react";
 import * as THREE from "three";
-import { MissionState } from "@/types/campaign";
+import { MissionState, DroneMode } from "@/types/campaign";
 import { MissileModel, getMissileConfig } from "./missile-catalog";
 import { soundEngine } from "@/lib/client/procedural-audio";
 import { SHOHADA_SHAHIDIEH_PROFILES } from "@/lib/data/shohada-shahidieh";
@@ -20,6 +20,7 @@ interface ThreeRocketSceneProps {
   hasLiftedOff: boolean;
   pulseTrigger: number;
   missileModel?: MissileModel;
+  droneMode?: DroneMode;
   onFlightComplete?: () => void;
   onReady?: () => void;
 }
@@ -271,12 +272,15 @@ export default function ThreeRocketScene({
   hasLiftedOff,
   pulseTrigger,
   missileModel = "kheibar",
+  droneMode = "cinematic_explosion",
   onFlightComplete,
   onReady,
 }: ThreeRocketSceneProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const modelRef = useRef<MissileModel>(missileModel);
+  const droneModeRef = useRef<DroneMode>(droneMode);
   const onModelChangeRef = useRef<((model: MissileModel) => void) | null>(null);
+  const onDroneModeChangeRef = useRef<((mode: DroneMode) => void) | null>(null);
 
   useEffect(() => {
     if (missileModel !== modelRef.current) {
@@ -285,11 +289,20 @@ export default function ThreeRocketScene({
     }
   }, [missileModel]);
 
+  useEffect(() => {
+    if (droneMode !== droneModeRef.current) {
+      droneModeRef.current = droneMode;
+      onDroneModeChangeRef.current?.(droneMode);
+    }
+  }, [droneMode]);
+
   const progressRef = useRef(fillPercentage / 100);
   const stateRef = useRef(missionState);
   const launchingRef = useRef(isLaunching);
   const liftedRef = useRef(hasLiftedOff);
   const pulseRef = useRef(0);
+  const prevPulseTriggerRef = useRef(pulseTrigger);
+  const onSalawatTriggerRef = useRef<(() => void) | null>(null);
   const onFlightCompleteRef = useRef(onFlightComplete);
   const onReadyRef = useRef(onReady);
 
@@ -299,7 +312,15 @@ export default function ThreeRocketScene({
   useEffect(() => { stateRef.current = missionState; }, [missionState]);
   useEffect(() => { launchingRef.current = isLaunching; }, [isLaunching]);
   useEffect(() => { liftedRef.current = hasLiftedOff; }, [hasLiftedOff]);
-  useEffect(() => { if (pulseTrigger > 0) pulseRef.current = 1.0; }, [pulseTrigger]);
+  useEffect(() => {
+    if (pulseTrigger > 0) {
+      pulseRef.current = 1.0;
+      if (pulseTrigger !== prevPulseTriggerRef.current) {
+        prevPulseTriggerRef.current = pulseTrigger;
+        onSalawatTriggerRef.current?.();
+      }
+    }
+  }, [pulseTrigger]);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -964,6 +985,293 @@ export default function ThreeRocketScene({
     padRing.position.set(0, -1.65, 0);
     scene.add(padRing);
 
+    // ── Shahed 136 Drone Engine, Launch Rail & Detonation Systems ──
+    const railMat = new THREE.MeshStandardMaterial({
+      color: 0x1e242d,
+      metalness: 0.65,
+      roughness: 0.45,
+    });
+
+    const launchRailGroup = new THREE.Group();
+    launchRailGroup.visible = false;
+    scene.add(launchRailGroup);
+
+    // 1. Ground base skid & frame
+    const baseSkid = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.08, 2.6), railMat);
+    baseSkid.position.set(0, -1.65, -0.2);
+    launchRailGroup.add(baseSkid);
+
+    // 2. Inclined guide rails (~24 deg launch pitch)
+    const railPitch = -0.42;
+    const railsSubGroup = new THREE.Group();
+    railsSubGroup.position.set(0, -1.55, -0.2);
+    railsSubGroup.rotation.x = railPitch;
+    launchRailGroup.add(railsSubGroup);
+
+    const railBeamLeft = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.08, 3.4), railMat);
+    railBeamLeft.position.set(-0.28, 0.15, 0);
+    railsSubGroup.add(railBeamLeft);
+
+    const railBeamRight = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.08, 3.4), railMat);
+    railBeamRight.position.set(0.28, 0.15, 0);
+    railsSubGroup.add(railBeamRight);
+
+    // Hydraulic lift struts
+    const pistonLeft = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 1.2, 12), goldMaterial);
+    pistonLeft.position.set(-0.32, -0.85, 0.2);
+    pistonLeft.rotation.x = 0.55;
+    launchRailGroup.add(pistonLeft);
+
+    const pistonRight = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 1.2, 12), goldMaterial);
+    pistonRight.position.set(0.32, -0.85, 0.2);
+    pistonRight.rotation.x = 0.55;
+    launchRailGroup.add(pistonRight);
+
+    // Helper to build a high-fidelity Shahed 136 3D model
+    const buildShahedDroneObject = (scale = 1.0) => {
+      const droneRoot = new THREE.Group();
+      droneRoot.scale.setScalar(scale);
+
+      // Delta Wing
+      const wingShape = new THREE.Shape();
+      wingShape.moveTo(0, 1.05);        // nose tip
+      wingShape.lineTo(1.22, -0.78);    // right wingtip
+      wingShape.lineTo(1.12, -0.92);    // right trailing tip
+      wingShape.lineTo(0.18, -0.75);    // right engine root
+      wingShape.lineTo(-0.18, -0.75);   // left engine root
+      wingShape.lineTo(-1.12, -0.92);   // left trailing tip
+      wingShape.lineTo(-1.22, -0.78);   // left wingtip
+      wingShape.closePath();
+
+      const wingGeom = new THREE.ExtrudeGeometry(wingShape, {
+        depth: 0.05,
+        bevelEnabled: true,
+        bevelThickness: 0.016,
+        bevelSize: 0.014,
+        bevelSegments: 2,
+      });
+      wingGeom.center();
+      const wingMesh = new THREE.Mesh(wingGeom, hullMaterial);
+      droneRoot.add(wingMesh);
+
+      // Fuselage tube
+      const fuseGeom = new THREE.CylinderGeometry(0.145, 0.17, 1.55, 24);
+      const fuseMesh = new THREE.Mesh(fuseGeom, hullMaterial);
+      fuseMesh.position.y = 0.05;
+      droneRoot.add(fuseMesh);
+
+      // Nose warhead dome
+      const domeGeom = new THREE.SphereGeometry(0.145, 16, 14);
+      const domeMesh = new THREE.Mesh(domeGeom, goldMaterial);
+      domeMesh.position.y = 0.82;
+      droneRoot.add(domeMesh);
+
+      // Wingtip vertical stabilizers
+      const finShape = new THREE.Shape();
+      finShape.moveTo(0, 0.40);
+      finShape.lineTo(0.06, -0.28);
+      finShape.lineTo(-0.30, -0.28);
+      finShape.lineTo(-0.20, 0.20);
+      finShape.closePath();
+      const finGeom = new THREE.ExtrudeGeometry(finShape, { depth: 0.016, bevelEnabled: false });
+
+      const finL = new THREE.Mesh(finGeom, hullMaterial);
+      finL.rotation.y = Math.PI / 2;
+      finL.position.set(-1.14, -0.05, 0);
+      droneRoot.add(finL);
+
+      const finR = new THREE.Mesh(finGeom, hullMaterial);
+      finR.rotation.y = Math.PI / 2;
+      finR.position.set(1.14, -0.05, 0);
+      droneRoot.add(finR);
+
+      // Rear engine housing
+      const engineMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.085, 0.10, 0.24, 16), nozzleMaterial);
+      engineMesh.position.y = -0.78;
+      droneRoot.add(engineMesh);
+
+      // Pusher propeller hub & blades
+      const propHub = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.06, 12), goldMaterial);
+      propHub.rotation.x = Math.PI / 2;
+      propHub.position.y = -0.92;
+      droneRoot.add(propHub);
+
+      const propBlade = new THREE.Mesh(new THREE.BoxGeometry(0.62, 0.048, 0.012), nozzleMaterial);
+      propHub.add(propBlade);
+
+      // Glowing radar/fuel telemetry ring
+      const fuelRing = new THREE.Mesh(new THREE.TorusGeometry(0.15, 0.018, 10, 32), fuelMaterial);
+      fuelRing.rotation.x = Math.PI / 2;
+      fuelRing.position.y = 0.2;
+      droneRoot.add(fuelRing);
+
+      return { root: droneRoot, propBlade, fuelRing, wingGeom, fuseGeom, domeGeom, finGeom };
+    };
+
+    // ── Scenario 2 Drone (Cinematic Flight & Kamikaze Explosion) ──
+    const shahedFlightGroup = new THREE.Group();
+    shahedFlightGroup.visible = false;
+    rocketGroup.add(shahedFlightGroup);
+
+    const singleShahedDrone = buildShahedDroneObject(1.0);
+    singleShahedDrone.root.position.set(0, -0.35, 0);
+    shahedFlightGroup.add(singleShahedDrone.root);
+
+    // ── Scenario 1 Drone Rack (Swarm of 3 Drones in Queue) ──
+    const shahedSwarmGroup = new THREE.Group();
+    shahedSwarmGroup.visible = false;
+    scene.add(shahedSwarmGroup);
+
+    const swarmDrones: ReturnType<typeof buildShahedDroneObject>[] = [];
+    const rackSlotOffsets = [
+      new THREE.Vector3(0, -0.45, 0.38),   // Slot 0 (Front, ready on rail)
+      new THREE.Vector3(0, -0.76, -0.32),  // Slot 1 (Mid on rail)
+      new THREE.Vector3(0, -1.07, -1.02),  // Slot 2 (Rear on rail)
+    ];
+
+    for (let i = 0; i < 3; i++) {
+      const drone = buildShahedDroneObject(0.85);
+      drone.root.position.copy(rackSlotOffsets[i]);
+      drone.root.rotation.x = railPitch;
+      shahedSwarmGroup.add(drone.root);
+      swarmDrones.push(drone);
+    }
+
+    // Active projectiles launched from swarm
+    interface FlyingDroneProjectile {
+      group: THREE.Group;
+      vel: THREE.Vector3;
+      propBlade: THREE.Mesh;
+      life: number;
+      maxLife: number;
+    }
+    const flyingProjectiles: FlyingDroneProjectile[] = [];
+
+    // ── Kamikaze Detonation System (Debris, Shockwave, Light, Shake) ──
+    const EXPLOSION_DEBRIS_COUNT = 90;
+    const debrisPos = new Float32Array(EXPLOSION_DEBRIS_COUNT * 3);
+    const debrisVel = new Float32Array(EXPLOSION_DEBRIS_COUNT * 3);
+    const debrisLife = new Float32Array(EXPLOSION_DEBRIS_COUNT);
+    const debrisMaxLife = new Float32Array(EXPLOSION_DEBRIS_COUNT);
+    const debrisSize = new Float32Array(EXPLOSION_DEBRIS_COUNT);
+
+    const debrisGeo = new THREE.BufferGeometry();
+    debrisGeo.setAttribute("position", new THREE.BufferAttribute(debrisPos, 3));
+    debrisGeo.setAttribute("size", new THREE.BufferAttribute(debrisSize, 1));
+
+    const debrisMat = new THREE.PointsMaterial({
+      color: 0xff6611,
+      size: 0.22,
+      transparent: true,
+      opacity: 0,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+    });
+    const debrisPoints = new THREE.Points(debrisGeo, debrisMat);
+    scene.add(debrisPoints);
+
+    const shockwaveGeo = new THREE.RingGeometry(0.1, 0.45, 36);
+    const shockwaveMat = new THREE.MeshBasicMaterial({
+      color: 0xfff7ed,
+      transparent: true,
+      opacity: 0,
+      blending: THREE.AdditiveBlending,
+      side: THREE.DoubleSide,
+      depthWrite: false,
+    });
+    const shockwaveMesh = new THREE.Mesh(shockwaveGeo, shockwaveMat);
+    scene.add(shockwaveMesh);
+
+    const detonationLight = new THREE.PointLight(0xffeedd, 0, 45, 1.2);
+    scene.add(detonationLight);
+
+    let hasDetonated = false;
+    let cameraShakeIntensity = 0;
+
+    const triggerKamikazeExplosion = (worldY: number) => {
+      hasDetonated = true;
+      singleShahedDrone.root.visible = false;
+      cameraShakeIntensity = 0.42;
+
+      const blastPos = new THREE.Vector3(0, worldY, 0);
+      detonationLight.position.copy(blastPos);
+      detonationLight.intensity = 22;
+
+      shockwaveMesh.position.copy(blastPos);
+      shockwaveMesh.scale.set(1, 1, 1);
+      shockwaveMat.opacity = 1.0;
+
+      for (let i = 0; i < EXPLOSION_DEBRIS_COUNT; i++) {
+        debrisPos[i * 3] = blastPos.x;
+        debrisPos[i * 3 + 1] = blastPos.y;
+        debrisPos[i * 3 + 2] = blastPos.z;
+
+        const theta = Math.random() * Math.PI * 2;
+        const phi = Math.random() * Math.PI;
+        const spd = 3.2 + Math.random() * 8.5;
+        debrisVel[i * 3] = Math.sin(phi) * Math.cos(theta) * spd;
+        debrisVel[i * 3 + 1] = Math.cos(phi) * spd * 0.85 + 2.2;
+        debrisVel[i * 3 + 2] = Math.sin(phi) * Math.sin(theta) * spd;
+
+        debrisLife[i] = 0;
+        debrisMaxLife[i] = 1.8 + Math.random() * 2.2;
+        debrisSize[i] = 0.15 + Math.random() * 0.25;
+      }
+      debrisGeo.attributes.position.needsUpdate = true;
+      debrisGeo.attributes.size.needsUpdate = true;
+      debrisMat.opacity = 1.0;
+
+      // Spawn puff of black & orange fireball smoke
+      for (let k = 0; k < 22; k++) {
+        const a = Math.random() * Math.PI * 2;
+        spawnSmoke(
+          blastPos.x + Math.cos(a) * 0.15, blastPos.y, blastPos.z + Math.sin(a) * 0.15,
+          Math.cos(a) * 1.8, (Math.random() - 0.2) * 1.4, Math.sin(a) * 1.8,
+          2.0 + Math.random() * 1.5, 0.22, 0.9, false
+        );
+      }
+
+      soundEngine.playDroneKamikazeExplosion();
+    };
+
+    // Trigger Salawat Swarm Launch (fires 1 drone from front of rack)
+    const launchSwarmDrone = () => {
+      const proj = buildShahedDroneObject(0.85);
+      proj.root.position.copy(rackSlotOffsets[0]);
+      proj.root.rotation.x = railPitch;
+      scene.add(proj.root);
+
+      flyingProjectiles.push({
+        group: proj.root,
+        vel: new THREE.Vector3(
+          (Math.random() - 0.5) * 0.4,
+          7.2 + Math.random() * 1.2,
+          -(3.2 + Math.random() * 1.2)
+        ),
+        propBlade: proj.propBlade,
+        life: 0,
+        maxLife: 2.5,
+      });
+
+      // Spawn launch booster smoke puff
+      spawnSmoke(
+        rackSlotOffsets[0].x, rackSlotOffsets[0].y - 0.1, rackSlotOffsets[0].z - 0.2,
+        0, 0.2, 0.4, 0.8, 0.18, 0.7, true
+      );
+
+      soundEngine.playDroneLaunch();
+
+      // Quick visual bump / reload recoil on slot 1 and 2
+      if (swarmDrones[1]) swarmDrones[1].root.position.y += 0.04;
+      if (swarmDrones[2]) swarmDrones[2].root.position.y += 0.04;
+    };
+
+    onSalawatTriggerRef.current = () => {
+      if (modelRef.current === "shahed136" && droneModeRef.current === "swarm_salawat") {
+        launchSwarmDrone();
+      }
+    };
+
     // ── 3D Memorial Tunnel in the Sky ──
     const MEMORIAL_TEXTS = [
       { lines: ["شهدا زنده‌اند"], y: 3, side: 1 },
@@ -1427,8 +1735,27 @@ export default function ThreeRocketScene({
       emadCanardsGroup.visible = model === "emad";
       reyhanehAccessoriesGroup.visible = model === "reyhaneh";
 
-      finGroup.visible = model !== "emad";
+      finGroup.visible = model !== "emad" && model !== "shahed136";
       emadFinGroup.visible = model === "emad";
+
+      const isShahed = model === "shahed136";
+      boosterGroup.visible = !isShahed;
+      capsuleGroup.visible = !isShahed;
+      padRing.visible = !isShahed;
+      machCone.visible = !isShahed;
+      machDiamond.visible = !isShahed;
+      haloRing.visible = !isShahed;
+
+      launchRailGroup.visible = isShahed;
+      shahedFlightGroup.visible = isShahed && droneModeRef.current === "cinematic_explosion";
+      shahedSwarmGroup.visible = isShahed && droneModeRef.current === "swarm_salawat";
+    };
+
+    onDroneModeChangeRef.current = (mode: DroneMode) => {
+      const isShahed = modelRef.current === "shahed136";
+      shahedFlightGroup.visible = isShahed && mode === "cinematic_explosion";
+      shahedSwarmGroup.visible = isShahed && mode === "swarm_salawat";
+      launchRailGroup.visible = isShahed;
     };
 
     onModelChangeRef.current = applyMissileModel;
@@ -1566,55 +1893,87 @@ export default function ThreeRocketScene({
           isPadSmokeActive = ascentY < 1.4;
           const sway = Math.sin(elapsed * 4.0) * 0.012 * (1 - ascFrac * 0.5);
           rocketGroup.position.set(sway, ascentY, 0);
-          boosterGroup.position.set(0, 0, 0);
-          capsuleGroup.position.set(0, 0, 0);
-          capsuleGroup.visible = true;
+
+          if (modelRef.current === "shahed136") {
+            boosterGroup.visible = false;
+            capsuleGroup.visible = false;
+            singleShahedDrone.propBlade.rotation.z += 0.85;
+
+            // Trigger kamikaze detonation near apogee in Scenario 2
+            if (droneModeRef.current === "cinematic_explosion" && ascentY >= PEAK_ALTITUDE - 0.7 && !hasDetonated) {
+              triggerKamikazeExplosion(ascentY);
+            }
+          } else {
+            boosterGroup.position.set(0, 0, 0);
+            capsuleGroup.position.set(0, 0, 0);
+            capsuleGroup.visible = true;
+          }
           rotZ += Math.sin(elapsed * 3.2) * 0.015 * (1 - ascFrac * 0.3);
 
         } else if (t < SEP_END) {
-          if (!isSeparated) {
-            isSeparated = true;
-            stagingFlashMat.opacity = 1.0;
+          if (modelRef.current === "shahed136") {
+            boosterGroup.visible = false;
+            capsuleGroup.visible = false;
+            targetCameraY = PEAK_ALTITUDE + BOOSTER_MID_Y;
+            engineIntensity = 0;
+            isPadSmokeActive = false;
+            if (!hasDetonated && droneModeRef.current === "cinematic_explosion") {
+              triggerKamikazeExplosion(PEAK_ALTITUDE);
+            }
+          } else {
+            if (!isSeparated) {
+              isSeparated = true;
+              stagingFlashMat.opacity = 1.0;
+            }
+            stagingFlashMat.opacity = Math.max(0, stagingFlashMat.opacity - dt * 2.0);
+
+            const sepFrac = (t - ASCENT_END) / SEP_DUR;
+            const capsuleRelY = Math.pow(sepFrac, 1.6) * 9.5;
+
+            capsuleGroup.position.set(0, capsuleRelY, 0);
+            capsuleGroup.visible = capsuleRelY < 7.5;
+            capsuleRcsLight.intensity = Math.max(0, 1.5 * (1 - sepFrac * 0.6));
+
+            const apogeeFloat = Math.sin(sepFrac * Math.PI) * 0.06;
+            ascentY = PEAK_ALTITUDE + apogeeFloat;
+            rocketGroup.position.set(0, ascentY, 0);
+            boosterGroup.position.set(0, 0, 0);
+
+            targetCameraY = ascentY + BOOSTER_MID_Y;
+            engineIntensity = 0.2 * (1 - sepFrac * 0.8);
+            isPadSmokeActive = false;
           }
-          stagingFlashMat.opacity = Math.max(0, stagingFlashMat.opacity - dt * 2.0);
-
-          const sepFrac = (t - ASCENT_END) / SEP_DUR;
-          const capsuleRelY = Math.pow(sepFrac, 1.6) * 9.5;
-
-          capsuleGroup.position.set(0, capsuleRelY, 0);
-          capsuleGroup.visible = capsuleRelY < 7.5;
-          capsuleRcsLight.intensity = Math.max(0, 1.5 * (1 - sepFrac * 0.6));
-
-          const apogeeFloat = Math.sin(sepFrac * Math.PI) * 0.06;
-          ascentY = PEAK_ALTITUDE + apogeeFloat;
-          rocketGroup.position.set(0, ascentY, 0);
-          boosterGroup.position.set(0, 0, 0);
-
-          targetCameraY = ascentY + BOOSTER_MID_Y;
-          engineIntensity = 0.2 * (1 - sepFrac * 0.8);
-          isPadSmokeActive = false;
 
         } else if (t < BOOSTER_LAND_TIME) {
-          if (!capsuleExitedAtmosphere) {
-            capsuleExitedAtmosphere = true;
-            soundEngine.playBoosterDescent();
+          if (modelRef.current === "shahed136") {
+            boosterGroup.visible = false;
+            capsuleGroup.visible = false;
+            const descFrac = (t - SEP_END) / BOOSTER_DESCENT_DUR;
+            targetCameraY = currentBaseCameraY + (PEAK_ALTITUDE - currentBaseCameraY) * (1 - descFrac);
+            engineIntensity = 0;
+            isPadSmokeActive = false;
+          } else {
+            if (!capsuleExitedAtmosphere) {
+              capsuleExitedAtmosphere = true;
+              soundEngine.playBoosterDescent();
+            }
+            capsuleGroup.position.set(0, 25.0, 0);
+            capsuleGroup.visible = false;
+            capsuleRcsLight.intensity = 0;
+
+            const descFrac = (t - SEP_END) / BOOSTER_DESCENT_DUR;
+            const descCurve = easeInOutCubic(descFrac);
+
+            ascentY = PEAK_ALTITUDE * (1 - descCurve);
+            rocketGroup.position.set(0, ascentY, 0);
+            boosterGroup.position.set(0, 0, 0);
+
+            engineIntensity = 0.88;
+            isPadSmokeActive = ascentY < 1.2;
+
+            const currentBoosterCenter = ascentY + BOOSTER_MID_Y;
+            targetCameraY = currentBaseCameraY + (currentBoosterCenter - currentBaseCameraY) * (1 - descCurve);
           }
-          capsuleGroup.position.set(0, 25.0, 0);
-          capsuleGroup.visible = false;
-          capsuleRcsLight.intensity = 0;
-
-          const descFrac = (t - SEP_END) / BOOSTER_DESCENT_DUR;
-          const descCurve = easeInOutCubic(descFrac);
-
-          ascentY = PEAK_ALTITUDE * (1 - descCurve);
-          rocketGroup.position.set(0, ascentY, 0);
-          boosterGroup.position.set(0, 0, 0);
-
-          engineIntensity = 0.88;
-          isPadSmokeActive = ascentY < 1.2;
-
-          const currentBoosterCenter = ascentY + BOOSTER_MID_Y;
-          targetCameraY = currentBaseCameraY + (currentBoosterCenter - currentBaseCameraY) * (1 - descCurve);
 
         } else if (t < REDOCK_START) {
           // ── Phase 5: Booster Touchdown on Pad ──
@@ -1687,6 +2046,8 @@ export default function ThreeRocketScene({
 
           if (!flightFinishedNotified) {
             flightFinishedNotified = true;
+            hasDetonated = false;
+            singleShahedDrone.root.visible = true;
             onFlightCompleteRef.current?.();
           }
         }
@@ -1794,9 +2155,19 @@ export default function ThreeRocketScene({
         camera.position.y += (currentBaseCameraY - camera.position.y) * camAlpha;
         boosterGroup.position.set(0, 0, 0);
         capsuleGroup.position.set(0, 0, 0);
-        capsuleGroup.visible = true;
+        capsuleGroup.visible = modelRef.current !== "shahed136";
         capsuleRcsLight.intensity = 0;
         stagingFlashMat.opacity = 0; dockingFlashMat.opacity = 0;
+
+        if (modelRef.current === "shahed136") {
+          boosterGroup.visible = false;
+          capsuleGroup.visible = false;
+          padRing.visible = false;
+          singleShahedDrone.propBlade.rotation.z += 0.22;
+          swarmDrones.forEach((d) => {
+            d.propBlade.rotation.z += 0.22;
+          });
+        }
 
         if (isLaunched || flightFinishedNotified) {
           rocketGroup.position.set(0, floatY, 0);
@@ -1810,6 +2181,56 @@ export default function ThreeRocketScene({
           haloMat.opacity = 0;
           thrusterLight.intensity = countingDown ? 1.6 + Math.sin(elapsed * 9) * 0.5 + Math.sin(elapsed * 23) * 0.25 : isReady ? 1.2 + Math.sin(elapsed * 4) * 0.4 : 0;
         }
+      }
+
+      // ── Update Kamikaze Detonation Particles & Flash ──
+      if (hasDetonated) {
+        for (let i = 0; i < EXPLOSION_DEBRIS_COUNT; i++) {
+          if (debrisLife[i] < debrisMaxLife[i]) {
+            debrisLife[i] += dt;
+            debrisPos[i * 3] += debrisVel[i * 3] * dt;
+            debrisPos[i * 3 + 1] += debrisVel[i * 3 + 1] * dt;
+            debrisPos[i * 3 + 2] += debrisVel[i * 3 + 2] * dt;
+            debrisVel[i * 3 + 1] -= 6.5 * dt; // gravity
+            debrisVel[i * 3] *= 0.96;
+            debrisVel[i * 3 + 2] *= 0.96;
+          }
+        }
+        debrisGeo.attributes.position.needsUpdate = true;
+        debrisMat.opacity = Math.max(0, debrisMat.opacity - dt * 0.35);
+
+        shockwaveMesh.scale.addScalar(dt * 8.5);
+        shockwaveMat.opacity = Math.max(0, shockwaveMat.opacity - dt * 1.6);
+        detonationLight.intensity = Math.max(0, detonationLight.intensity - dt * 16.0);
+      }
+
+      // ── Update Active Swarm Projectiles ──
+      for (let i = flyingProjectiles.length - 1; i >= 0; i--) {
+        const p = flyingProjectiles[i];
+        p.life += dt;
+        p.group.position.addScaledVector(p.vel, dt);
+        p.propBlade.rotation.z += 1.2;
+        p.group.rotation.z = Math.sin(p.life * 3.5) * 0.14;
+        p.group.rotation.x = railPitch + p.life * 0.12;
+
+        if (Math.random() < 0.35) {
+          spawnSmoke(
+            p.group.position.x, p.group.position.y - 0.2, p.group.position.z - 0.2,
+            0, 0.1, 0.2, 0.5, 0.12, 0.5, false
+          );
+        }
+
+        if (p.life >= p.maxLife) {
+          scene.remove(p.group);
+          flyingProjectiles.splice(i, 1);
+        }
+      }
+
+      // ── Camera Shake for Detonation ──
+      if (cameraShakeIntensity > 0.001) {
+        camera.position.x += (Math.random() - 0.5) * cameraShakeIntensity;
+        camera.position.y += (Math.random() - 0.5) * cameraShakeIntensity;
+        cameraShakeIntensity = Math.max(0, cameraShakeIntensity - dt * 0.85);
       }
 
       rocketGroup.rotation.set(pointer.currentY * 0.04, rotY, rotZ);

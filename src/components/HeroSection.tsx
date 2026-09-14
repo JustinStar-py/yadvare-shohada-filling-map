@@ -47,6 +47,7 @@ export default function HeroSection({
 }: HeroSectionProps) {
   const { mission, daysRemaining, campaignPhase } = campaignState;
   const activeMissile = campaignState.settings.activeMissileModel || "kheibar";
+  const droneMode = campaignState.settings.droneMode || "cinematic_explosion";
   const [isRocketReady, setIsRocketReady] = useState(false);
   const [showMemorialModal, setShowMemorialModal] = useState(false);
 
@@ -119,6 +120,7 @@ export default function HeroSection({
           hasLiftedOff={hasLiftedOff}
           pulseTrigger={energyBurstTrigger}
           missileModel={activeMissile}
+          droneMode={droneMode}
           onFlightComplete={onFlightComplete}
         />
       </div>

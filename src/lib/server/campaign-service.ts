@@ -201,6 +201,7 @@ export class CampaignService {
         finalMessage: db.settings.finalMessage,
         isCompleted: db.settings.isCompleted,
         activeMissileModel: db.settings.activeMissileModel || "kheibar",
+        droneMode: db.settings.droneMode || "cinematic_explosion",
         shareMessage: db.settings.shareMessage,
       },
     };
@@ -612,6 +613,7 @@ export class CampaignService {
     sseBroadcaster.broadcast("settings_update", {
       settings: {
         activeMissileModel: settings.activeMissileModel || "kheibar",
+        droneMode: settings.droneMode || "cinematic_explosion",
         visualPreset: settings.visualPreset,
         campaignTitle: settings.campaignTitle,
         campaignSubtitle: settings.campaignSubtitle,

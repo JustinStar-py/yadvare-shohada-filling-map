@@ -40,7 +40,8 @@ export interface ConstellationStar {
   launchedAt: number;
 }
 
-export type MissileModel = "kheibar" | "fattah" | "sejjil" | "khorramshahr" | "emad" | "reyhaneh";
+export type MissileModel = "kheibar" | "fattah" | "sejjil" | "khorramshahr" | "emad" | "reyhaneh" | "shahed136";
+export type DroneMode = "cinematic_explosion" | "swarm_salawat";
 
 export const DEFAULT_SHARE_MESSAGE = `«پویش معنوی یادواره ۷۶ شهید شهیدیه میبد»
 🕊️ هر صلوات، یک قدم تا پرواز
@@ -76,6 +77,7 @@ export interface CampaignSettings {
   finalMessage: string;
   isCompleted: boolean;
   activeMissileModel?: MissileModel;
+  droneMode?: DroneMode;
   shareMessage?: string;
 }
 
@@ -111,6 +113,7 @@ export interface PublicCampaignState {
     finalMessage: string;
     isCompleted: boolean;
     activeMissileModel?: MissileModel;
+    droneMode?: DroneMode;
     shareMessage?: string;
   };
 }
@@ -168,7 +171,8 @@ export const UpdateSettingsSchema = z.object({
   visualPreset: z.enum(["calm", "balanced", "intense"]).optional(),
   finalMessage: z.string().max(500).optional(),
   adminPin: z.string().min(4).max(32).optional(),
-  activeMissileModel: z.enum(["kheibar", "fattah", "sejjil", "khorramshahr", "emad", "reyhaneh"]).optional(),
+  activeMissileModel: z.enum(["kheibar", "fattah", "sejjil", "khorramshahr", "emad", "reyhaneh", "shahed136"]).optional(),
+  droneMode: z.enum(["cinematic_explosion", "swarm_salawat"]).optional(),
   shareMessage: z.string().max(2500).optional(),
 });
 

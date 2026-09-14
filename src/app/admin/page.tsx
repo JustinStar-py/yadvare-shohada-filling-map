@@ -329,6 +329,28 @@ export default function AdminPage() {
     }
   };
 
+  const handleSelectDroneMode = async (mode: "cinematic_explosion" | "swarm_salawat") => {
+    try {
+      const res = await fetch("/api/admin/settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ droneMode: mode }),
+      });
+      if (res.ok) {
+        const modeLabel =
+          mode === "swarm_salawat"
+            ? "پرتاب رگباری صف ۳ تایی با هر صلوات"
+            : "سوخت‌گیری و انفجار انتحاری نهایی";
+        showNotification(`سناریوی پهپاد به «${modeLabel}» تغییر یافت`);
+        loadAdminData();
+      } else {
+        showNotification("خطا در تغییر سناریوی پهپاد", "error");
+      }
+    } catch {
+      showNotification("خطای ارتباط با سرور", "error");
+    }
+  };
+
   const handleSetTargetOverride = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!overrideDate || !overrideTarget) return;
@@ -795,9 +817,9 @@ export default function AdminPage() {
                 </span>
               </div>
               <p className="text-xs text-slate-400">
-                مدیر گرامی، هر یک از ۶ مدل موشک دارای رنگ‌آمیزی بدنه، کلاهک و بالک‌های اختصاصی، و رنگ سوخت صلوات منحصربه‌فرد (نظیر سوخت سرخ هایپرسونیک فتاح، نارنجی قرمز آتشین سجیل، فیروزه‌ای نئونی عماد، صورتی جادویی ریحانه و طلایی کهربایی خیبر و خرمشهر) است. همچنین در حین پرواز، سوخت موشک متناسب با اوج‌گیری مصرف شده و پس از فرود مجدداً با انیمیشن روان پر می‌شود:
+                مدیر گرامی، هر یک از ۷ مدل موشک و پهپاد دارای رنگ‌آمیزی بدنه، کلاهک و بالک‌های اختصاصی، و رنگ سوخت صلوات منحصربه‌فرد (نظیر سوخت سرخ هایپرسونیک فتاح، نارنجی قرمز آتشین سجیل، فیروزه‌ای نئونی عماد، صورتی جادویی ریحانه، سبز راداری پهپاد شاهد ۱۳۶ و طلایی کهربایی خیبر و خرمشهر) است:
               </p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-7 gap-4">
                 {MISSILE_MODELS.map((item) => {
                   const isSelected = (settings?.activeMissileModel || "kheibar") === item.id;
                   return (
@@ -864,6 +886,75 @@ export default function AdminPage() {
                     </button>
                   );
                 })}
+              </div>
+
+              {/* ── بخش تنظیمات اختصاصی سناریوی پهپاد شاهد ۱۳۶ ── */}
+              <div className="mt-4 p-4 sm:p-5 rounded-2xl border border-emerald-500/35 bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-950/20 flex flex-col gap-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
+                    <h4 className="text-sm sm:text-base font-bold text-emerald-300">
+                      سناریوی عملیاتی پهپاد شاهد ۱۳۶ (Shahed-136 Mode)
+                    </h4>
+                  </div>
+                  <span className="text-[11px] text-emerald-400/90 bg-emerald-500/10 border border-emerald-500/30 px-3 py-0.5 rounded-full self-start sm:self-auto">
+                    وضعیت فعلی: {settings?.droneMode === "swarm_salawat" ? "پرتاب رگباری صلواتی (صف ۳تایی)" : "سوخت‌گیری و انفجار کامیکازه"}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                  {/* سناریو ۱ */}
+                  <button
+                    type="button"
+                    onClick={() => handleSelectDroneMode("swarm_salawat")}
+                    className={`p-4 rounded-xl border text-right transition-all flex flex-col justify-between gap-2.5 cursor-pointer ${
+                      settings?.droneMode === "swarm_salawat"
+                        ? "bg-slate-900/95 border-emerald-400/80 shadow-[0_0_20px_rgba(16,185,129,0.2)] ring-1 ring-emerald-400/50"
+                        : "bg-slate-950/50 border-slate-800 hover:border-slate-700 hover:bg-slate-900/60"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between w-full">
+                      <span className="text-xs sm:text-sm font-black text-slate-100 flex items-center gap-1.5">
+                        <span>🚀</span>
+                        <span>سناریو ۱: صف ۳ تایی (پرتاب رگباری با هر صلوات)</span>
+                      </span>
+                      {settings?.droneMode === "swarm_salawat" && (
+                        <span className="text-[10px] bg-emerald-500 text-slate-950 font-bold px-2 py-0.5 rounded-full">
+                          فعال ✓
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-[11px] sm:text-xs text-slate-400 leading-relaxed">
+                      سه فروند پهپاد روی ریل پرتاب در یک صف قرار می‌گیرند؛ با ارسال هر صلوات توسط کاربران، پهپاد جلویی با شتاب شلیک شده، صدای موتور زوزه کشیده و پهپادهای بعدی در صف به جلو می‌آیند.
+                    </p>
+                  </button>
+
+                  {/* سناریو ۲ */}
+                  <button
+                    type="button"
+                    onClick={() => handleSelectDroneMode("cinematic_explosion")}
+                    className={`p-4 rounded-xl border text-right transition-all flex flex-col justify-between gap-2.5 cursor-pointer ${
+                      (settings?.droneMode || "cinematic_explosion") === "cinematic_explosion"
+                        ? "bg-slate-900/95 border-emerald-400/80 shadow-[0_0_20px_rgba(16,185,129,0.2)] ring-1 ring-emerald-400/50"
+                        : "bg-slate-950/50 border-slate-800 hover:border-slate-700 hover:bg-slate-900/60"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between w-full">
+                      <span className="text-xs sm:text-sm font-black text-slate-100 flex items-center gap-1.5">
+                        <span>💥</span>
+                        <span>سناریو ۲: سوخت‌گیری تدریجی + پرواز و انفجار کامیکازه</span>
+                      </span>
+                      {(settings?.droneMode || "cinematic_explosion") === "cinematic_explosion" && (
+                        <span className="text-[10px] bg-emerald-500 text-slate-950 font-bold px-2 py-0.5 rounded-full">
+                          فعال ✓
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-[11px] sm:text-xs text-slate-400 leading-relaxed">
+                      پهپاد با صلوات‌ها سوخت‌گیری کرده (نور سبز راداری) و پس از پرتاب، در انتهای پرواز سینمایی در آسمان دچار <strong>انفجار مهیب انتحاری</strong> شده و ترکش‌ها، ذرات آتشین و نور آن در فضا پخش می‌شوند.
+                    </p>
+                  </button>
+                </div>
               </div>
             </div>
 

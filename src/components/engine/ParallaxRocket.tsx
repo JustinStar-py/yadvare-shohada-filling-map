@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
-import { MissionState } from "@/types/campaign";
+import { MissionState, DroneMode } from "@/types/campaign";
 import { useLiteMode } from "@/lib/client/quality";
 
 // Dynamic import for 3D Three.js scene (zero SSR overhead, client-only)
@@ -19,6 +19,7 @@ interface ParallaxRocketProps {
   hasLiftedOff: boolean;
   pulseTrigger: number;
   missileModel?: MissileModel;
+  droneMode?: DroneMode;
   onFlightComplete?: () => void;
   onReady?: () => void;
 }
@@ -30,6 +31,7 @@ export default function ParallaxRocket({
   hasLiftedOff,
   pulseTrigger,
   missileModel,
+  droneMode,
   onFlightComplete,
   onReady,
 }: ParallaxRocketProps) {
@@ -80,6 +82,7 @@ export default function ParallaxRocket({
             hasLiftedOff={hasLiftedOff}
             pulseTrigger={pulseTrigger}
             missileModel={missileModel}
+            droneMode={droneMode}
             onFlightComplete={onFlightComplete}
             onReady={handleSceneReady}
           />
