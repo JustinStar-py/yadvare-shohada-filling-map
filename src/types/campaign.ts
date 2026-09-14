@@ -79,6 +79,10 @@ export interface CampaignSettings {
   activeMissileModel?: MissileModel;
   droneMode?: DroneMode;
   shareMessage?: string;
+  enable360Rotation?: boolean;
+  enableIdleHover?: boolean;
+  enableExhaustParticles?: boolean;
+  enableCameraShake?: boolean;
 }
 
 export interface AdminAuditLog {
@@ -115,6 +119,10 @@ export interface PublicCampaignState {
     activeMissileModel?: MissileModel;
     droneMode?: DroneMode;
     shareMessage?: string;
+    enable360Rotation?: boolean;
+    enableIdleHover?: boolean;
+    enableExhaustParticles?: boolean;
+    enableCameraShake?: boolean;
   };
 }
 
@@ -174,6 +182,10 @@ export const UpdateSettingsSchema = z.object({
   activeMissileModel: z.enum(["kheibar", "fattah", "sejjil", "khorramshahr", "emad", "reyhaneh", "shahed136"]).optional(),
   droneMode: z.enum(["cinematic_explosion", "swarm_salawat"]).optional(),
   shareMessage: z.string().max(2500).optional(),
+  enable360Rotation: z.boolean().optional(),
+  enableIdleHover: z.boolean().optional(),
+  enableExhaustParticles: z.boolean().optional(),
+  enableCameraShake: z.boolean().optional(),
 });
 
 export const TargetOverrideSchema = z.object({

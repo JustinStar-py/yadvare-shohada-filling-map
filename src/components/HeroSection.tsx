@@ -48,6 +48,10 @@ export default function HeroSection({
   const { mission, daysRemaining, campaignPhase } = campaignState;
   const activeMissile = campaignState.settings.activeMissileModel || "kheibar";
   const droneMode = campaignState.settings.droneMode || "cinematic_explosion";
+  const enable360Rotation = campaignState.settings.enable360Rotation ?? true;
+  const enableIdleHover = campaignState.settings.enableIdleHover ?? true;
+  const enableExhaustParticles = campaignState.settings.enableExhaustParticles ?? true;
+  const enableCameraShake = campaignState.settings.enableCameraShake ?? true;
   const [isRocketReady, setIsRocketReady] = useState(false);
   const [showMemorialModal, setShowMemorialModal] = useState(false);
 
@@ -121,6 +125,10 @@ export default function HeroSection({
           pulseTrigger={energyBurstTrigger}
           missileModel={activeMissile}
           droneMode={droneMode}
+          enable360Rotation={enable360Rotation}
+          enableIdleHover={enableIdleHover}
+          enableExhaustParticles={enableExhaustParticles}
+          enableCameraShake={enableCameraShake}
           onFlightComplete={onFlightComplete}
         />
       </div>

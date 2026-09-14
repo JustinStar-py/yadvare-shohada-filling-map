@@ -20,6 +20,10 @@ interface ParallaxRocketProps {
   pulseTrigger: number;
   missileModel?: MissileModel;
   droneMode?: DroneMode;
+  enable360Rotation?: boolean;
+  enableIdleHover?: boolean;
+  enableExhaustParticles?: boolean;
+  enableCameraShake?: boolean;
   onFlightComplete?: () => void;
   onReady?: () => void;
 }
@@ -32,6 +36,10 @@ export default function ParallaxRocket({
   pulseTrigger,
   missileModel,
   droneMode,
+  enable360Rotation = true,
+  enableIdleHover = true,
+  enableExhaustParticles = true,
+  enableCameraShake = true,
   onFlightComplete,
   onReady,
 }: ParallaxRocketProps) {
@@ -83,6 +91,10 @@ export default function ParallaxRocket({
             pulseTrigger={pulseTrigger}
             missileModel={missileModel}
             droneMode={droneMode}
+            enable360Rotation={enable360Rotation}
+            enableIdleHover={enableIdleHover}
+            enableExhaustParticles={enableExhaustParticles}
+            enableCameraShake={enableCameraShake}
             onFlightComplete={onFlightComplete}
             onReady={handleSceneReady}
           />

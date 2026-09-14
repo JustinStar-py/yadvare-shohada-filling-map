@@ -21,6 +21,10 @@ interface ThreeRocketSceneProps {
   pulseTrigger: number;
   missileModel?: MissileModel;
   droneMode?: DroneMode;
+  enable360Rotation?: boolean;
+  enableIdleHover?: boolean;
+  enableExhaustParticles?: boolean;
+  enableCameraShake?: boolean;
   onFlightComplete?: () => void;
   onReady?: () => void;
 }
@@ -273,6 +277,10 @@ export default function ThreeRocketScene({
   pulseTrigger,
   missileModel = "kheibar",
   droneMode = "cinematic_explosion",
+  enable360Rotation = true,
+  enableIdleHover = true,
+  enableExhaustParticles = true,
+  enableCameraShake = true,
   onFlightComplete,
   onReady,
 }: ThreeRocketSceneProps) {
@@ -281,6 +289,16 @@ export default function ThreeRocketScene({
   const droneModeRef = useRef<DroneMode>(droneMode);
   const onModelChangeRef = useRef<((model: MissileModel) => void) | null>(null);
   const onDroneModeChangeRef = useRef<((mode: DroneMode) => void) | null>(null);
+
+  const enable360RotationRef = useRef(enable360Rotation);
+  const enableIdleHoverRef = useRef(enableIdleHover);
+  const enableExhaustParticlesRef = useRef(enableExhaustParticles);
+  const enableCameraShakeRef = useRef(enableCameraShake);
+
+  useEffect(() => { enable360RotationRef.current = enable360Rotation; }, [enable360Rotation]);
+  useEffect(() => { enableIdleHoverRef.current = enableIdleHover; }, [enableIdleHover]);
+  useEffect(() => { enableExhaustParticlesRef.current = enableExhaustParticles; }, [enableExhaustParticles]);
+  useEffect(() => { enableCameraShakeRef.current = enableCameraShake; }, [enableCameraShake]);
 
   useEffect(() => {
     if (missileModel !== modelRef.current) {
@@ -1682,6 +1700,7 @@ export default function ThreeRocketScene({
     };
 
     const spawnSmoke = (x: number, y: number, z: number, vx: number, vy: number, vz: number, maxLife: number, startSz: number, endSz: number, isPad: boolean) => {
+      if (!enableExhaustParticlesRef.current) return;
       if (smokeCount >= SMOKE_MAX) return;
       const i = smokeCount++;
       sX[i] = x; sY[i] = y; sZ[i] = z;
@@ -1692,6 +1711,7 @@ export default function ThreeRocketScene({
     };
 
     const spawnExhaust = (intensity: number, dt: number, isPadRoll: boolean) => {
+      if (!enableExhaustParticlesRef.current) return;
       if (intensity <= 0.01) return;
       const rx = rocketGroup.position.x;
       const ry = rocketGroup.position.y;
@@ -1911,11 +1931,11 @@ export default function ThreeRocketScene({
       let isPadSmokeActive = false;
       let floatY = 0;
       let rotZ = 0;
-      const slowSpinY = elapsed * 0.25;
+      const slowSpinY = enable360RotationRef.current ? elapsed * 0.25 : 0;
       const rotY = slowSpinY + pointer.currentX * 0.05;
 
       if (!prefersReducedMotion) {
-        floatY = Math.sin(elapsed * 1.1) * 0.035;
+        floatY = enableIdleHoverRef.current ? Math.sin(elapsed * 1.1) * 0.035 : 0;
         rotZ = -pointer.currentX * 0.035 + Math.sin(elapsed * 0.7) * 0.01;
       }
 
@@ -2242,7 +2262,9 @@ export default function ThreeRocketScene({
           thrusterLight.intensity = 0.75 + Math.sin(elapsed * 3) * 0.25;
           fuelMaterial.emissiveIntensity = 1.3 + Math.sin(elapsed * 2.5) * 0.25;
         } else {
-          const tremble = isReady && !prefersReducedMotion ? Math.sin(elapsed * 39) * 0.0035 + Math.sin(elapsed * 27.5) * 0.0025 : 0;
+          const tremble = (enableCameraShakeRef.current && isReady && !prefersReducedMotion)
+            ? Math.sin(elapsed * 39) * 0.0035 + Math.sin(elapsed * 27.5) * 0.0025
+            : 0;
           rocketGroup.position.set(tremble, floatY + tremble * 0.5, 0);
           haloMat.opacity = 0;
           thrusterLight.intensity = countingDown ? 1.6 + Math.sin(elapsed * 9) * 0.5 + Math.sin(elapsed * 23) * 0.25 : isReady ? 1.2 + Math.sin(elapsed * 4) * 0.4 : 0;
@@ -2293,10 +2315,12 @@ export default function ThreeRocketScene({
       }
 
       // ── Camera Shake for Detonation ──
-      if (cameraShakeIntensity > 0.001) {
+      if (enableCameraShakeRef.current && cameraShakeIntensity > 0.001) {
         camera.position.x += (Math.random() - 0.5) * cameraShakeIntensity;
         camera.position.y += (Math.random() - 0.5) * cameraShakeIntensity;
         cameraShakeIntensity = Math.max(0, cameraShakeIntensity - dt * 0.85);
+      } else {
+        cameraShakeIntensity = 0;
       }
 
       rocketGroup.rotation.set(pointer.currentY * 0.04, rotY, rotZ);

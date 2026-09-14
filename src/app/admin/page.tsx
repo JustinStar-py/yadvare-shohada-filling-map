@@ -351,6 +351,34 @@ export default function AdminPage() {
     }
   };
 
+  const handleToggleAnimation = async (
+    key: "enable360Rotation" | "enableIdleHover" | "enableExhaustParticles" | "enableCameraShake",
+    currentVal: boolean = true
+  ) => {
+    try {
+      const newVal = !currentVal;
+      const res = await fetch("/api/admin/settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ [key]: newVal }),
+      });
+      if (res.ok) {
+        const labels: Record<string, string> = {
+          enable360Rotation: "چرخش ۳۶۰ درجه موشک",
+          enableIdleHover: "انیمیشن شناوری روی سکو",
+          enableExhaustParticles: "افکت ذرات دود و آتش",
+          enableCameraShake: "لرزش دوربین در شلیک و انفجار",
+        };
+        showNotification(`${labels[key]} ${newVal ? "فعال شد" : "غیرفعال شد"}`);
+        loadAdminData();
+      } else {
+        showNotification("خطا در تغییر تنظیمات انیمیشن", "error");
+      }
+    } catch {
+      showNotification("خطای ارتباط با سرور", "error");
+    }
+  };
+
   const handleSetTargetOverride = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!overrideDate || !overrideTarget) return;
@@ -954,6 +982,178 @@ export default function AdminPage() {
                       پهپاد با صلوات‌ها سوخت‌گیری کرده (نور سبز راداری) و پس از پرتاب، در انتهای پرواز سینمایی در آسمان دچار <strong>انفجار مهیب انتحاری</strong> شده و ترکش‌ها، ذرات آتشین و نور آن در فضا پخش می‌شوند.
                     </p>
                   </button>
+                </div>
+              </div>
+
+              {/* ── بخش تنظیمات انیمیشن‌ها و جلوه‌های بصری ۳بعدی (Animation Toggles) ── */}
+              <div className="mt-4 p-4 sm:p-5 rounded-2xl border border-indigo-500/35 bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950/20 flex flex-col gap-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-indigo-400" />
+                    <h4 className="text-sm sm:text-base font-bold text-indigo-300">
+                      مدیریت انیمیشن‌ها و جلوه‌های ویژه ۳بعدی (Animation & FX Controls)
+                    </h4>
+                  </div>
+                  <span className="text-[11px] text-indigo-400/90 bg-indigo-500/10 border border-indigo-500/30 px-3 py-0.5 rounded-full self-start sm:self-auto">
+                    کنترل آنلاین رندرینگ ۳بعدی
+                  </span>
+                </div>
+                <p className="text-xs text-slate-400 leading-relaxed">
+                  مدیر گرامی، می‌توانید هر یک از انیمیشن‌های نمای سه‌بعدی را به صورت آنی فعال یا غیرفعال کنید (تغییرات بلافاصله روی کلاینت‌ها اعمال می‌شود):
+                </p>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3.5">
+                  {/* ۱. چرخش ۳۶۰ درجه */}
+                  <div className="p-3.5 rounded-xl border border-slate-800 bg-slate-950/70 flex flex-col justify-between gap-3">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <RotateCcw className="w-4 h-4 text-amber-400 shrink-0" />
+                        <span className="text-xs sm:text-sm font-bold text-slate-200">چرخش ۳۶۰ درجه</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleToggleAnimation("enable360Rotation", settings?.enable360Rotation ?? true)}
+                        className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                          (settings?.enable360Rotation ?? true) ? "bg-emerald-500" : "bg-slate-700"
+                        }`}
+                        dir="ltr"
+                        role="switch"
+                        aria-checked={settings?.enable360Rotation ?? true}
+                      >
+                        <span
+                          className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out ${
+                            (settings?.enable360Rotation ?? true) ? "translate-x-5" : "translate-x-0"
+                          }`}
+                        />
+                      </button>
+                    </div>
+                    <p className="text-[11px] text-slate-400 leading-relaxed">
+                      {(settings?.enable360Rotation ?? true)
+                        ? "روشن: موشک به صورت پیوسته ۳۶۰ درجه دور خود می‌چرخد."
+                        : "خاموش: چرخش خودکار متوقف شده و موشک رو به جلو ثابت است."}
+                    </p>
+                    <span className={`text-[10px] font-bold self-start px-2 py-0.5 rounded-full ${
+                      (settings?.enable360Rotation ?? true)
+                        ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30"
+                        : "bg-slate-800 text-slate-400 border border-slate-700"
+                    }`}>
+                      {(settings?.enable360Rotation ?? true) ? "فعال ✓" : "غیرفعال ✕"}
+                    </span>
+                  </div>
+
+                  {/* ۲. شناوری و تنفس در سکو */}
+                  <div className="p-3.5 rounded-xl border border-slate-800 bg-slate-950/70 flex flex-col justify-between gap-3">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <Zap className="w-4 h-4 text-cyan-400 shrink-0" />
+                        <span className="text-xs sm:text-sm font-bold text-slate-200">شناوری روی سکو</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleToggleAnimation("enableIdleHover", settings?.enableIdleHover ?? true)}
+                        className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                          (settings?.enableIdleHover ?? true) ? "bg-emerald-500" : "bg-slate-700"
+                        }`}
+                        dir="ltr"
+                        role="switch"
+                        aria-checked={settings?.enableIdleHover ?? true}
+                      >
+                        <span
+                          className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out ${
+                            (settings?.enableIdleHover ?? true) ? "translate-x-5" : "translate-x-0"
+                          }`}
+                        />
+                      </button>
+                    </div>
+                    <p className="text-[11px] text-slate-400 leading-relaxed">
+                      {(settings?.enableIdleHover ?? true)
+                        ? "روشن: حرکت موجی ملایم و شناوری در حالت آماده‌باش روی سکو."
+                        : "خاموش: موشک بدون لغزش عمودی کاملاً محکم روی سکو قرار دارد."}
+                    </p>
+                    <span className={`text-[10px] font-bold self-start px-2 py-0.5 rounded-full ${
+                      (settings?.enableIdleHover ?? true)
+                        ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30"
+                        : "bg-slate-800 text-slate-400 border border-slate-700"
+                    }`}>
+                      {(settings?.enableIdleHover ?? true) ? "فعال ✓" : "غیرفعال ✕"}
+                    </span>
+                  </div>
+
+                  {/* ۳. افکت ذرات دود و آتش */}
+                  <div className="p-3.5 rounded-xl border border-slate-800 bg-slate-950/70 flex flex-col justify-between gap-3">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <Rocket className="w-4 h-4 text-orange-400 shrink-0" />
+                        <span className="text-xs sm:text-sm font-bold text-slate-200">ذرات دود و آتش</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleToggleAnimation("enableExhaustParticles", settings?.enableExhaustParticles ?? true)}
+                        className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                          (settings?.enableExhaustParticles ?? true) ? "bg-emerald-500" : "bg-slate-700"
+                        }`}
+                        dir="ltr"
+                        role="switch"
+                        aria-checked={settings?.enableExhaustParticles ?? true}
+                      >
+                        <span
+                          className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out ${
+                            (settings?.enableExhaustParticles ?? true) ? "translate-x-5" : "translate-x-0"
+                          }`}
+                        />
+                      </button>
+                    </div>
+                    <p className="text-[11px] text-slate-400 leading-relaxed">
+                      {(settings?.enableExhaustParticles ?? true)
+                        ? "روشن: شبیه‌سازی سیستم ذرات دود بوستر، آتش موتور و ترکش‌ها."
+                        : "خاموش: خاموش کردن ذرات سنگین جهت سبکی و روان شدن حداکثری سیستم."}
+                    </p>
+                    <span className={`text-[10px] font-bold self-start px-2 py-0.5 rounded-full ${
+                      (settings?.enableExhaustParticles ?? true)
+                        ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30"
+                        : "bg-slate-800 text-slate-400 border border-slate-700"
+                    }`}>
+                      {(settings?.enableExhaustParticles ?? true) ? "فعال ✓" : "غیرفعال ✕"}
+                    </span>
+                  </div>
+
+                  {/* ۴. لرزش دوربین در شلیک و انفجار */}
+                  <div className="p-3.5 rounded-xl border border-slate-800 bg-slate-950/70 flex flex-col justify-between gap-3">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0" />
+                        <span className="text-xs sm:text-sm font-bold text-slate-200">لرزش دوربین (Shake)</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleToggleAnimation("enableCameraShake", settings?.enableCameraShake ?? true)}
+                        className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                          (settings?.enableCameraShake ?? true) ? "bg-emerald-500" : "bg-slate-700"
+                        }`}
+                        dir="ltr"
+                        role="switch"
+                        aria-checked={settings?.enableCameraShake ?? true}
+                      >
+                        <span
+                          className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out ${
+                            (settings?.enableCameraShake ?? true) ? "translate-x-5" : "translate-x-0"
+                          }`}
+                        />
+                      </button>
+                    </div>
+                    <p className="text-[11px] text-slate-400 leading-relaxed">
+                      {(settings?.enableCameraShake ?? true)
+                        ? "روشن: لرزش هیجانی دوربین در لحظه پرواز بوستر و انفجار کامیکازه."
+                        : "خاموش: دوربین در تمام طول پرواز کاملاً پایدار و بدون تکان است."}
+                    </p>
+                    <span className={`text-[10px] font-bold self-start px-2 py-0.5 rounded-full ${
+                      (settings?.enableCameraShake ?? true)
+                        ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30"
+                        : "bg-slate-800 text-slate-400 border border-slate-700"
+                    }`}>
+                      {(settings?.enableCameraShake ?? true) ? "فعال ✓" : "غیرفعال ✕"}
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>

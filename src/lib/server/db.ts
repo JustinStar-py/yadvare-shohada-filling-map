@@ -142,6 +142,10 @@ function getInitialData(): DatabaseSchema {
     finalMessage: "در این مسیر نورانی، با هم هزاران صلوات تقدیم روح پرفتوح شهدا کردیم. یادشان تا ابد در دل‌ها جاودان باد.",
     isCompleted: false,
     shareMessage: DEFAULT_SHARE_MESSAGE,
+    enable360Rotation: true,
+    enableIdleHover: true,
+    enableExhaustParticles: true,
+    enableCameraShake: true,
   };
 
   return {

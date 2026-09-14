@@ -203,6 +203,10 @@ export class CampaignService {
         activeMissileModel: db.settings.activeMissileModel || "kheibar",
         droneMode: db.settings.droneMode || "cinematic_explosion",
         shareMessage: db.settings.shareMessage,
+        enable360Rotation: db.settings.enable360Rotation ?? true,
+        enableIdleHover: db.settings.enableIdleHover ?? true,
+        enableExhaustParticles: db.settings.enableExhaustParticles ?? true,
+        enableCameraShake: db.settings.enableCameraShake ?? true,
       },
     };
   }
@@ -622,6 +626,10 @@ export class CampaignService {
         memorialLocation: settings.memorialLocation,
         memorialTime: settings.memorialTime || "19:00",
         shareMessage: settings.shareMessage,
+        enable360Rotation: settings.enable360Rotation ?? true,
+        enableIdleHover: settings.enableIdleHover ?? true,
+        enableExhaustParticles: settings.enableExhaustParticles ?? true,
+        enableCameraShake: settings.enableCameraShake ?? true,
       },
     });
 
