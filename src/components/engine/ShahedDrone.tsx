@@ -11,7 +11,7 @@ interface Props {
 
 export default function ShahedDrone({
   fillPercentage,
-  fuelColor = "#22d3ee",
+  fuelColor = "#0284c7",
   className = "",
 }: Props) {
   const hostRef = useRef<HTMLDivElement>(null);
@@ -54,7 +54,7 @@ export default function ShahedDrone({
     key.position.set(4, 8, -3);
     scene.add(key);
 
-    const rim = new THREE.DirectionalLight(0x22d3ee, 3);
+    const rim = new THREE.DirectionalLight(0x0284c7, 3);
     rim.position.set(-5, 2, 4);
     scene.add(rim);
 
@@ -62,7 +62,7 @@ export default function ShahedDrone({
     scene.add(drone);
 
     const shell = new THREE.MeshStandardMaterial({
-      color: "#b8b4a8",
+      color: "#7c9bb6",
       metalness: 0.45,
       roughness: 0.38,
     });

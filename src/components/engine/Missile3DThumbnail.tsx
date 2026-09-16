@@ -141,9 +141,9 @@ export default function Missile3DThumbnail({
       rocketGroup.add(droneBody);
 
       const shellMat = new THREE.MeshStandardMaterial({
-        color: new THREE.Color("#b8b4a8").lerp(new THREE.Color(cfg.colorHex), 0.35),
-        metalness: 0.45,
-        roughness: 0.38,
+        color: cfg.colorHex,
+        metalness: 0.32,
+        roughness: 0.48,
       });
 
       const darkMat = new THREE.MeshStandardMaterial({
