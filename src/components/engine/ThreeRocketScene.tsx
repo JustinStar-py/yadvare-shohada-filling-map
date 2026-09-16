@@ -1047,9 +1047,9 @@ export default function ThreeRocketScene({
 
     // ── Shahed 136 Materials ──
     const droneShellMaterial = new THREE.MeshStandardMaterial({
-      color: "#b8b4a8",
-      metalness: 0.45,
-      roughness: 0.38,
+      color: "#7c9bb6",
+      metalness: 0.32,
+      roughness: 0.48,
     });
     const droneDarkMaterial = new THREE.MeshStandardMaterial({
       color: "#1e293b",
@@ -1720,6 +1720,54 @@ export default function ThreeRocketScene({
       // Fewer live particles on mobile GPUs (same look, ~40% less overdraw).
       const spawnScale = isMobile ? 0.6 : 1;
 
+      // Shahed-136 uses a 2-stroke MD-550 piston engine turning a rear pusher propeller
+      // It has NO heavy ballistic rocket flame plume. Instead, it emits thin, light bluish-grey 2-stroke exhaust puffs
+      // trailing the pusher propeller hub, plus a dense JATO booster cloud rolling off the pad/rail upon liftoff.
+      if (modelRef.current === "shahed136") {
+        if (isPadRoll) {
+          const boosterN = Math.ceil(intensity * 7 * dt * 60 * spawnScale);
+          for (let k = 0; k < boosterN; k++) {
+            const a = Math.random() * Math.PI * 2;
+            const spd = (0.5 + Math.random() * 1.1) * intensity;
+            spawnSmoke(
+              rx + Math.cos(a) * 0.1,
+              PAD_SURFACE_Y + 0.05 + Math.random() * 0.06,
+              rz + Math.sin(a) * 0.1,
+              Math.cos(a) * spd,
+              0.05 + Math.random() * 0.15,
+              Math.sin(a) * spd,
+              0.75 + Math.random() * 0.6,
+              0.12,
+              0.52,
+              true
+            );
+          }
+        }
+
+        // 2-stroke moped exhaust puffs trailing behind the rear pusher propeller (local Z ~ +2.05)
+        const droneSmokeN = Math.ceil(intensity * 6 * dt * 60 * spawnScale);
+        for (let k = 0; k < droneSmokeN; k++) {
+          const a = Math.random() * Math.PI * 2;
+          const rad = 0.02 + Math.random() * 0.04;
+          const propX = rx + Math.cos(a) * rad;
+          const propY = ry - 0.05 + Math.sin(a) * rad;
+          const propZ = rz + 2.05;
+          spawnSmoke(
+            propX,
+            propY,
+            propZ,
+            (Math.random() - 0.5) * 0.18,
+            -(0.25 + Math.random() * 0.45) * intensity,
+            (0.85 + Math.random() * 1.3) * intensity,
+            0.5 + Math.random() * 0.45,
+            0.04,
+            0.24,
+            false
+          );
+        }
+        return;
+      }
+
       const flameN = Math.ceil(intensity * 12 * dt * 60 * spawnScale);
       for (let k = 0; k < flameN; k++) {
         const a = Math.random() * Math.PI * 2;
@@ -1810,8 +1858,17 @@ export default function ThreeRocketScene({
 
       const isShahed = model === "shahed136";
       if (isShahed) {
-        droneShellMaterial.color.set(new THREE.Color("#b8b4a8").lerp(new THREE.Color(cfg.colorHex), 0.35));
+        droneShellMaterial.color.set(cfg.colorHex);
         droneShellMaterial.needsUpdate = true;
+        // Cool blue-grey moped 2-stroke exhaust smoke palette
+        smokeMat.uniforms.uHotColor.value.set("#94a3b8");
+        smokeMat.uniforms.uCoolColor.value.set("#cbd5e1");
+        smokeMat.uniforms.uAmbientColor.value.set("#64748b");
+      } else {
+        // Fiery golden-amber rocket smoke palette
+        smokeMat.uniforms.uHotColor.value.set("#fbbf24");
+        smokeMat.uniforms.uCoolColor.value.set("#cbd5e1");
+        smokeMat.uniforms.uAmbientColor.value.set("#64748b");
       }
       boosterGroup.visible = !isShahed;
       capsuleGroup.visible = !isShahed;
@@ -2301,10 +2358,18 @@ export default function ThreeRocketScene({
         p.group.rotation.z = Math.sin(p.life * 3.5) * 0.14;
         p.group.rotation.x = railPitch + p.life * 0.12;
 
-        if (Math.random() < 0.35) {
+        if (Math.random() < 0.45) {
           spawnSmoke(
-            p.group.position.x, p.group.position.y - 0.2, p.group.position.z - 0.2,
-            0, 0.1, 0.2, 0.5, 0.12, 0.5, false
+            p.group.position.x,
+            p.group.position.y - 0.1,
+            p.group.position.z + 1.1,
+            (Math.random() - 0.5) * 0.1,
+            -(0.1 + Math.random() * 0.2),
+            0.6 + Math.random() * 0.8,
+            0.45,
+            0.04,
+            0.22,
+            false
           );
         }
 
@@ -2325,13 +2390,14 @@ export default function ThreeRocketScene({
 
       rocketGroup.rotation.set(pointer.currentY * 0.04, rotY, rotZ);
 
-      if (engineIntensity > 0.01) {
+      if (engineIntensity > 0.01 && modelRef.current !== "shahed136") {
         thrusterLight.intensity = 3.5 * engineIntensity + Math.sin(elapsed * 33) * 0.6;
         machConeMat.opacity = Math.min(0.7, engineIntensity * 0.65 + Math.sin(elapsed * 29) * 0.1);
         machCone.scale.set(1.0, 1.0 + engineIntensity * 0.45, 1.0);
         machDiamondMat.opacity = Math.min(0.85, engineIntensity * 0.8 + Math.sin(elapsed * 43) * 0.15);
       } else {
         machConeMat.opacity = 0; machDiamondMat.opacity = 0;
+        if (modelRef.current === "shahed136") thrusterLight.intensity = 0;
       }
 
       spawnExhaust(engineIntensity, dt, isPadSmokeActive);
