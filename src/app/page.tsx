@@ -154,6 +154,23 @@ export default function HomePage() {
     stateRef.current = state;
   }, [state]);
 
+  // Synchronize dynamic server audio settings (ambient / engine simulation sound and playground background music)
+  useEffect(() => {
+    if (state?.settings) {
+      soundEngine.applyServerAudioSettings({
+        enableAmbientSound: state.settings.enableAmbientSound,
+        ambientSoundVolume: state.settings.ambientSoundVolume,
+        enablePlaygroundMusic: state.settings.enablePlaygroundMusic,
+        playgroundMusicVolume: state.settings.playgroundMusicVolume,
+      });
+    }
+  }, [
+    state?.settings?.enableAmbientSound,
+    state?.settings?.ambientSoundVolume,
+    state?.settings?.enablePlaygroundMusic,
+    state?.settings?.playgroundMusicVolume,
+  ]);
+
   // ── Memorial intro: every user experiences it at least once a day ──
   useEffect(() => {
     try {

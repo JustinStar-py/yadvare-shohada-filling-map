@@ -19,6 +19,9 @@ class ProceduralAudioEngine {
   private bgMusic: HTMLAudioElement | null = null;
   private musicVolume: number = 0.75; // 75% volume
   private isLaunchMuted: boolean = false; // Muted during missile launch until mission passed
+  private enableAmbientSound: boolean = true; // Flight / missile / drone simulation & ambient sound
+  private ambientSoundVolume: number = 80; // 0 to 100%
+  private enablePlaygroundMusic: boolean = true; // Background soundtrack
   private launchNodes: (AudioNode & { stop?: (when?: number) => void })[] = [];
   private launchTimers: (NodeJS.Timeout | number)[] = [];
   private lastReturnSoundTimes: Record<string, number> = {};
@@ -36,6 +39,18 @@ class ProceduralAudioEngine {
     }
   }
 
+  private getEffectiveMasterGain(): number {
+    if (this.isMuted || !this.enableAmbientSound) return 0;
+    return 0.4 * (this.ambientSoundVolume / 100);
+  }
+
+  private updateMasterGain() {
+    if (this.masterGain && this.ctx) {
+      const targetGain = this.getEffectiveMasterGain();
+      this.masterGain.gain.setTargetAtTime(targetGain, this.ctx.currentTime, 0.05);
+    }
+  }
+
   private initContext() {
     if (!this.ctx && typeof window !== "undefined") {
       const AudioCtxClass =
@@ -45,7 +60,7 @@ class ProceduralAudioEngine {
       if (AudioCtxClass) {
         this.ctx = new AudioCtxClass();
         this.masterGain = this.ctx.createGain();
-        this.masterGain.gain.value = this.isMuted ? 0 : 0.4;
+        this.masterGain.gain.value = this.getEffectiveMasterGain();
         this.masterGain.connect(this.ctx.destination);
       }
     }
@@ -134,7 +149,7 @@ class ProceduralAudioEngine {
   }
 
   public playPlaygroundMusic() {
-    if (this.isMuted || this.isLaunchMuted || typeof window === "undefined") return;
+    if (this.isMuted || !this.enablePlaygroundMusic || this.isLaunchMuted || typeof window === "undefined") return;
     const music = this.initPlaygroundMusic();
     if (!music) return;
     music.volume = this.musicVolume;
@@ -166,6 +181,7 @@ class ProceduralAudioEngine {
   public onMissileLaunchStart() {
     this.isLaunchMuted = true;
     this.pausePlaygroundMusic();
+    this.stopAmbient();
   }
 
   /**
@@ -177,7 +193,12 @@ class ProceduralAudioEngine {
     if (!this.isLaunchMuted) return;
     this.isLaunchMuted = false;
     if (!this.isMuted) {
-      this.playPlaygroundMusic();
+      if (this.enablePlaygroundMusic) {
+        this.playPlaygroundMusic();
+      }
+      if (this.enableAmbientSound) {
+        this.startAmbient();
+      }
     }
   }
 
@@ -206,10 +227,65 @@ class ProceduralAudioEngine {
   }
 
   public setPlaygroundMusicVolume(volume: number) {
-    this.musicVolume = Math.max(0, Math.min(1, volume));
+    const v = volume > 1 ? volume / 100 : volume;
+    this.musicVolume = Math.max(0, Math.min(1, v));
     if (this.bgMusic) {
       this.bgMusic.volume = this.musicVolume;
     }
+  }
+
+  public setPlaygroundMusicEnabled(enabled: boolean) {
+    this.enablePlaygroundMusic = enabled;
+    if (!enabled) {
+      this.pausePlaygroundMusic();
+    } else if (!this.isMuted && !this.isLaunchMuted) {
+      this.playPlaygroundMusic();
+    }
+  }
+
+  public setAmbientSoundEnabled(enabled: boolean) {
+    this.enableAmbientSound = enabled;
+    this.updateMasterGain();
+    if (!enabled) {
+      this.stopAmbient();
+    } else if (!this.isMuted && !this.isLaunchMuted) {
+      this.startAmbient();
+    }
+  }
+
+  public setAmbientSoundVolume(volume: number) {
+    const v = volume > 1 ? volume : volume * 100;
+    this.ambientSoundVolume = Math.max(0, Math.min(100, Math.round(v)));
+    this.updateMasterGain();
+  }
+
+  public applyServerAudioSettings(settings: {
+    enableAmbientSound?: boolean;
+    ambientSoundVolume?: number;
+    enablePlaygroundMusic?: boolean;
+    playgroundMusicVolume?: number;
+  }) {
+    if (typeof settings.enableAmbientSound === "boolean") {
+      this.setAmbientSoundEnabled(settings.enableAmbientSound);
+    }
+    if (typeof settings.ambientSoundVolume === "number") {
+      this.setAmbientSoundVolume(settings.ambientSoundVolume);
+    }
+    if (typeof settings.enablePlaygroundMusic === "boolean") {
+      this.setPlaygroundMusicEnabled(settings.enablePlaygroundMusic);
+    }
+    if (typeof settings.playgroundMusicVolume === "number") {
+      this.setPlaygroundMusicVolume(settings.playgroundMusicVolume);
+    }
+  }
+
+  public getAudioSettings() {
+    return {
+      enableAmbientSound: this.enableAmbientSound,
+      ambientSoundVolume: this.ambientSoundVolume,
+      enablePlaygroundMusic: this.enablePlaygroundMusic,
+      playgroundMusicVolume: Math.round(this.musicVolume * 100),
+    };
   }
 
   public toggleMute(): boolean {
@@ -220,12 +296,14 @@ class ProceduralAudioEngine {
         localStorage.setItem("salawat_audio_muted_v2", String(this.isMuted));
       } catch {}
     }
-    if (this.masterGain && this.ctx) {
-      const targetGain = this.isMuted ? 0 : 0.4;
-      this.masterGain.gain.setTargetAtTime(targetGain, this.ctx.currentTime, 0.05);
-    }
+    this.updateMasterGain();
     if (!this.isMuted) {
-      this.playPlaygroundMusic();
+      if (this.enablePlaygroundMusic && !this.isLaunchMuted) {
+        this.playPlaygroundMusic();
+      }
+      if (this.enableAmbientSound && !this.isLaunchMuted) {
+        this.startAmbient();
+      }
     } else {
       this.pausePlaygroundMusic();
       this.stopAmbient();
@@ -1251,13 +1329,16 @@ class ProceduralAudioEngine {
   /**
    * Deep, slow ambient drone — the hum of the night sky.
    */
-  private startAmbient() {
-    if (!this.ctx || !this.masterGain || this.ambientNodes.length > 0) return;
+  public startAmbient() {
+    if (this.isMuted || !this.enableAmbientSound || this.isLaunchMuted || this.ambientNodes.length > 0) return;
+    this.initContext();
+    if (!this.ctx || !this.masterGain) return;
     try {
       const now = this.ctx.currentTime;
       this.ambientGain = this.ctx.createGain();
+      const peakGain = 0.05 * (this.ambientSoundVolume / 100);
       this.ambientGain.gain.setValueAtTime(0.0001, now);
-      this.ambientGain.gain.linearRampToValueAtTime(0.045, now + 4.0);
+      this.ambientGain.gain.linearRampToValueAtTime(peakGain, now + 3.0);
       this.ambientGain.connect(this.masterGain);
 
       // Two detuned low drones (beating interference — organic)
@@ -1284,7 +1365,7 @@ class ProceduralAudioEngine {
     } catch {}
   }
 
-  private stopAmbient() {
+  public stopAmbient() {
     if (this.ambientNodes.length > 0 && this.ambientGain && this.ctx) {
       try {
         const now = this.ctx.currentTime;
