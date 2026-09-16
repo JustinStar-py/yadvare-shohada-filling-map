@@ -968,6 +968,7 @@ export default function HomePage() {
       {/* Launch Countdown & Ascension Sequence Overlay */}
       <LaunchOverlay
         isOpen={showLaunchOverlay}
+        missileModel={state.settings.activeMissileModel || "kheibar"}
         martyrName={
           state.todayMartyrs && state.todayMartyrs.length > 1
             ? `${toPersianDigits(state.todayMartyrs.length)} شهید والامقام دیار شهیدیه`

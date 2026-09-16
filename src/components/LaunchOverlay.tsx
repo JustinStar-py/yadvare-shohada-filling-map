@@ -3,6 +3,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { toPersianDigits } from "@/lib/utils";
 import { soundEngine } from "@/lib/client/procedural-audio";
+import { MissileModel } from "./engine/missile-catalog";
 import { X } from "lucide-react";
 
 interface LaunchOverlayProps {
@@ -12,6 +13,7 @@ interface LaunchOverlayProps {
   /** Fired at T-0: the countdown reached zero and the rocket physically lifts off. */
   onLiftOff?: () => void;
   onClose?: () => void;
+  missileModel?: MissileModel;
 }
 
 const COUNT_START = 3;
@@ -22,6 +24,7 @@ export default function LaunchOverlay({
   onComplete,
   onLiftOff,
   onClose,
+  missileModel = "kheibar",
 }: LaunchOverlayProps) {
   const [count, setCount] = useState(COUNT_START);
   const [phase, setPhase] = useState<"countdown" | "flight" | "completed" | "fading">("countdown");
@@ -62,10 +65,16 @@ export default function LaunchOverlay({
         setTimeout(() => {
           setPhase("flight");
           onLiftOffRef.current?.();
-          soundEngine.playLaunchAscent();
 
-          // مدت زمان پرواز تا لحظه نشستن و قفل نهایی موشک (۳۸ ثانیه)
-          const COMPLETION_MS = 38000;
+          const isDrone = missileModel === "shahed136";
+          if (isDrone) {
+            soundEngine.playShahedFlightAscent();
+          } else {
+            soundEngine.playLaunchAscent();
+          }
+
+          // مدت زمان پرواز تا لحظه نشستن و قفل نهایی موشک (۳۸ ثانیه) یا انفجار کامیکازه پهپاد (۲۳.۵ ثانیه)
+          const COMPLETION_MS = isDrone ? 23500 : 38000;
           setTimeout(() => {
             setPhase("completed");
             setContentVisible(true);
