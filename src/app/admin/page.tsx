@@ -379,6 +379,58 @@ export default function AdminPage() {
     }
   };
 
+  const handleToggleAudio = async (
+    key: "enableAmbientSound" | "enablePlaygroundMusic",
+    currentVal: boolean = true
+  ) => {
+    try {
+      const newVal = !currentVal;
+      setSettings((prev) => (prev ? { ...prev, [key]: newVal } : prev));
+      const res = await fetch("/api/admin/settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ [key]: newVal }),
+      });
+      if (res.ok) {
+        const labels: Record<string, string> = {
+          enableAmbientSound: "صدای محیط و موتور پرواز",
+          enablePlaygroundMusic: "موسیقی پس‌زمینه پلی‌گراند",
+        };
+        showNotification(`${labels[key]} ${newVal ? "فعال شد" : "غیرفعال شد"}`);
+        loadAdminData();
+      } else {
+        showNotification("خطا در تغییر وضعیت صدا", "error");
+      }
+    } catch {
+      showNotification("خطای ارتباط با سرور", "error");
+    }
+  };
+
+  const handleUpdateVolume = async (
+    key: "ambientSoundVolume" | "playgroundMusicVolume",
+    volume: number
+  ) => {
+    try {
+      setSettings((prev) => (prev ? { ...prev, [key]: volume } : prev));
+      const res = await fetch("/api/admin/settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ [key]: volume }),
+      });
+      if (res.ok) {
+        const labels: Record<string, string> = {
+          ambientSoundVolume: "درصد صدای محیط و موتور",
+          playgroundMusicVolume: "درصد صدای موسیقی پلی‌گراند",
+        };
+        showNotification(`${labels[key]} روی ${toPersianDigits(volume)}٪ ذخیره شد`);
+      } else {
+        showNotification("خطا در ذخیره درصد صدا", "error");
+      }
+    } catch {
+      showNotification("خطای ارتباط با سرور", "error");
+    }
+  };
+
   const handleSetTargetOverride = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!overrideDate || !overrideTarget) return;
@@ -1158,52 +1210,201 @@ export default function AdminPage() {
               </div>
             </div>
 
-            {/* Audio & Background Music Control Widget (Placed AFTER Missile Panel) */}
-            <div className="md:col-span-3 lg:col-span-1 p-6 rounded-3xl bg-slate-900/80 border border-slate-800 flex flex-col gap-4">
-              <h3 className="text-base font-bold text-slate-100 flex items-center gap-2">
-                <Volume2 className="w-4 h-4 text-amber-400" />
-                <span>مدیریت صوت و موزیک زمینه</span>
-              </h3>
-
-              <div className="flex flex-col gap-3 text-xs text-slate-300">
-                <div className="p-3 rounded-xl bg-slate-950 flex flex-col gap-1 border border-slate-800">
-                  <span className="text-slate-400 text-[11px]">فایل صوت پلی‌گراند:</span>
-                  <span className="font-mono text-amber-300 text-[11px] truncate" dir="ltr">
-                    bayad-barkhast-playground.mp3
-                  </span>
+            {/* Audio & Sound Effects Control Panel */}
+            <div className="md:col-span-3 p-6 rounded-3xl bg-slate-900/80 border border-slate-800 flex flex-col gap-5">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
+                <div>
+                  <h3 className="text-base font-bold text-slate-100 flex items-center gap-2">
+                    <Volume2 className="w-5 h-5 text-amber-400" />
+                    <span>مدیریت صدای سیستم و موزیک زمینه (محیط و پلی‌گراند)</span>
+                  </h3>
+                  <p className="text-xs text-slate-400 mt-1 leading-relaxed">
+                    مدیر گرامی، می‌توانید صدای پرواز، شلیک و موتور موشک/پهپاد (محیط) و موسیقی پس‌زمینه پلی‌گراند را به همراه درصد بلندی صدا به صورت آنی تنظیم نمایید:
+                  </p>
                 </div>
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="p-3 rounded-xl bg-slate-950 border border-slate-800">
-                    <span className="text-slate-400 text-[11px]">بلندی صدا:</span>
-                    <p className="font-bold text-slate-100 mt-0.5">۷۵٪ (0.75)</p>
+                <div className="flex items-center gap-2 shrink-0">
+                  <button
+                    type="button"
+                    onClick={toggleTestAudio}
+                    className={`px-3 py-1.5 rounded-xl border text-xs font-bold transition-all flex items-center gap-1.5 ${
+                      isPlayingAudioTest
+                        ? "bg-amber-500/20 text-amber-300 border-amber-500/50 animate-pulse"
+                        : "bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700"
+                    }`}
+                  >
+                    {isPlayingAudioTest ? (
+                      <>
+                        <Square className="w-3.5 h-3.5 fill-current" />
+                        <span>توقف تست موزیک</span>
+                      </>
+                    ) : (
+                      <>
+                        <Play className="w-3.5 h-3.5 fill-current" />
+                        <span>تست پخش موزیک</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                {/* ۱. صدای محیط و موتور پرواز */}
+                <div className="p-4 sm:p-5 rounded-2xl bg-slate-950/80 border border-slate-800 flex flex-col justify-between gap-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-9 h-9 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400 shrink-0">
+                        {(settings?.enableAmbientSound ?? true) ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
+                      </div>
+                      <div>
+                        <span className="text-xs sm:text-sm font-bold text-slate-100 block">صدای محیط و پرواز (موتور موشک و پهپاد)</span>
+                        <span className="text-[11px] text-slate-400 block mt-0.5">افکت‌های غرش موتور، صدای موتور گازی شاهد ۱۳۶، تیک‌آف و انفجار</span>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => handleToggleAudio("enableAmbientSound", settings?.enableAmbientSound ?? true)}
+                      className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                        (settings?.enableAmbientSound ?? true) ? "bg-emerald-500" : "bg-slate-700"
+                      }`}
+                      dir="ltr"
+                      role="switch"
+                      aria-checked={settings?.enableAmbientSound ?? true}
+                    >
+                      <span
+                        className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out ${
+                          (settings?.enableAmbientSound ?? true) ? "translate-x-5" : "translate-x-0"
+                        }`}
+                      />
+                    </button>
                   </div>
-                  <div className="p-3 rounded-xl bg-slate-950 border border-slate-800">
-                    <span className="text-slate-400 text-[11px]">لود تنبل (Lazy):</span>
-                    <p className="font-bold text-emerald-400 mt-0.5">فعال ✓</p>
+
+                  {/* Slider درصد صدای محیط و پرواز */}
+                  <div className="space-y-2 pt-2 border-t border-slate-800/80">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-slate-300 font-medium">درصد بلندی صدای محیط و موتور:</span>
+                      <span className="font-mono font-bold text-cyan-400 text-sm">
+                        {toPersianDigits(settings?.ambientSoundVolume ?? 80)}٪
+                      </span>
+                    </div>
+                    <input
+                      type="range"
+                      min="0"
+                      max="100"
+                      step="5"
+                      disabled={!(settings?.enableAmbientSound ?? true)}
+                      value={settings?.ambientSoundVolume ?? 80}
+                      onChange={(e) => {
+                        const val = Number(e.target.value);
+                        setSettings((prev) => (prev ? { ...prev, ambientSoundVolume: val } : prev));
+                      }}
+                      onMouseUp={(e) => {
+                        handleUpdateVolume("ambientSoundVolume", Number((e.target as HTMLInputElement).value));
+                      }}
+                      onTouchEnd={(e) => {
+                        handleUpdateVolume("ambientSoundVolume", Number((e.target as HTMLInputElement).value));
+                      }}
+                      className="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-cyan-500 disabled:opacity-40"
+                    />
+                    <div className="flex justify-between text-[10px] text-slate-500">
+                      <span>۰٪ (بی‌صدا)</span>
+                      <span>۵۰٪</span>
+                      <span>۱۰۰٪ (حداکثر)</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-1">
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                      (settings?.enableAmbientSound ?? true)
+                        ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30"
+                        : "bg-slate-800 text-slate-400 border border-slate-700"
+                    }`}>
+                      {(settings?.enableAmbientSound ?? true) ? "فعال ✓" : "غیرفعال ✕"}
+                    </span>
+                    <span className="text-[11px] text-slate-400">
+                      {(settings?.enableAmbientSound ?? true) ? "پخش زنده افکت‌های شبیه‌ساز پرواز" : "صداهای موتور و شلیک خاموش است"}
+                    </span>
                   </div>
                 </div>
 
-                <button
-                  type="button"
-                  onClick={toggleTestAudio}
-                  className={`w-full py-2.5 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-2 ${
-                    isPlayingAudioTest
-                      ? "bg-amber-500/20 text-amber-300 border-amber-500/50 animate-pulse"
-                      : "bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700"
-                  }`}
-                >
-                  {isPlayingAudioTest ? (
-                    <>
-                      <Square className="w-3.5 h-3.5 fill-current" />
-                      <span>توقف تست موزیک</span>
-                    </>
-                  ) : (
-                    <>
-                      <Play className="w-3.5 h-3.5 fill-current" />
-                      <span>تست پخش موزیک در پنل</span>
-                    </>
-                  )}
-                </button>
+                {/* ۲. موسیقی پس‌زمینه پلی‌گراند */}
+                <div className="p-4 sm:p-5 rounded-2xl bg-slate-950/80 border border-slate-800 flex flex-col justify-between gap-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 shrink-0">
+                        {(settings?.enablePlaygroundMusic ?? true) ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
+                      </div>
+                      <div>
+                        <span className="text-xs sm:text-sm font-bold text-slate-100 block">موسیقی پس‌زمینه پلی‌گراند</span>
+                        <span className="text-[11px] text-slate-400 font-mono block mt-0.5" dir="ltr">bayad-barkhast-playground.mp3</span>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => handleToggleAudio("enablePlaygroundMusic", settings?.enablePlaygroundMusic ?? true)}
+                      className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                        (settings?.enablePlaygroundMusic ?? true) ? "bg-emerald-500" : "bg-slate-700"
+                      }`}
+                      dir="ltr"
+                      role="switch"
+                      aria-checked={settings?.enablePlaygroundMusic ?? true}
+                    >
+                      <span
+                        className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out ${
+                          (settings?.enablePlaygroundMusic ?? true) ? "translate-x-5" : "translate-x-0"
+                        }`}
+                      />
+                    </button>
+                  </div>
+
+                  {/* Slider درصد صدای موسیقی پلی‌گراند */}
+                  <div className="space-y-2 pt-2 border-t border-slate-800/80">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-slate-300 font-medium">درصد بلندی موسیقی پس‌زمینه:</span>
+                      <span className="font-mono font-bold text-amber-400 text-sm">
+                        {toPersianDigits(settings?.playgroundMusicVolume ?? 75)}٪
+                      </span>
+                    </div>
+                    <input
+                      type="range"
+                      min="0"
+                      max="100"
+                      step="5"
+                      disabled={!(settings?.enablePlaygroundMusic ?? true)}
+                      value={settings?.playgroundMusicVolume ?? 75}
+                      onChange={(e) => {
+                        const val = Number(e.target.value);
+                        setSettings((prev) => (prev ? { ...prev, playgroundMusicVolume: val } : prev));
+                      }}
+                      onMouseUp={(e) => {
+                        handleUpdateVolume("playgroundMusicVolume", Number((e.target as HTMLInputElement).value));
+                      }}
+                      onTouchEnd={(e) => {
+                        handleUpdateVolume("playgroundMusicVolume", Number((e.target as HTMLInputElement).value));
+                      }}
+                      className="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-amber-500 disabled:opacity-40"
+                    />
+                    <div className="flex justify-between text-[10px] text-slate-500">
+                      <span>۰٪ (بی‌صدا)</span>
+                      <span>۵۰٪</span>
+                      <span>۱۰۰٪ (حداکثر)</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-1">
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                      (settings?.enablePlaygroundMusic ?? true)
+                        ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30"
+                        : "bg-slate-800 text-slate-400 border border-slate-700"
+                    }`}>
+                      {(settings?.enablePlaygroundMusic ?? true) ? "فعال ✓" : "غیرفعال ✕"}
+                    </span>
+                    <span className="text-[11px] text-slate-400">
+                      {(settings?.enablePlaygroundMusic ?? true) ? "پخش خودکار سرود در صفحه اصلی" : "موسیقی پس‌زمینه خاموش است"}
+                    </span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -1628,6 +1829,70 @@ export default function AdminPage() {
                   </option>
                 ))}
               </select>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 rounded-2xl bg-slate-950 border border-slate-800">
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="text-xs text-slate-300 font-bold">صدای محیط و پرواز موشک/پهپاد</label>
+                  <span className="text-xs font-mono text-cyan-400 font-bold">
+                    {toPersianDigits(settings.ambientSoundVolume ?? 80)}٪
+                  </span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="checkbox"
+                    id="chk-ambient"
+                    checked={settings.enableAmbientSound ?? true}
+                    onChange={(e) => setSettings({ ...settings, enableAmbientSound: e.target.checked })}
+                    className="w-4 h-4 rounded accent-cyan-500 cursor-pointer"
+                  />
+                  <label htmlFor="chk-ambient" className="text-xs text-slate-400 cursor-pointer shrink-0">
+                    {(settings.enableAmbientSound ?? true) ? "فعال" : "غیرفعال"}
+                  </label>
+                  <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    step="5"
+                    disabled={!(settings.enableAmbientSound ?? true)}
+                    value={settings.ambientSoundVolume ?? 80}
+                    onChange={(e) => setSettings({ ...settings, ambientSoundVolume: Number(e.target.value) })}
+                    className="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-cyan-500 disabled:opacity-40"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="text-xs text-slate-300 font-bold">موسیقی پس‌زمینه پلی‌گراند</label>
+                  <span className="text-xs font-mono text-amber-400 font-bold">
+                    {toPersianDigits(settings.playgroundMusicVolume ?? 75)}٪
+                  </span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="checkbox"
+                    id="chk-music"
+                    checked={settings.enablePlaygroundMusic ?? true}
+                    onChange={(e) => setSettings({ ...settings, enablePlaygroundMusic: e.target.checked })}
+                    className="w-4 h-4 rounded accent-amber-500 cursor-pointer"
+                  />
+                  <label htmlFor="chk-music" className="text-xs text-slate-400 cursor-pointer shrink-0">
+                    {(settings.enablePlaygroundMusic ?? true) ? "فعال" : "غیرفعال"}
+                  </label>
+                  <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    step="5"
+                    disabled={!(settings.enablePlaygroundMusic ?? true)}
+                    value={settings.playgroundMusicVolume ?? 75}
+                    onChange={(e) => setSettings({ ...settings, playgroundMusicVolume: Number(e.target.value) })}
+                    className="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-amber-500 disabled:opacity-40"
+                  />
+                </div>
+              </div>
             </div>
 
             <div>
