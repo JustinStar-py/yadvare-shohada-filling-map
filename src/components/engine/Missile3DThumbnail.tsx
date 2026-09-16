@@ -142,8 +142,14 @@ export default function Missile3DThumbnail({
 
       const shellMat = new THREE.MeshStandardMaterial({
         color: cfg.colorHex,
-        metalness: 0.32,
-        roughness: 0.48,
+        metalness: cfg.metalness,
+        roughness: cfg.roughness,
+      });
+
+      const warheadMat = new THREE.MeshStandardMaterial({
+        color: "#1e3a8a",
+        metalness: 0.4,
+        roughness: 0.35,
       });
 
       const darkMat = new THREE.MeshStandardMaterial({
@@ -187,6 +193,32 @@ export default function Missile3DThumbnail({
       wingMesh.position.set(0, -0.12, 0);
       wingMesh.rotation.x = Math.PI / 2;
       droneBody.add(wingMesh);
+
+      // 1b. Dark navy warhead triangular nose cap & radome cone
+      const warheadShape = new THREE.Shape();
+      warheadShape.moveTo(0, -2.72);
+      warheadShape.lineTo(0.55, -1.8);
+      warheadShape.lineTo(-0.55, -1.8);
+      warheadShape.closePath();
+
+      const warheadGeo = new THREE.ExtrudeGeometry(warheadShape, {
+        depth: 0.108,
+        bevelEnabled: true,
+        bevelThickness: 0.042,
+        bevelSize: 0.042,
+        bevelSegments: 2,
+        steps: 1,
+      });
+      const warheadMesh = new THREE.Mesh(warheadGeo, warheadMat);
+      warheadMesh.position.set(0, -0.124, 0);
+      warheadMesh.rotation.x = Math.PI / 2;
+      droneBody.add(warheadMesh);
+
+      const noseConeGeo = new THREE.ConeGeometry(0.35, 0.94, 24);
+      noseConeGeo.rotateX(-Math.PI / 2);
+      const noseCone = new THREE.Mesh(noseConeGeo, warheadMat);
+      noseCone.position.set(0, 0.16, -2.24);
+      droneBody.add(noseCone);
 
       // 2. Transparent aerodynamic canopy along the spine
       const glassBody = new THREE.Mesh(new THREE.SphereGeometry(1, 32, 18), glassMat);

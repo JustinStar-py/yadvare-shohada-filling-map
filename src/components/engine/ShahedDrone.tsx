@@ -11,7 +11,7 @@ interface Props {
 
 export default function ShahedDrone({
   fillPercentage,
-  fuelColor = "#0284c7",
+  fuelColor = "#f97316",
   className = "",
 }: Props) {
   const hostRef = useRef<HTMLDivElement>(null);
@@ -54,7 +54,7 @@ export default function ShahedDrone({
     key.position.set(4, 8, -3);
     scene.add(key);
 
-    const rim = new THREE.DirectionalLight(0x0284c7, 3);
+    const rim = new THREE.DirectionalLight(0x38bdf8, 2.5);
     rim.position.set(-5, 2, 4);
     scene.add(rim);
 
@@ -62,9 +62,15 @@ export default function ShahedDrone({
     scene.add(drone);
 
     const shell = new THREE.MeshStandardMaterial({
-      color: "#7c9bb6",
-      metalness: 0.45,
-      roughness: 0.38,
+      color: "#8eb8dc",
+      metalness: 0.35,
+      roughness: 0.42,
+    });
+
+    const warhead = new THREE.MeshStandardMaterial({
+      color: "#1e3a8a",
+      metalness: 0.4,
+      roughness: 0.35,
     });
 
     const dark = new THREE.MeshStandardMaterial({
@@ -125,6 +131,32 @@ export default function ShahedDrone({
       [0, -0.12, 0],
     );
     wings.rotation.x = Math.PI / 2;
+
+    // کلاهک سرجنگی مثلثی سرمه‌ای تیره در نوک پهپاد
+    const warheadShape = new THREE.Shape();
+    warheadShape.moveTo(0, -2.72);
+    warheadShape.lineTo(0.55, -1.8);
+    warheadShape.lineTo(-0.55, -1.8);
+    warheadShape.closePath();
+
+    const warheadCap = add(
+      new THREE.ExtrudeGeometry(warheadShape, {
+        depth: 0.108,
+        bevelEnabled: true,
+        bevelThickness: 0.042,
+        bevelSize: 0.042,
+        bevelSegments: 2,
+        steps: 1,
+      }),
+      warhead,
+      [0, -0.124, 0],
+    );
+    warheadCap.rotation.x = Math.PI / 2;
+
+    // مخروط آیرودینامیک سر کلاهک در نوک بدنه
+    const noseConeGeom = new THREE.ConeGeometry(0.35, 0.94, 24);
+    noseConeGeom.rotateX(-Math.PI / 2);
+    add(noseConeGeom, warhead, [0, 0.16, -2.24]);
 
     // پوسته شفاف بالای بال، برای مشاهده مخزن داخلی
     const body = add(

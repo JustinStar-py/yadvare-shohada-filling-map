@@ -81,15 +81,15 @@ export const MISSILE_MODELS = [
   {
     id: "shahed136",
     label: "پهپاد شاهد ۱۳۶",
-    colorName: "آبی خاکستری روشن تاکتیکی",
-    colorHex: "#7c9bb6",
-    metalness: 0.32,
-    roughness: 0.48,
+    colorName: "آبی روشن با کلاهک سرمه‌ای",
+    colorHex: "#8eb8dc",
+    metalness: 0.35,
+    roughness: 0.42,
     textColor: "#ffffff",
-    fuelColor: "#0284c7",
-    fuelEmissive: "#0369a1",
-    fuelName: "آبی آسمانی کامل",
-    caption: "پهپاد بال دلتا انتحاری با موتور ملخی دو زمانه · پرتاب رگباری صلواتی یا سوخت‌گیری و انفجار نهایی",
+    fuelColor: "#f97316",
+    fuelEmissive: "#ea580c",
+    fuelName: "نارنجی درخشان آتشین",
+    caption: "پهپاد بال دلتا انتحاری با موتور ملخی دو زمانه · کلاهک سرمه‌ای تیره، بدنه آبی روشن و مخزن نارنجی آتشین",
   },
 ] as const;
 
