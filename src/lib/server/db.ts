@@ -146,6 +146,10 @@ function getInitialData(): DatabaseSchema {
     enableIdleHover: true,
     enableExhaustParticles: true,
     enableCameraShake: true,
+    enableAmbientSound: true,
+    ambientSoundVolume: 80,
+    enablePlaygroundMusic: true,
+    playgroundMusicVolume: 75,
   };
 
   return {

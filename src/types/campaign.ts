@@ -83,6 +83,10 @@ export interface CampaignSettings {
   enableIdleHover?: boolean;
   enableExhaustParticles?: boolean;
   enableCameraShake?: boolean;
+  enableAmbientSound?: boolean;
+  ambientSoundVolume?: number;
+  enablePlaygroundMusic?: boolean;
+  playgroundMusicVolume?: number;
 }
 
 export interface AdminAuditLog {
@@ -123,6 +127,10 @@ export interface PublicCampaignState {
     enableIdleHover?: boolean;
     enableExhaustParticles?: boolean;
     enableCameraShake?: boolean;
+    enableAmbientSound?: boolean;
+    ambientSoundVolume?: number;
+    enablePlaygroundMusic?: boolean;
+    playgroundMusicVolume?: number;
   };
 }
 
@@ -186,6 +194,10 @@ export const UpdateSettingsSchema = z.object({
   enableIdleHover: z.boolean().optional(),
   enableExhaustParticles: z.boolean().optional(),
   enableCameraShake: z.boolean().optional(),
+  enableAmbientSound: z.boolean().optional(),
+  ambientSoundVolume: z.number().min(0).max(100).optional(),
+  enablePlaygroundMusic: z.boolean().optional(),
+  playgroundMusicVolume: z.number().min(0).max(100).optional(),
 });
 
 export const TargetOverrideSchema = z.object({

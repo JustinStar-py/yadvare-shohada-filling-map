@@ -207,6 +207,10 @@ export class CampaignService {
         enableIdleHover: db.settings.enableIdleHover ?? true,
         enableExhaustParticles: db.settings.enableExhaustParticles ?? true,
         enableCameraShake: db.settings.enableCameraShake ?? true,
+        enableAmbientSound: db.settings.enableAmbientSound ?? true,
+        ambientSoundVolume: db.settings.ambientSoundVolume ?? 80,
+        enablePlaygroundMusic: db.settings.enablePlaygroundMusic ?? true,
+        playgroundMusicVolume: db.settings.playgroundMusicVolume ?? 75,
       },
     };
   }
@@ -630,6 +634,10 @@ export class CampaignService {
         enableIdleHover: settings.enableIdleHover ?? true,
         enableExhaustParticles: settings.enableExhaustParticles ?? true,
         enableCameraShake: settings.enableCameraShake ?? true,
+        enableAmbientSound: settings.enableAmbientSound ?? true,
+        ambientSoundVolume: settings.ambientSoundVolume ?? 80,
+        enablePlaygroundMusic: settings.enablePlaygroundMusic ?? true,
+        playgroundMusicVolume: settings.playgroundMusicVolume ?? 75,
       },
     });
 
