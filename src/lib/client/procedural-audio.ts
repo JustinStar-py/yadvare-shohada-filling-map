@@ -836,8 +836,10 @@ class ProceduralAudioEngine {
   }
 
   /**
-   * Shahed-136 Drone Rail Launch Sound:
-   * JATO booster ignition burst + rapid 2-stroke buzzing propeller acceleration (MD-550 lawnmower buzz).
+   * Shahed-136 Drone Rail Launch Sound (موتور گازی MD-550):
+   * 1. JATO solid-fuel booster kick & puff off the rail.
+   * 2. Rapid 2-stroke moped engine combustion rattle with cylinder tremolo,
+   *    expansion chamber tuned pipe resonance (+14 dB @ ~940 Hz), and pusher propeller revving.
    */
   public playDroneLaunch() {
     if (this.isMuted) return;
@@ -846,7 +848,7 @@ class ProceduralAudioEngine {
     const ctx = this.ctx;
     const now = ctx.currentTime;
 
-    // 1. JATO Rocket Booster Flash / Puff (white noise burst)
+    // 1. JATO Solid-fuel Booster Rail Ignition Burst (0.0s - 0.45s)
     const noiseBuffer = this.getNoiseBuffer();
     if (noiseBuffer) {
       const puff = ctx.createBufferSource();
@@ -855,46 +857,314 @@ class ProceduralAudioEngine {
 
       puff.buffer = noiseBuffer;
       puffFilter.type = "bandpass";
-      puffFilter.frequency.setValueAtTime(600, now);
-      puffFilter.frequency.exponentialRampToValueAtTime(1400, now + 0.25);
-      puffFilter.Q.setValueAtTime(1.5, now);
+      puffFilter.frequency.setValueAtTime(750, now);
+      puffFilter.frequency.exponentialRampToValueAtTime(1700, now + 0.22);
+      puffFilter.Q.setValueAtTime(2.2, now);
 
-      puffGain.gain.setValueAtTime(0.35, now);
-      puffGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.55);
+      puffGain.gain.setValueAtTime(0.38, now);
+      puffGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.48);
 
       puff.connect(puffFilter);
       puffFilter.connect(puffGain);
       puffGain.connect(this.masterGain);
       puff.start(now);
-      puff.stop(now + 0.6);
+      puff.stop(now + 0.52);
       this.launchNodes.push(puff, puffGain);
     }
 
-    // 2. High-speed 2-stroke piston propeller buzz (distinct Shahed engine sound)
-    const buzz = ctx.createOscillator();
-    const buzzGain = ctx.createGain();
-    buzz.type = "sawtooth";
-    buzz.frequency.setValueAtTime(120, now);
-    buzz.frequency.exponentialRampToValueAtTime(260, now + 0.4);
-    buzz.frequency.exponentialRampToValueAtTime(340, now + 1.8);
+    // 1b. Booster initial low punch (rail kickoff thrust)
+    const kick = ctx.createOscillator();
+    const kickGain = ctx.createGain();
+    kick.type = "sawtooth";
+    kick.frequency.setValueAtTime(130, now);
+    kick.frequency.exponentialRampToValueAtTime(38, now + 0.35);
+    kickGain.gain.setValueAtTime(0.32, now);
+    kickGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.4);
+    kick.connect(kickGain);
+    kickGain.connect(this.masterGain);
+    kick.start(now);
+    kick.stop(now + 0.42);
+    this.launchNodes.push(kick, kickGain);
 
-    buzzGain.gain.setValueAtTime(0.001, now);
-    buzzGain.gain.linearRampToValueAtTime(0.18, now + 0.12);
-    buzzGain.gain.linearRampToValueAtTime(0.15, now + 0.8);
-    buzzGain.gain.exponentialRampToValueAtTime(0.0001, now + 2.2);
+    // 2. Twin 2-Stroke Moped Piston Oscillators (موتور گازی MD-550)
+    // Detuned sawtooth waves revving up quickly from rail idle (~2800 RPM / 92 Hz)
+    // to full launch RPM (~5400 RPM / 185 Hz)
+    const mopedA = ctx.createOscillator();
+    const mopedB = ctx.createOscillator();
+    const mopedGain = ctx.createGain();
 
-    // Filter to give that metallic raspy engine quality
-    const buzzFilter = ctx.createBiquadFilter();
-    buzzFilter.type = "lowpass";
-    buzzFilter.frequency.setValueAtTime(1200, now);
-    buzzFilter.frequency.exponentialRampToValueAtTime(2800, now + 1.2);
+    mopedA.type = "sawtooth";
+    mopedA.frequency.setValueAtTime(92, now);
+    mopedA.frequency.exponentialRampToValueAtTime(178, now + 0.5);
+    mopedA.frequency.exponentialRampToValueAtTime(220, now + 1.8);
 
-    buzz.connect(buzzFilter);
-    buzzFilter.connect(buzzGain);
-    buzzGain.connect(this.masterGain);
-    buzz.start(now);
-    buzz.stop(now + 2.3);
-    this.launchNodes.push(buzz, buzzGain);
+    mopedB.type = "sawtooth";
+    mopedB.frequency.setValueAtTime(95, now);
+    mopedB.frequency.exponentialRampToValueAtTime(183, now + 0.5);
+    mopedB.frequency.exponentialRampToValueAtTime(226, now + 1.8);
+
+    // 2b. Cylinder Combustion Tremolo (The distinct "پت‌پت‌پت / دِردِردِردِر" stroke rattle)
+    const tremolo = ctx.createOscillator();
+    const tremoloGain = ctx.createGain();
+    tremolo.type = "sine";
+    tremolo.frequency.setValueAtTime(44, now);
+    tremolo.frequency.exponentialRampToValueAtTime(68, now + 0.5);
+    tremolo.frequency.exponentialRampToValueAtTime(78, now + 1.8);
+    tremoloGain.gain.setValueAtTime(0.09, now);
+
+    tremolo.connect(tremoloGain);
+    tremoloGain.connect(mopedGain.gain);
+
+    // 2c. Moped Exhaust Expansion Chamber Filter (رزونانس زنگ‌دار لوله اگزوز موتور گازی)
+    // Sharp peaking resonance at ~940 Hz gives the unmistakable tinny 2-stroke bite
+    const pipeResonance = ctx.createBiquadFilter();
+    pipeResonance.type = "peaking";
+    pipeResonance.frequency.setValueAtTime(940, now);
+    pipeResonance.frequency.exponentialRampToValueAtTime(1120, now + 1.2);
+    pipeResonance.Q.setValueAtTime(4.2, now);
+    pipeResonance.gain.setValueAtTime(14, now); // +14 dB exhaust pipe resonance
+
+    const engineLowpass = ctx.createBiquadFilter();
+    engineLowpass.type = "lowpass";
+    engineLowpass.frequency.setValueAtTime(2600, now);
+    engineLowpass.frequency.exponentialRampToValueAtTime(3200, now + 1.5);
+
+    mopedGain.gain.setValueAtTime(0.001, now);
+    mopedGain.gain.linearRampToValueAtTime(0.24, now + 0.08);
+    mopedGain.gain.linearRampToValueAtTime(0.22, now + 0.6);
+    mopedGain.gain.exponentialRampToValueAtTime(0.0001, now + 2.5);
+
+    mopedA.connect(pipeResonance);
+    mopedB.connect(pipeResonance);
+    pipeResonance.connect(engineLowpass);
+    engineLowpass.connect(mopedGain);
+    mopedGain.connect(this.masterGain);
+
+    mopedA.start(now);
+    mopedB.start(now);
+    tremolo.start(now);
+    mopedA.stop(now + 2.6);
+    mopedB.stop(now + 2.6);
+    tremolo.stop(now + 2.6);
+    this.launchNodes.push(mopedA, mopedB, tremolo, tremoloGain, pipeResonance, engineLowpass, mopedGain);
+
+    // 3. High harmonic exhaust port rasp (octave overtone for sharp metallic bite)
+    const rasp = ctx.createOscillator();
+    const raspGain = ctx.createGain();
+    const raspFilter = ctx.createBiquadFilter();
+    rasp.type = "sawtooth";
+    rasp.frequency.setValueAtTime(190, now);
+    rasp.frequency.exponentialRampToValueAtTime(370, now + 0.6);
+    rasp.frequency.exponentialRampToValueAtTime(445, now + 1.8);
+
+    raspFilter.type = "highpass";
+    raspFilter.frequency.setValueAtTime(1100, now);
+
+    raspGain.gain.setValueAtTime(0.001, now);
+    raspGain.gain.linearRampToValueAtTime(0.07, now + 0.1);
+    raspGain.gain.linearRampToValueAtTime(0.05, now + 0.7);
+    raspGain.gain.exponentialRampToValueAtTime(0.0001, now + 2.4);
+
+    rasp.connect(raspFilter);
+    raspFilter.connect(raspGain);
+    raspGain.connect(this.masterGain);
+    rasp.start(now);
+    rasp.stop(now + 2.5);
+    this.launchNodes.push(rasp, raspFilter, raspGain);
+  }
+
+  /**
+   * Shahed-136 Continuous Drone Flight Ascent (Cinematic Mode):
+   * 1. 0.0s - 0.7s: JATO solid rocket booster liftoff kick
+   * 2. 0.2s - 20.5s: Continuous 2-stroke moped drone engine buzz (MD-550 moped sound)
+   *    with combustion tremolo, expansion chamber peaking resonance, and pusher propeller wash.
+   * 3. 20.5s - 22.0s: High-pitch dive scream (engine revving up as it dives onto target).
+   * 4. 22.0s: Kamikaze detonation impact explosion & martyr memorial chime.
+   */
+  public playShahedFlightAscent() {
+    if (this.isMuted) return;
+    this.initContext();
+    if (!this.ctx || !this.masterGain) return;
+
+    this.stopLaunchSounds();
+
+    const ctx = this.ctx;
+    const now = ctx.currentTime;
+
+    // ── 1. JATO Solid Booster Rail Launch Blast (0.0s - 0.7s) ──
+    const noiseBuffer = this.getNoiseBuffer();
+    if (noiseBuffer) {
+      const boosterPuff = ctx.createBufferSource();
+      const boosterGain = ctx.createGain();
+      const boosterFilter = ctx.createBiquadFilter();
+
+      boosterPuff.buffer = noiseBuffer;
+      boosterFilter.type = "bandpass";
+      boosterFilter.frequency.setValueAtTime(700, now);
+      boosterFilter.frequency.exponentialRampToValueAtTime(1600, now + 0.3);
+      boosterFilter.Q.setValueAtTime(2.0, now);
+
+      boosterGain.gain.setValueAtTime(0.42, now);
+      boosterGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.65);
+
+      boosterPuff.connect(boosterFilter);
+      boosterFilter.connect(boosterGain);
+      boosterGain.connect(this.masterGain);
+      boosterPuff.start(now);
+      boosterPuff.stop(now + 0.7);
+      this.launchNodes.push(boosterPuff, boosterFilter, boosterGain);
+    }
+
+    const boosterPunch = ctx.createOscillator();
+    const boosterPunchGain = ctx.createGain();
+    boosterPunch.type = "sawtooth";
+    boosterPunch.frequency.setValueAtTime(120, now);
+    boosterPunch.frequency.exponentialRampToValueAtTime(32, now + 0.45);
+    boosterPunchGain.gain.setValueAtTime(0.35, now);
+    boosterPunchGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.5);
+    boosterPunch.connect(boosterPunchGain);
+    boosterPunchGain.connect(this.masterGain);
+    boosterPunch.start(now);
+    boosterPunch.stop(now + 0.55);
+    this.launchNodes.push(boosterPunch, boosterPunchGain);
+
+    // ── 2. Sustained 2-Stroke Moped Drone Engine (0.2s - 22.0s) ──
+    // Twin detuned sawtooth oscillators for realistic 2-stroke acoustic phasing
+    const engineA = ctx.createOscillator();
+    const engineB = ctx.createOscillator();
+    const engineGain = ctx.createGain();
+
+    engineA.type = "sawtooth";
+    engineA.frequency.setValueAtTime(108, now + 0.2);
+    engineA.frequency.exponentialRampToValueAtTime(125, now + 3.0);
+    engineA.frequency.exponentialRampToValueAtTime(138, now + 15.0);
+    // Kamikaze dive acceleration at 20.5s - 22.0s
+    engineA.frequency.exponentialRampToValueAtTime(245, now + 21.8);
+
+    engineB.type = "sawtooth";
+    engineB.frequency.setValueAtTime(111, now + 0.2);
+    engineB.frequency.exponentialRampToValueAtTime(129, now + 3.0);
+    engineB.frequency.exponentialRampToValueAtTime(142, now + 15.0);
+    engineB.frequency.exponentialRampToValueAtTime(252, now + 21.8);
+
+    // Cylinder Combustion Tremolo (موتور گازی پت‌پت)
+    const tremolo = ctx.createOscillator();
+    const tremoloGain = ctx.createGain();
+    tremolo.type = "sine";
+    tremolo.frequency.setValueAtTime(46, now + 0.2);
+    tremolo.frequency.exponentialRampToValueAtTime(54, now + 4.0);
+    tremolo.frequency.exponentialRampToValueAtTime(76, now + 21.8);
+    tremoloGain.gain.setValueAtTime(0.08, now + 0.2);
+
+    tremolo.connect(tremoloGain);
+    tremoloGain.connect(engineGain.gain);
+
+    // Tuned Expansion Chamber Exhaust Pipe (peaking metallic resonance ~960 Hz)
+    const exhaustChamber = ctx.createBiquadFilter();
+    exhaustChamber.type = "peaking";
+    exhaustChamber.frequency.setValueAtTime(960, now + 0.2);
+    exhaustChamber.frequency.exponentialRampToValueAtTime(1250, now + 21.8);
+    exhaustChamber.Q.setValueAtTime(4.0, now + 0.2);
+    exhaustChamber.gain.setValueAtTime(13, now + 0.2); // +13 dB moped exhaust peak!
+
+    const engineCutoff = ctx.createBiquadFilter();
+    engineCutoff.type = "lowpass";
+    engineCutoff.frequency.setValueAtTime(2400, now + 0.2);
+    engineCutoff.frequency.exponentialRampToValueAtTime(3400, now + 21.8);
+
+    engineGain.gain.setValueAtTime(0.0001, now);
+    engineGain.gain.linearRampToValueAtTime(0.24, now + 0.6);
+    engineGain.gain.linearRampToValueAtTime(0.20, now + 5.0);
+    engineGain.gain.linearRampToValueAtTime(0.22, now + 18.0);
+    engineGain.gain.linearRampToValueAtTime(0.28, now + 21.5); // dive scream swell
+    engineGain.gain.exponentialRampToValueAtTime(0.0001, now + 22.0);
+
+    engineA.connect(exhaustChamber);
+    engineB.connect(exhaustChamber);
+    exhaustChamber.connect(engineCutoff);
+    engineCutoff.connect(engineGain);
+    engineGain.connect(this.masterGain);
+
+    engineA.start(now + 0.2);
+    engineB.start(now + 0.2);
+    tremolo.start(now + 0.2);
+    engineA.stop(now + 22.1);
+    engineB.stop(now + 22.1);
+    tremolo.stop(now + 22.1);
+    this.launchNodes.push(engineA, engineB, tremolo, tremoloGain, exhaustChamber, engineCutoff, engineGain);
+
+    // ── 3. High-Order Exhaust Port Rasp (Octave overtone) ──
+    const rasp = ctx.createOscillator();
+    const raspGain = ctx.createGain();
+    const raspFilter = ctx.createBiquadFilter();
+    rasp.type = "sawtooth";
+    rasp.frequency.setValueAtTime(218, now + 0.2);
+    rasp.frequency.exponentialRampToValueAtTime(270, now + 15.0);
+    rasp.frequency.exponentialRampToValueAtTime(490, now + 21.8);
+
+    raspFilter.type = "highpass";
+    raspFilter.frequency.setValueAtTime(1050, now + 0.2);
+
+    raspGain.gain.setValueAtTime(0.0001, now);
+    raspGain.gain.linearRampToValueAtTime(0.06, now + 0.6);
+    raspGain.gain.linearRampToValueAtTime(0.05, now + 15.0);
+    raspGain.gain.linearRampToValueAtTime(0.08, now + 21.5);
+    raspGain.gain.exponentialRampToValueAtTime(0.0001, now + 22.0);
+
+    rasp.connect(raspFilter);
+    raspFilter.connect(raspGain);
+    raspGain.connect(this.masterGain);
+    rasp.start(now + 0.2);
+    rasp.stop(now + 22.1);
+    this.launchNodes.push(rasp, raspFilter, raspGain);
+
+    // ── 4. Pusher Propeller Wash Flutter & Atmospheric Airflow ──
+    if (noiseBuffer) {
+      const propNoise = ctx.createBufferSource();
+      const propGain = ctx.createGain();
+      const propFilter = ctx.createBiquadFilter();
+
+      const propFlutter = ctx.createOscillator();
+      const propFlutterGain = ctx.createGain();
+      propFlutter.type = "sine";
+      propFlutter.frequency.setValueAtTime(36, now + 0.2);
+      propFlutter.frequency.exponentialRampToValueAtTime(48, now + 18.0);
+      propFlutterGain.gain.setValueAtTime(0.03, now + 0.2);
+
+      propNoise.buffer = noiseBuffer;
+      propNoise.loop = true;
+      propFilter.type = "bandpass";
+      propFilter.frequency.setValueAtTime(680, now + 0.2);
+      propFilter.frequency.exponentialRampToValueAtTime(1100, now + 21.8);
+      propFilter.Q.setValueAtTime(1.4, now + 0.2);
+
+      propGain.gain.setValueAtTime(0.0001, now);
+      propGain.gain.linearRampToValueAtTime(0.11, now + 1.0);
+      propGain.gain.linearRampToValueAtTime(0.09, now + 15.0);
+      propGain.gain.linearRampToValueAtTime(0.14, now + 21.5);
+      propGain.gain.exponentialRampToValueAtTime(0.0001, now + 22.0);
+
+      propFlutter.connect(propFlutterGain);
+      propFlutterGain.connect(propGain.gain);
+
+      propNoise.connect(propFilter);
+      propFilter.connect(propGain);
+      propGain.connect(this.masterGain);
+
+      propNoise.start(now + 0.2);
+      propFlutter.start(now + 0.2);
+      propNoise.stop(now + 22.1);
+      propFlutter.stop(now + 22.1);
+      this.launchNodes.push(propNoise, propFilter, propGain, propFlutter, propFlutterGain);
+    }
+
+    // ── 5. Kamikaze Detonation at Apogee (22.0s) ──
+    const tExplode = setTimeout(() => {
+      if (!this.isMuted) {
+        this.playDroneKamikazeExplosion();
+      }
+    }, 22000);
+    this.launchTimers.push(tExplode);
   }
 
   /**
